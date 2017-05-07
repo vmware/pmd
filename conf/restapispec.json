@@ -1,0 +1,1977 @@
+{
+ "swagger":"2.0",
+ "info":
+ {
+  "description":"Javelin allows secure remote resource management for PhotonOS.",
+  "version":"0.9",
+  "title":"Javelin",
+  "contact":{"email":"photon-core-dev.eng.vmware.com"},
+  "license":
+   {
+     "name":"Apache 2.0",
+     "url":"http://www.apache.org/licenses/LICENSE-2.0.html"
+   }
+ },
+ "host":"IPADDRESS_MARKER:81",
+ "basePath":"/v1",
+ "schemes":["http", "https"],
+ "tags":
+ [
+  {
+   "name":"pmd",
+   "description":"information about javelin server",
+   "externalDocs":
+   {
+    "description":"Find out more",
+    "url":"http://wiki.eng.vmware.com/Photon/Javelin"
+   }
+  },
+  {
+   "name":"firewall",
+   "description":"firewall management module",
+   "externalDocs":
+   {
+    "description":"Find out more",
+    "url":"http://wiki.eng.vmware.com/Photon/Javelin"
+   }
+  },
+  {
+   "name":"net",
+   "description":"net management module",
+   "externalDocs":
+   {
+    "description":"Find out more",
+    "url":"http://wiki.eng.vmware.com/Photon/Javelin"
+   }
+  },
+  {
+   "name":"pkg",
+   "description":"package management module",
+   "externalDocs":
+   {
+    "description":"Find out more",
+    "url":"http://wiki.eng.vmware.com/Photon/Javelin"
+   }
+  },
+  {
+   "name":"usrmgmt",
+   "description":"user management module",
+   "externalDocs":
+   {
+    "description":"Find out more",
+    "url":"http://wiki.eng.vmware.com/Photon/Javelin"
+   }
+  }
+ ],
+ "paths":
+ {
+  "/info":
+  {
+   "get":
+   {
+    "tags":["pmd"],
+    "summary":"server info",
+    "description":"server info",
+    "operationId":"get_server_info",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[],
+    "responses":{
+        "200": {
+            "description":"info",
+            "schema": {
+                    "$ref": "#/definitions/ServerInfo"
+            }
+        }
+    },
+    "security": [
+      {
+        "lightwave_oauth": [
+          "read:pmd"
+        ]
+      }
+    ]
+   }
+  },
+  "/javelin.json":
+  {
+   "get":
+   {
+    "tags":["pmd"],
+    "summary":"get schema json",
+    "description":"schema json",
+    "operationId":"get_schema",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[],
+    "responses":{"405":{"description":"Invalid input"}},
+    "security":[]
+   }
+  },
+  "/pmd/modules":
+  {
+   "get":
+   {
+    "tags":["pmd"],
+    "summary":"list modules",
+    "description":"photon management daemon(pmd) allows modules to be registered. This call enumerates all registered modules.",
+    "operationId":"listmodules",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[],
+    "responses":{"405":{"description":"Invalid input"}},
+    "security":[]
+   }
+  },
+  "/pmd/config":
+  {
+   "get":
+   {
+    "tags":["pmd"],
+    "summary":"show config settings",
+    "description":"pmd server works off an initial configuration file loaded from disk. The config settings can be overridden. This call shows the current config settings that are applied for this server.",
+    "operationId":"listconfig",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[],
+    "responses":{"405":{"description":"Invalid input"}},
+    "security":[]
+   }
+  },
+  "/net/hostname":
+  {
+   "get":
+   {
+    "tags":["net"],
+    "summary":"get hostname",
+    "description":"get hostname",
+    "operationId":"get_hostname",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[],
+    "responses":{
+        "200":{"description":{"result":"success"}},
+        "400":{"description":"Hostname is not set."}
+        },
+    "security":[]
+   },
+   "put":
+   {
+    "tags":["net"],
+    "summary":"set hostname",
+    "description":"set hostname",
+    "operationId":"set_hostname",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"hostname",
+                  "in":"query",
+                  "description":"hostname",
+                  "required":true,
+                  "type":"string"
+                  }
+                 ],
+    "responses":{
+        "200":{"result":"success"}
+        },
+    "security":[]
+   }
+  },
+  "/net/waitforlink":
+  {
+   "post":
+   {
+    "tags":["net"],
+    "summary":"wait for link up",
+    "description":"wait for link up",
+    "operationId":"waitforlink",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  },
+                  {
+                  "name":"timeout",
+                  "in":"query",
+                  "description":"timeout",
+                  "required":false,
+                  "type":"integer"
+                  }
+                 ],
+    "responses":{
+        "200":{"result":"success"},
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   }
+  },
+  "/net/waitforip":
+  {
+   "post":
+   {
+    "tags":["net"],
+    "summary":"wait for ip address",
+    "description":"wait for ip address",
+    "operationId":"waitforip",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  },
+                  {
+                  "name":"timeout",
+                  "in":"query",
+                  "description":"timeout",
+                  "required":false,
+                  "type":"integer"
+                  },
+                  {
+                  "name":"addrtype",
+                  "in":"query",
+                  "description":"address types",
+                  "required":true,
+                  "type":"array",
+                  "items": {"type":"string"}
+                  }
+                 ],
+    "responses":{
+        "200":{"result":"success"},
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   }
+  },
+  "/net/dns/domains":
+  {
+   "get":
+   {
+    "tags":["net"],
+    "summary":"get dns domains",
+    "description":"get dns domains",
+    "operationId":"get_dns_domains",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":false,
+                  "type":"string"
+                  }],
+    "responses":{"405":{"description":"Invalid input"}},
+    "security":[]
+   },
+   "put":
+   {
+    "tags":["net"],
+    "summary":"set dns domains",
+    "description":"set dns domains",
+    "operationId":"set_dns_domains",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":false,
+                  "type":"string"
+                  },
+                  {
+                  "name":"domains",
+                  "in":"query",
+                  "description":"domain names",
+                  "required":true,
+                  "type":"array",
+                  "items": {"type":"string"}
+                  }],
+    "responses":{"405":{"description":"Invalid input"}},
+    "security":[]
+   }
+  },
+  "/net/dns/servers":
+  {
+   "get":
+   {
+    "tags":["net"],
+    "summary":"get dns servers",
+    "description":"get dns servers",
+    "operationId":"get_dns_servers",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[],
+    "responses":{
+        "200":{"description":{"result":"success"}},
+        "405":{"description":"Invalid input"}
+    },
+    "security":[]
+   },
+   "put":
+   {
+    "tags":["net"],
+    "summary":"set dns servers",
+    "description":"set dns servers",
+    "operationId":"set_dns_servers",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"mode",
+                  "in":"query",
+                  "description":"DNS mode - 'static' or 'dhcp'.",
+                  "required":true,
+                  "type":"string",
+                  "default":"dhcp",
+                  "enum":["static","dhcp"]
+                  },
+                  {
+                  "name":"servers",
+                  "in":"query",
+                  "description":"List of DNS servers for static DNS configuration.",
+                  "required":false,
+                  "type":"array",
+                  "items": {"type":"string"}
+                  }],
+    "responses":{
+        "200":{"description":{"result":"success"}},
+        "405":{"description":"Invalid input"}
+    },
+    "security":[]
+   }
+  },
+  "/net/dhcp/duid":
+  {
+   "get":
+   {
+    "tags":["net"],
+    "summary":"get dhcp duid",
+    "description":"get dhcp duid",
+    "operationId":"getdhcp_duid",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":false,
+                  "type":"string"
+                  }],
+    "responses":{
+        "400":{"description":"Invalid interface name"},
+        "412":{"description":"dhcp duid is not set for this interface. you can set it and make the call again."}
+        },
+    "security":[]
+   },
+   "put":
+   {
+    "tags":["net"],
+    "summary":"set dhcp duid",
+    "description":"set dhcp duid",
+    "operationId":"setdhcp-duid",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"duid",
+                  "in":"query",
+                  "description":"duid value",
+                  "required":true,
+                  "type":"string"
+                  }, {
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":false,
+                  "type":"string"
+                  }
+                 ],
+    "responses":{
+        "400":{"description":"Invalid interface name or duid"},
+        "412":{"description":"dhcp duid could not be set."}
+        },
+    "security":[]
+   }
+  },
+  "/net/dhcp/iaid":
+  {
+   "get":
+   {
+    "tags":["net"],
+    "summary":"get dhcp iaid",
+    "description":"get dhcp iaid",
+    "operationId":"getdhcp_iaid",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  }],
+    "responses":{
+        "400":{"description":"Invalid interface name"},
+        "412":{"description":"dhcp iaid is not set for this interface. you can set it and make the call again."}
+        },
+    "security":[]
+   },
+   "put":
+   {
+    "tags":["net"],
+    "summary":"set dhcp iaid",
+    "description":"set dhcp iaid",
+    "operationId":"setdhcp-iaid",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"iaid",
+                  "in":"query",
+                  "description":"duid value",
+                  "required":true,
+                  "type":"integer"
+                  },
+                  {
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  }
+                 ],
+    "responses":{
+        "400":{"description":"Invalid interface name or duid"},
+        "412":{"description":"dhcp duid could not be set."}
+        },
+    "security":[]
+   }
+  },
+  "/net/ifdown":
+  {
+   "post":
+   {
+    "tags":["net"],
+    "summary":"ifdown",
+    "description":"interface down",
+    "operationId":"ifdown",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  }
+                 ],
+    "responses":{
+        "200":{"result":"success"},
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   }
+  },
+  "/net/ifup":
+  {
+   "post":
+   {
+    "tags":["net"],
+    "summary":"ifup",
+    "description":"interface up",
+    "operationId":"ifup",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  }
+                 ],
+    "responses":{
+        "200":{"result":"success"},
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   }
+  },
+  "/net/ip/addr":
+  {
+   "get":
+   {
+    "tags":["net"],
+    "summary":"ip address",
+    "description":"get ip address",
+    "operationId":"ip_addr",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  },
+                  {
+                  "name":"addr_type",
+                  "in":"query",
+                  "description":"address types",
+                  "required":false,
+                  "type":"array",
+                  "items": {"type":"string"}
+                  }],
+    "responses":{
+        "200":{"description":"ip addresses",
+            "schema": {
+                "type": "object",
+                "$ref": "#/definitions/IPAddress"
+                }
+              },
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   }
+  },
+  "/net/ip/route":
+  {
+   "get":
+   {
+    "tags":["net"],
+    "summary":"get static ip routes",
+    "description":"get static ip routes",
+    "operationId":"get_static_ip_route",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  }
+                 ],
+    "responses":{
+        "200":{"description":"static ip routes",
+            "schema": {
+                "type": "object",
+                "$ref": "#/definitions/IPRoute"
+                }
+              },
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   },
+   "put":
+   {
+    "tags":["net"],
+    "summary":"add static ip routes",
+    "description":"add static ip routes",
+    "operationId":"add_static_ip_route",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"ip_route",
+                  "in":"body",
+                  "description":"ip route",
+                  "required":true,
+                  "schema": {
+                      "$ref": "#/definitions/IPRoute"
+                    }
+                  }
+                 ],
+    "responses":{
+        "200":{"description":{"result":"success"}},
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   },
+   "delete":
+   {
+    "tags":["net"],
+    "summary":"delete static ip route",
+    "description":"delete static ip route",
+    "operationId":"delete_static_ip_route",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"ip_route",
+                  "in":"body",
+                  "description":"ip route",
+                  "required":true,
+                  "schema": {
+                      "$ref": "#/definitions/IPRoute"
+                    }
+                  }
+                 ],
+    "responses":{
+        "200":{"description":{"result":"success"}},
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   }
+  },
+  "/net/ipv4/gateway":
+  {
+   "get":
+   {
+    "tags":["net"],
+    "summary":"get ipv4 gateway",
+    "description":"get ipv4 gateway",
+    "operationId":"get_ipv4_gateway",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  }
+                 ],
+    "responses":{
+        "200":{"description":"ipv4 address gateway",
+            "schema": {
+                "type": "object",
+                "$ref": "#/definitions/IPV4AddressGateway"
+                }
+        },
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   },
+   "put":
+   {
+    "tags":["net"],
+    "summary":"set ipv4 gateway",
+    "description":"set ipv4 gateway",
+    "operationId":"set_ipv4_gateway",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  },
+                  {
+                  "name":"mode",
+                  "in":"query",
+                  "description":"address mode",
+                  "required":false,
+                  "type":"string",
+                  "enum":["none","static","dhcp"]
+                  },
+                  {
+                  "name":"prefix",
+                  "in":"query",
+                  "description":"address prefix",
+                  "required":false,
+                  "type":"string"
+                  },
+                  {
+                  "name":"gateway",
+                  "in":"query",
+                  "description":"gateway",
+                  "required":false,
+                  "type":"string"
+                  }],
+    "responses":{
+        "200":{"description":{"result":"success"}},
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   }
+  },
+  "/net/ipv6/addr":
+  {
+   "put":
+   {
+    "tags":["net"],
+    "summary":"add ipv6 address",
+    "description":"add ipv6 address",
+    "operationId":"add_ipv6_address",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  },
+                  {
+                  "name":"prefix",
+                  "in":"query",
+                  "description":"address prefix",
+                  "required":true,
+                  "type":"string"
+                  }
+                 ],
+    "responses":{
+        "200":{"description":{"result":"success"}},
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   },
+   "delete":
+   {
+    "tags":["net"],
+    "summary":"delete static ipv6 address",
+    "description":"delete static ipv6 address",
+    "operationId":"delete_static_ipv6_address",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  },
+                  {
+                  "name":"prefix",
+                  "in":"query",
+                  "description":"address prefix",
+                  "required":true,
+                  "type":"string"
+                  }
+                  ],
+    "responses":{
+        "200":{"description":{"result":"success"}},
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   }
+  },
+  "/net/ipv6/gateway":
+  {
+   "get":
+   {
+    "tags":["net"],
+    "summary":"get ipv6 gateway",
+    "description":"get ipv6 gateway",
+    "operationId":"get_ipv6_gateway",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  }
+                 ],
+    "responses":{
+        "200":{"description":"ipv6 address gateway",
+            "schema": {
+                "type": "object",
+                "$ref": "#/definitions/IPV6AddressGateway"
+                }
+        },
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   },
+   "put":
+   {
+    "tags":["net"],
+    "summary":"set ipv6 gateway",
+    "description":"set ipv6 gateway",
+    "operationId":"set_ipv6_gateway",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  },
+                  {
+                  "name":"gateway",
+                  "in":"query",
+                  "description":"gateway",
+                  "required":false,
+                  "type":"string"
+                  }],
+    "responses":{
+        "200":{"description":{"result":"success"}},
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   }
+  },
+  "/net/ipv6/addr/mode":
+  {
+   "get":
+   {
+    "tags":["net"],
+    "summary":"get ipv6 address mode",
+    "description":"get ipv6 address mode",
+    "operationId":"get_ipv6_address_mode",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  }
+                 ],
+    "responses":{
+        "200":{"description":"ipv6 address mode",
+            "schema": {
+                "type": "object",
+                "$ref": "#/definitions/IPV6AddressMode"}},
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   },
+   "put":
+   {
+    "tags":["net"],
+    "summary":"set ipv6 address mode",
+    "description":"set ipv6 address mode",
+    "operationId":"set_ipv6_address_mode",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  },
+                  {
+                  "name":"enableDhcp",
+                  "in":"query",
+                  "description":"enable dhcp",
+                  "required":true,
+                  "type":"string",
+                  "enum":["true", "false"]
+                  },
+                  {
+                  "name":"enableAutoConf",
+                  "in":"query",
+                  "description":"enable autoconf",
+                  "required":true,
+                  "type":"string",
+                  "enum":["true", "false"]
+                  }
+                  ],
+    "responses":{
+        "200":{"description":{"result":"success"}},
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   }
+  },
+  "/net/link/info":
+  {
+   "get":
+   {
+    "tags":["net"],
+    "summary":"link info",
+    "description":"information about link",
+    "operationId":"link_info",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":false,
+                  "type":"string"
+                  }
+                 ],
+    "responses":{
+        "200":{"description":"net link info array",
+            "schema": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/NetLinkInfo"
+                }
+            }
+        },
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   }
+  },
+  "/net/link/mode":
+  {
+   "get":
+   {
+    "tags":["net"],
+    "summary":"get link mode",
+    "description":"get link mode",
+    "operationId":"get_link_mode",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  }],
+    "responses":{
+        "200":{"description":"link_mode", "schema": {"type": "string"}},
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   },
+   "put":
+   {
+    "tags":["net"],
+    "summary":"set link mode",
+    "description":"set link mode",
+    "operationId":"set_link_mode",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  },
+                  {
+                  "name":"link_mode",
+                  "in":"query",
+                  "description":"link mode",
+                  "required":true,
+                  "type":"string",
+                  "default":"auto",
+                  "enum":["auto","manual"]
+                  }
+                 ],
+    "responses":{
+        "200":{"result":"success"},
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   }
+  },
+  "/net/link/mtu":
+  {
+   "get":
+   {
+    "tags":["net"],
+    "summary":"get link mtu",
+    "description":"get link mtu",
+    "operationId":"get_link_mtu",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  }],
+    "responses":{
+        "200":{"description":"link_mtu", "schema": {"type": "integer"}},
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   },
+   "put":
+   {
+    "tags":["net"],
+    "summary":"set link mtu",
+    "description":"set link mtu",
+    "operationId":"set_link_mtu",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  },
+                  {
+                  "name":"link_mtu",
+                  "in":"query",
+                  "description":"link mtu",
+                  "required":true,
+                  "type":"integer"
+                  }
+                 ],
+    "responses":{
+        "200":{"result":"success"},
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   }
+  },
+  "/net/link/state":
+  {
+   "get":
+   {
+    "tags":["net"],
+    "summary":"get link state",
+    "description":"get link state",
+    "operationId":"get_link_state",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  }],
+    "responses":{
+        "200":{"description":"link_state", "schema": {"type": "integer"}},
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   },
+   "put":
+   {
+    "tags":["net"],
+    "summary":"set link state",
+    "description":"set link state",
+    "operationId":"set_link_state",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  },
+                  {
+                  "name":"link_state",
+                  "in":"query",
+                  "description":"link state",
+                  "required":true,
+                  "type":"string",
+                  "enum":["down","up"]
+                  }
+                 ],
+    "responses":{
+        "200":{"result":"success"},
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   }
+  },
+  "/net/mac_addr":
+  {
+   "get":
+   {
+    "tags":["net"],
+    "summary":"get mac address",
+    "description":"get mac address",
+    "operationId":"get_mac_addr",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  }],
+    "responses":{
+        "200":{"description":"mac_addr", "schema": {"type": "string"}},
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   },
+   "put":
+   {
+    "tags":["net"],
+    "summary":"set mac address",
+    "description":"set mac address",
+    "operationId":"set_mac_address",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"interface",
+                  "in":"query",
+                  "description":"interface name",
+                  "required":true,
+                  "type":"string"
+                  },
+                  {
+                  "name":"mac_address",
+                  "in":"query",
+                  "description":"mac address to set",
+                  "required":true,
+                  "type":"string"
+                  }
+                 ],
+    "responses":{
+        "200":{"result":"success"},
+        "400":{"description":"Invalid interface name"}
+        },
+    "security":[]
+   }
+  },
+  "/net/ntp/servers":
+  {
+   "get":
+   {
+    "tags":["net"],
+    "summary":"get ntp servers",
+    "description":"get ntp servers",
+    "operationId":"get_ntp_servers",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[],
+    "responses":{
+        "200":{"description":"servers",
+               "schema": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+              }
+           }
+        },
+    "security":[]
+   },
+   "put":
+   {
+    "tags":["net"],
+    "summary":"set ntp servers",
+    "description":"set ntp servers",
+    "operationId":"set_ntp_servers",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"servers",
+                  "in":"query",
+                  "description":"server names",
+                  "required":true,
+                  "type":"array",
+                  "items": {"type":"string"}
+                  }
+                 ],
+    "responses":{"200":{"result":"success"}},
+    "security":[]
+   },
+   "delete":
+   {
+    "tags":["net"],
+    "summary":"delete ntp servers",
+    "description":"delete ntp servers",
+    "operationId":"delete_ntp_servers",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"servers",
+                  "in":"query",
+                  "description":"server names",
+                  "required":true,
+                  "type":"array",
+                  "items": {"type":"string"}
+                  }
+                 ],
+    "responses":{"200":{"result":"success"}},
+    "security":[]
+   }
+  },
+  "/net/version":
+  {
+   "get":
+   {
+    "tags":["net"],
+    "summary":"get version",
+    "description":"get net management version",
+    "operationId":"net_version",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[],
+    "responses":{
+        "200":{"description":"net version"}
+        },
+    "security":[]
+   }
+  },
+  "/pkg/version":
+  {
+   "get":
+   {
+    "tags":["pkg"],
+    "summary":"get version",
+    "description":"get pkg management version",
+    "operationId":"getversion",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[],
+    "responses":{
+        "200":{"description":"pkg version"}
+        },
+    "security":[]
+   }
+  },
+  "/pkg/count":
+  {
+   "get":
+   {
+    "tags":["pkg"],
+    "summary":"get count",
+    "description":"get pkg count",
+    "operationId":"getcount",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[],
+    "responses":{
+        "200":{"description":"pkg count"}
+        },
+    "security":[]
+   }
+  },
+  "/pkg/repos":
+  {
+   "get":
+   {
+    "tags":["pkg"],
+    "summary":"get repos",
+    "description":"get repository info",
+    "operationId":"getrepolist",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[],
+    "responses":{
+        "200": {
+            "description":"repolist",
+            "schema": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/Repo"
+                }
+            }
+        }
+    },
+    "security":[]
+   }
+  },
+  "/pkg/list":
+  {
+   "get":
+   {
+    "tags":["pkg"],
+    "summary":"get packages",
+    "description":"get packages",
+    "operationId":"pkglist",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"filter",
+                  "in":"query",
+                  "description":"filter packages by type: all, installed, available, updates, downgrades. default is all",
+                  "required":false,
+                  "type":"string",
+                  "default":"all",
+                  "enum":["all","installed","available","updates","downgrades"]
+                  }],
+    "responses":{
+        "200": {
+            "description":"pkglist",
+            "schema": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/Package"
+                }
+            }
+        }
+    },
+    "security":[]
+   }
+  },
+  "/pkg/install":
+  {
+   "post":
+   {
+    "tags":["pkg"],
+    "summary":"install",
+    "description":"install package(s)",
+    "operationId":"install",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"packages",
+                  "in":"query",
+                  "description":"Package name(s). Specify version number to install a specific version.",
+                  "required":true,
+                  "type":"array",
+                  "items": {"type":"string"}
+                  }],
+    "responses":{
+        "200": {
+            "description":"pkglist",
+            "schema": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/Package"
+                }
+            }
+        }
+    },
+    "security":[]
+   }
+  },
+  "/pkg/update":
+  {
+   "post":
+   {
+    "tags":["pkg"],
+    "summary":"update",
+    "description":"update package(s)",
+    "operationId":"update",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"packages",
+                  "in":"query",
+                  "description":"Package name(s). Specify version number to update to a specific version. Leave empty to update all.",
+                  "required":false,
+                  "type":"array",
+                  "items": {"type":"string"}
+                  }],
+    "responses":{
+        "200": {
+            "description":"pkglist",
+            "schema": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/AlterInfo"
+                }
+            }
+        }
+    },
+    "security":[]
+   }
+  },
+  "/pkg/erase":
+  {
+   "post":
+   {
+    "tags":["pkg"],
+    "summary":"erase",
+    "description":"erase package(s)",
+    "operationId":"erase",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"packages",
+                  "in":"query",
+                  "description":"Package name(s) to erase.",
+                  "required":true,
+                  "type":"array",
+                  "items": {"type":"string"}
+                  }],
+    "responses":{
+        "200": {
+            "description":"pkglist",
+            "schema": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/Package"
+                }
+            }
+        }
+    },
+    "security":[]
+   }
+  },
+  "/pkg/distro_sync":
+  {
+   "post":
+   {
+    "tags":["pkg"],
+    "summary":"distro sync",
+    "description":"sync installed packages to available ones",
+    "operationId":"distro_sync",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[],
+    "responses":{
+        "200": {
+            "description":"pkglist",
+            "schema": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/Package"
+                }
+            }
+        }
+    },
+    "security":[]
+   }
+  },
+  "/pkg/downgrade":
+  {
+   "post":
+   {
+    "tags":["pkg"],
+    "summary":"downgrade",
+    "description":"downgrade package(s)",
+    "operationId":"downgrade",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"packages",
+                  "in":"query",
+                  "description":"Package name(s). Specify version number to downgrade to a specific version. Leave out parameters to downgrade all available.",
+                  "required":false,
+                  "type":"array",
+                  "items": {"type":"string"}
+                  }],
+    "responses":{
+        "200": {
+            "description":"pkglist",
+            "schema": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/Package"
+                }
+            }
+        }
+    },
+    "security":[]
+   }
+  },
+  "/pkg/reinstall":
+  {
+   "post":
+   {
+    "tags":["pkg"],
+    "summary":"reinstall",
+    "description":"reinstall package(s)",
+    "operationId":"reinstall",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"packages",
+                  "in":"query",
+                  "description":"Package name(s) to reinstall.",
+                  "required":true,
+                  "type":"array",
+                  "items": {"type":"string"}
+                  }],
+    "responses":{
+        "200": {
+            "description":"pkglist",
+            "schema": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/Package"
+                }
+            }
+        }
+    },
+    "security":[]
+   }
+  },
+   "/usrmgmt/users":
+   {
+   "get":
+   {
+    "tags":["usrmgmt"],
+    "summary":"get users",
+    "description":"get all users",
+    "operationId":"get_users",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[],
+    "responses":{
+        "200": {
+            "description":"users",
+            "schema": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/User"
+                }
+            }
+        }
+    },
+    "security":[]
+    }
+   },
+  "/usrmgmt/userid":
+  {
+   "get":
+   {
+    "tags":["usrmgmt"],
+    "summary":"get user id",
+    "description":"get user id for user name",
+    "operationId":"get_userid",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"name",
+                  "in":"query",
+                  "description":"user name.",
+                  "required":true,
+                  "type":"string"
+                  }],
+    "responses":{"405":{"description":"no such user"}},
+    "security":[]
+    }
+   },
+   "/usrmgmt/useradd":
+   {
+   "put":
+   {
+    "tags":["usrmgmt"],
+    "summary":"add user",
+    "description":"create user",
+    "operationId":"put_user",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"name",
+                  "in":"query",
+                  "description":"user name",
+                  "required":true,
+                  "type":"string"
+                  }],
+    "responses":{"200":{"result":"success"}},
+    "security":[]
+    }
+   },
+   "/usrmgmt/userdel":
+   {
+   "delete":
+   {
+    "tags":["usrmgmt"],
+    "summary":"delete user",
+    "description":"delete user by name",
+    "operationId":"delete_user",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"name",
+                  "in":"query",
+                  "description":"user name",
+                  "required":true,
+                  "type":"string"
+                  }],
+    "responses":{"200":{"result":"success"}},
+    "security":[]
+    }
+   },
+   "/usrmgmt/groups":
+   {
+   "get":
+   {
+    "tags":["usrmgmt"],
+    "summary":"get groups",
+    "description":"get all groups",
+    "operationId":"get_groups",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[],
+    "responses":{
+        "200": {
+            "description":"groups",
+            "schema": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/Group"
+                }
+            }
+        }
+    },
+    "security":[]
+    }
+   },
+   "/usrmgmt/groupid":
+   {
+   "get":
+   {
+    "tags":["usrmgmt"],
+    "summary":"get group id",
+    "description":"get group id for group name",
+    "operationId":"get_groupid",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"name",
+                  "in":"query",
+                  "description":"group name.",
+                  "required":true,
+                  "type":"string"
+                  }],
+    "responses":{"405":{"description":"no such group"}},
+    "security":[]
+    }
+   },
+   "/usrmgmt/groupadd":
+   {
+   "put":
+   {
+    "tags":["usrmgmt"],
+    "summary":"add group",
+    "description":"create group",
+    "operationId":"put_group",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"name",
+                  "in":"query",
+                  "description":"group name",
+                  "required":true,
+                  "type":"string"
+                  }],
+    "responses":{"200":{"result":"success"}},
+    "security":[]
+    }
+   },
+   "/usrmgmt/groupdel":
+   {
+   "delete":
+   {
+    "tags":["usrmgmt"],
+    "summary":"delete group",
+    "description":"delete group by name",
+    "operationId":"delete_group",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"name",
+                  "in":"query",
+                  "description":"group name",
+                  "required":true,
+                  "type":"string"
+                  }],
+    "responses":{"200":{"result":"success"}},
+    "security":[]
+    }
+   },
+   "/firewall/version":
+   {
+   "get":
+   {
+    "tags":["firewall"],
+    "summary":"get firewall version",
+    "description":"get firewall version",
+    "operationId":"get_firewall_version",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[],
+    "responses":{"200":{"result":"success"}},
+    "security":[]
+    }
+   },
+   "/firewall/rules":
+   {
+   "get":
+   {
+    "tags":["firewall"],
+    "summary":"get firewall rules",
+    "description":"get firewall rules",
+    "operationId":"get_firewall_rules",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"persistent",
+                  "in":"query",
+                  "description":"persistent rules",
+                  "required":false,
+                  "type":"string"
+                  }],
+    "responses":{"200":{"result":"success"}},
+    "security":[]
+    },
+   "put":
+   {
+    "tags":["firewall"],
+    "summary":"put firewall rules",
+    "description":"put firewall rules",
+    "operationId":"put_firewall_rules",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"chain",
+                  "in":"query",
+                  "description":"chain name",
+                  "required":true,
+                  "type":"string"
+                  },
+                  {
+                  "name":"persistent",
+                  "in":"query",
+                  "description":"persistent rules",
+                  "required":false,
+                  "type":"string"
+                  },
+                  {
+                  "name":"rule",
+                  "in":"query",
+                  "description":"rule spec",
+                  "required":true,
+                  "type":"string"
+                  }],
+    "responses":{"200":{"result":"success"}},
+    "security":[]
+    },
+   "delete":
+   {
+    "tags":["firewall"],
+    "summary":"delete firewall rules",
+    "description":"delete firewall rules",
+    "operationId":"delete_firewall_rules",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"chain",
+                  "in":"query",
+                  "description":"chain name",
+                  "required":true,
+                  "type":"string"
+                  },
+                  {
+                  "name":"persistent",
+                  "in":"query",
+                  "description":"persistent rules",
+                  "required":false,
+                  "type":"string"
+                  },
+                  {
+                  "name":"rule",
+                  "in":"query",
+                  "description":"rule spec",
+                  "required":true,
+                  "type":"string"
+                  }],
+    "responses":{"200":{"result":"success"}},
+    "security":[]
+    }
+   },
+   "/firewall/rules6":
+   {
+   "get":
+   {
+    "tags":["firewall"],
+    "summary":"get firewall rules for ipv6",
+    "description":"get firewall rules for ipv6",
+    "operationId":"get_firewall_rules6",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"persistent",
+                  "in":"query",
+                  "description":"persistent rules",
+                  "required":false,
+                  "type":"string"
+                  }],
+    "responses":{"200":{"result":"success"}},
+    "security":[]
+    }
+   }
+ },
+ "securityDefinitions": {
+   "lightwave_oauth": {
+     "type": "oauth2",
+     "flow": "password",
+     "tokenUrl": "https://LIGHTWAVE_SERVER/openidconnect/token",
+     "scopes": {
+       "write:pkg": "modify packages",
+       "write:pmd": "modify server info",
+       "write:net": "modify network info",
+       "write:usrmgmt": "modify user/group info",
+       "read:pkg": "read package info",
+       "read:pmd": "read server info",
+       "read:net": "read network info",
+       "read:usrmgmt": "read user/group info"
+     }
+   }
+ },
+ "definitions": {
+     "Repo": {
+         "type": "object",
+         "properties":  {
+             "id": {"type": "string"},
+             "name": {"type": "string"},
+             "baseurl": {"type": "string"},
+             "gpgkey": {"type": "string"},
+             "metadata_expire": {"type": "string"},
+             "gpgcheck": {"type": "boolean"},
+             "skip_if_unavailable": {"type": "boolean"},
+             "enabled": {"type": "boolean"}
+         }
+     },
+     "Package": {
+         "type": "object",
+         "properties":  {
+             "name": {"type": "string"},
+             "arch": {"type": "string"},
+             "epoch": {"type": "integer"},
+             "version": {"type": "string"},
+             "release": {"type": "string"},
+             "install_size": {"type": "string"},
+             "reponame": {"type": "string"},
+             "summary": {"type": "string"},
+             "url": {"type": "string"},
+             "license": {"type": "string"},
+             "description": {"type": "string"}
+         }
+     },
+     "ServerInfo": {
+         "type": "object",
+         "properties":  {
+             "sysinfo": {"$ref": "#/definitions/SysInfo"},
+             "uname": {"$ref": "#/definitions/Uname"}
+         }
+     },
+     "SysInfo": {
+         "type": "object",
+         "properties":  {
+             "uptime": {"type": "integer"},
+             "procs": {"type": "integer"},
+             "totalram": {"type": "integer"},
+             "freeram": {"type": "integer"}
+         }
+     },
+     "Uname": {
+         "type": "object",
+         "properties":  {
+             "sysname": {"type": "string"},
+             "release": {"type": "string"},
+             "nodename": {"type": "string"},
+             "version": {"type": "string"},
+             "machine": {"type": "string"}
+         }
+     },
+     "PackageMinimal": {
+         "type": "object",
+         "properties": {
+             "name": {"type": "string"},
+             "arch": {"type": "string"},
+             "epoch": {"type": "integer"},
+             "version": {"type": "string"},
+             "release": {"type": "string"}
+         }
+     },
+     "AlterInfo": {
+         "type": "object",
+         "properties": {
+             "install": {
+                      "type": "array",
+                      "items": {
+                          "$ref": "#/definitions/PackageMinimal"
+                      }
+             },
+             "update": {
+                      "type": "array",
+                      "items": {
+                          "$ref": "#/definitions/PackageMinimal"
+                      }
+             },
+             "reinstall": {
+                      "type": "array",
+                      "items": {
+                          "$ref": "#/definitions/PackageMinimal"
+                      }
+             },
+             "erase": {
+                      "type": "array",
+                      "items": {
+                          "$ref": "#/definitions/PackageMinimal"
+                      }
+             },
+             "downgrade": {
+                      "type": "array",
+                      "items": {
+                          "$ref": "#/definitions/PackageMinimal"
+                      }
+             }
+         }
+     },
+     "FirewallRule": {
+         "type": "object",
+         "properties":  {
+             "rule": {"type": "string"}
+         }
+     },
+     "User": {
+         "type": "object",
+         "properties":  {
+             "name": {"type": "string"},
+             "userid": {"type": "integer"},
+             "groupid": {"type": "integer"},
+             "description": {"type": "string"},
+             "homedir": {"type": "string"},
+             "shell": {"type": "string"}
+         }
+     },
+     "Group": {
+         "type": "object",
+         "properties":  {
+             "name": {"type": "string"},
+             "groupid": {"type": "integer"},
+             "members": {"type": "array", "items": {"type":"string"}}
+         }
+     },
+     "NetLinkInfo": {
+         "type": "object",
+         "properties":  {
+             "interface": {"type": "string"},
+             "mac_address": {"type": "string"},
+             "mtu": {"type": "integer"},
+             "mode": {"type": "string"},
+             "state": {"type": "string"}
+         }
+     },
+     "IPV4AddressGateway": {
+         "type": "object",
+         "properties":  {
+             "interface": {"type": "string"},
+             "mode": {"type": "string"},
+             "prefix": {"type": "string"},
+             "gateway": {"type": "string"}
+         }
+     },
+     "IPV6AddressGateway": {
+         "type": "object",
+         "properties":  {
+             "interface": {"type": "string"},
+             "gateway": {"type": "string"}
+         }
+     },
+     "IPRoute": {
+         "type": "object",
+         "properties":  {
+             "interface": {"type": "string"},
+             "dest_net": {"type": "string"},
+             "source_net": {"type": "string"},
+             "gateway": {"type": "string"},
+             "scope": {"type": "string"},
+             "metric": {"type": "integer"},
+             "table": {"type": "integer"}
+         }
+     },
+     "IPV6AddressMode": {
+         "type": "object",
+         "properties":  {
+             "interface": {"type": "string"},
+             "dhcp": {"type": "string"},
+             "autoconf": {"type": "string"}
+         }
+     },
+     "IPAddress": {
+         "type": "object",
+         "properties":  {
+             "interface": {"type": "string"},
+             "addr_type": {"type": "string"},
+             "prefix": {"type": "string"}
+         }
+     }
+  }
+}
