@@ -19,6 +19,7 @@ PREST_API_DEF gpApiDef = NULL;
 
 uint32_t
 rest_register_api_spec(
+    PVMREST_HANDLE pRestHandle,
     PREST_API_DEF pApiDef,
     PREST_PROCESSOR *ppRestProcessor
     )
@@ -27,7 +28,7 @@ rest_register_api_spec(
     PREST_API_MODULE pModule = NULL;
     PREST_PROCESSOR pRestProcessor = NULL;
 
-    if(!pApiDef || !ppRestProcessor)
+    if(!pRestHandle || !pApiDef || !ppRestProcessor)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
@@ -47,9 +48,11 @@ rest_register_api_spec(
         PREST_API_ENDPOINT pEndPoint = pModule->pEndPoints;
         for(; pEndPoint; pEndPoint = pEndPoint->pNext)
         {
-            dwError = VmRESTRegisterHandler(pEndPoint->pszName,
-                                            pRestProcessor,
-                                            NULL);
+            dwError = VmRESTRegisterHandler(
+                          pRestHandle,
+                          pEndPoint->pszName,
+                          pRestProcessor,
+                          NULL);
             BAIL_ON_PMD_ERROR(dwError);
         }
     }
@@ -432,6 +435,7 @@ error:
 
 uint32_t
 rest_method(
+    PVMREST_HANDLE pRestHandle,
     PREST_REQUEST pRequest,
     PREST_RESPONSE* ppResponse,
     uint32_t paramsCount
@@ -446,15 +450,17 @@ rest_method(
     PREST_API_METHOD pMethod = NULL;
     int nDataLength = 0;
     char *pszURI = NULL;
-
+printf("blah\n");
     dwError = get_uri_from_request(pRequest, &pszURI);
     BAIL_ON_PMD_ERROR(dwError);
 
+printf("blah: %s\n", pszURI);
     dwError = find_module_entry_spec(pRequest, pszURI, &pMethod);
     BAIL_ON_PMD_ERROR(dwError);
+printf("blah: %p\n", pMethod);
 
     fprintf(stdout, "REST auth request for %s\n", pszURI);
-    dwError = process_auth(pRequest, ppResponse);
+    dwError = process_auth(pRestHandle, pRequest, ppResponse);
     if(dwError)
     {
         fprintf(stderr, "REST auth fail for %s\n", pszURI);
@@ -493,6 +499,7 @@ rest_method(
         BAIL_ON_PMD_ERROR(dwError);
 
         dwError = VmRESTSetData(
+                      pRestHandle,
                       ppResponse,
                       pszJsonOut,
                       nDataLength,
@@ -516,6 +523,7 @@ rest_method(
             printf("nLengthSent = %d\n", nLengthSent);
             printf("Length = %ld\n", strlen(pszJsonOut + nLengthSent));*/
             dwError = VmRESTSetHttpPayload(
+                          pRestHandle,
                           ppResponse,
                           pszJsonOut + nLengthSent,
                           nChunkLength,

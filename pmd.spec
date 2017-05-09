@@ -13,7 +13,7 @@ Requires:	likewise-open >= 6.2.9
 Requires:       netmgmt
 Requires:	systemd
 Requires:	tdnf >= 1.2.0
-Requires:	vmware-rest
+Requires:	c-rest-engine
 Requires:       vmware-afd-client
 Requires:       vmware-directory-client
 Requires:       jansson
@@ -21,7 +21,7 @@ Requires:       copenapi
 BuildRequires:	popt-devel
 BuildRequires:	rpm-devel
 BuildRequires:	tdnf-devel >= 1.2.0
-BuildRequires:	vmware-rest-devel
+BuildRequires:	c-rest-engine-devel
 BuildRequires:  vmware-afd-client-devel
 BuildRequires:  vmware-directory-client-devel
 BuildRequires:	netmgmt-devel
