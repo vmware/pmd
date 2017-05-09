@@ -24,6 +24,7 @@ Content-Length: 20
 
 uint32_t
 request_basic_auth(
+    PVMREST_HANDLE pRestHandle,
     PREST_REQUEST pRequest,
     PREST_RESPONSE* ppResponse
     )
@@ -37,13 +38,14 @@ request_basic_auth(
     dwError = VmRESTSetHttpHeader(ppResponse, "Connection", "close");
     dwError = VmRESTSetHttpHeader(ppResponse, "Content-Length", "0");
     dwError = VmRESTSetHttpHeader(ppResponse, "WWW-Authenticate", "Basic realm=\"Photon Management Daemon\"");
-    dwError = VmRESTSetHttpPayload(ppResponse,"", 0, &temp );
+    dwError = VmRESTSetHttpPayload(pRestHandle, ppResponse,"", 0, &temp );
     dwError = EACCES;
     return dwError;
 }
 
 uint32_t
 verify_basic_auth(
+    PVMREST_HANDLE pRestHandle,
     PREST_REQUEST pRequest,
     PREST_RESPONSE* ppResponse
     )
@@ -106,7 +108,7 @@ cleanup:
 error:
     if(dwError == EACCES || dwError == ERROR_PMD_ACCESS_DENIED)
     {
-        request_basic_auth(pRequest, ppResponse);
+        request_basic_auth(pRestHandle, pRequest, ppResponse);
     }
     goto cleanup;
 }

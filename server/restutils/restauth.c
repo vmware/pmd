@@ -17,6 +17,7 @@
 
 uint32_t
 populate_error(
+    PVMREST_HANDLE pRestHandle,
     PREST_RESPONSE* ppResponse,
     PJWT_ERROR pError
     )
@@ -25,7 +26,7 @@ populate_error(
     char *pszCode = NULL;
     uint32_t temp = 0;
 
-    if(!ppResponse || !pError)
+    if(!pRestHandle || !ppResponse || !pError)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
@@ -49,7 +50,8 @@ populate_error(
     dwError = VmRESTSetHttpHeader(ppResponse, "Content-Length", "0");
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = VmRESTSetHttpPayload(ppResponse, "", 0, &temp );
+    dwError = VmRESTSetHttpPayload(pRestHandle, ppResponse, "", 0, &temp);
+    BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:
     PMD_SAFE_FREE_MEMORY(pszCode);
@@ -61,6 +63,7 @@ error:
 
 uint32_t
 process_auth(
+    PVMREST_HANDLE pRestHandle,
     PREST_REQUEST pRequest,
     PREST_RESPONSE* ppResponse
     )
@@ -68,7 +71,7 @@ process_auth(
     uint32_t dwError = 0;
     char* pszAuth = NULL;
 
-    if(!pRequest || !ppResponse)
+    if(!pRestHandle || !pRequest || !ppResponse)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
@@ -85,12 +88,12 @@ process_auth(
 
     if(strstr(pszAuth, AUTH_NEGOTIATE))
     {
-        dwError = verify_krb_auth(pRequest, ppResponse);
+        dwError = verify_krb_auth(pRestHandle, pRequest, ppResponse);
         BAIL_ON_PMD_ERROR(dwError);
     }
     else if(strstr(pszAuth, AUTH_BASIC))
     {
-        dwError = verify_basic_auth(pRequest, ppResponse);
+        dwError = verify_basic_auth(pRestHandle, pRequest, ppResponse);
         BAIL_ON_PMD_ERROR(dwError);
     }
     else
@@ -106,7 +109,7 @@ error:
     if(dwError == ERROR_PMD_REST_AUTH_REQUIRED ||
        dwError == ERROR_PMD_REST_AUTH_BASIC_MIN)
     {
-        request_basic_auth(pRequest, ppResponse);
+        request_basic_auth(pRestHandle, pRequest, ppResponse);
     }
     goto cleanup;
 }

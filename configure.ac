@@ -63,38 +63,38 @@ AC_CHECK_LIB(
 
 AC_SUBST(DCERPC_LIBS)
 
-AC_ARG_WITH([vmware-rest],
-    [AC_HELP_STRING([--with-vmware-rest=<dir>], [use rest binaries rooted at prefix <dir> ])],
+AC_ARG_WITH([c-rest-engine],
+    [AC_HELP_STRING([--with-c-rest-engine=<dir>], [use rest binaries rooted at prefix <dir> ])],
     [
-        VMREST_BASE_PATH="$withval"
-        VMREST_INCLUDES="-I$withval/include"
-        VMREST_LDFLAGS="-L$withval/lib64"
+        CREST_BASE_PATH="$withval"
+        CREST_INCLUDES="-I$withval/include"
+        CREST_LDFLAGS="-L$withval/lib64"
     ],
     [
-        VMREST_BASE_PATH="/usr/lib/"
-        VMREST_INCLUDES="-I/usr/include/vmware-rest/"
-        VMREST_LDFLAGS="-L/usr/lib/"
+        CREST_BASE_PATH="/usr/lib/"
+        CREST_INCLUDES="-I/usr/include/c-rest-engine/"
+        CREST_LDFLAGS="-L/usr/lib/"
     ])
 
-AC_SUBST(VMREST_BASE_PATH)
-AC_SUBST(VMREST_INCLUDES)
-AC_SUBST(VMREST_LDFLAGS)
+AC_SUBST(CREST_BASE_PATH)
+AC_SUBST(CREST_INCLUDES)
+AC_SUBST(CREST_LDFLAGS)
 
 saved_CPPFLAGS="$CPPFLAGS"
-CPPFLAGS="$CPPFLAGS $VMREST_INCLUDES"
+CPPFLAGS="$CPPFLAGS $CREST_INCLUDES"
 
-#vmrest lib
-echo "Looking for vmrest headers"
+#c-rest-engine lib
+echo "Looking for rest headers"
 AC_CHECK_HEADERS(vmrest.h)
 
 AC_CHECK_LIB(
     [restengine],
     [VmRESTInit],
-    [VMREST_LIBS="-lrestengine"],
+    [CREST_LIBS="-lrestengine"],
     [],
-    [$VMREST_LDFLAGS])
+    [$CREST_LDFLAGS])
 
-AC_SUBST(VMREST_LIBS)
+AC_SUBST(CREST_LIBS)
 
 saved_CPPFLAGS="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS $LW_INCLUDES"
