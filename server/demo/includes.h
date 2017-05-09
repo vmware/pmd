@@ -23,7 +23,7 @@
 
 #include <dce/rpc.h>
 
-#include <vmware-rest/vmrest.h>
+#include <c-rest-engine/vmrest.h>
 #include <jansson.h>
 #include <copenapi/copenapi.h>
 

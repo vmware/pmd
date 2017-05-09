@@ -25,7 +25,7 @@
 #include <errno.h>
 #include <pthread.h>
 #include <jansson.h>
-#include <vmware-rest/vmrest.h>
+#include <c-rest-engine/vmrest.h>
 #include <gssapi/gssapi.h>
 #include <copenapi/copenapi.h>
 

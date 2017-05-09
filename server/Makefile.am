@@ -6,7 +6,7 @@ pmd_CPPFLAGS = \
     -I$(top_srcdir)/include \
     -I$(top_srcdir)/idl \
     @LW_INCLUDES@ \
-    @VMREST_INCLUDES@ \
+    @CREST_INCLUDES@ \
     @VMDIRCLI_INCLUDES@ \
     @VMAFD_INCLUDES@
 
@@ -67,7 +67,7 @@ pmd_LDADD =  \
     @top_builddir@/server/security/libpmdsecurity.la \
     @DCERPC_LIBS@ \
     @JANSSON_LIBS@ \
-    @VMREST_LIBS@ \
+    @CREST_LIBS@ \
     @VMDIRCLI_LIBS@ \
     @VMAFD_LIBS@ \
     @COPENAPI_LIBS@ \
@@ -81,7 +81,7 @@ pmd_LDADD =  \
 pmd_LDFLAGS = \
     @VMAFD_LDFLAGS@ \
     @VMDIRCLI_LDFLAGS@ \
-    @VMREST_LDFLAGS@ \
+    @CREST_LDFLAGS@ \
     @DCERPC_LDFLAGS@ \
     @LW_LDFLAGS@
 
