@@ -542,6 +542,10 @@ uint32_t
 StartRestServer(
     );
 
+void
+StopRestServer(
+    );
+
 //signal.c
 uint32_t
 pmd_handle_signals(

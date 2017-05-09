@@ -44,4 +44,5 @@ typedef struct _SERVER_ENV_
     PREST_MODULE_ENTRY pModuleEntries;
     PREST_PROCESSOR pRestProcessor;
     PPMD_SECURITY_CONTEXT pSecurityContext;
+    PVMREST_HANDLE pRestHandle;
 }SERVER_ENV, *PSERVER_ENV;
