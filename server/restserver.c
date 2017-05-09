@@ -46,7 +46,10 @@ StartRestServer(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError =  VmRESTInit( NULL, "/etc/pmd/restconfig.txt" );
+    dwError =  VmRESTInit(
+                   NULL,
+                   "/etc/pmd/restconfig.txt",
+                   &gpServerEnv->pRestHandle);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = coapi_load_from_file(pRestConfig->pszApiSpec, &pApiDef);
@@ -55,7 +58,10 @@ StartRestServer(
     dwError = coapi_map_api_impl(pApiDef, stRegMap);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = rest_register_api_spec(pApiDef, &pRestProcessor);
+    dwError = rest_register_api_spec(
+                  gpServerEnv->pRestHandle,
+                  pApiDef,
+                  &pRestProcessor);
     BAIL_ON_PMD_ERROR(dwError);
 
     pthread_mutex_lock (&gpServerEnv->mutexModuleEntries);
@@ -65,12 +71,28 @@ StartRestServer(
 
     pthread_mutex_unlock (&gpServerEnv->mutexModuleEntries);
 
-    dwError = VmRESTStart();
+    dwError = VmRESTStart(gpServerEnv->pRestHandle);
     BAIL_ON_PMD_ERROR(dwError);
 
+    fprintf(stdout, "started rest server.\n");
 cleanup:
     return dwError;
 
 error:
+    fprintf(stdout, "rest server start failed. error: %d\n", dwError);
     goto cleanup;
+}
+
+void
+StopRestServer()
+{
+    fprintf(stdout, "Stopping rest server.\n");
+    if(!gpServerEnv || !gpServerEnv->pRestHandle)
+    {
+        fprintf(stdout, "rest server not started. skipping stop.\n");
+        return;
+    }
+    VmRESTStop(gpServerEnv->pRestHandle);
+    gpServerEnv->pRestHandle = NULL;
+    fprintf(stdout, "stopped rest server.\n");
 }

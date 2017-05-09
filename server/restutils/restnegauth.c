@@ -121,6 +121,7 @@ Content-Length: 20
 
 uint32_t
 request_negotiate_auth(
+    PVMREST_HANDLE pRestHandle,
     PREST_REQUEST pRequest,
     PREST_RESPONSE* ppResponse,
     const char* pszToken
@@ -136,7 +137,7 @@ request_negotiate_auth(
     dwError = VmRESTSetHttpHeader(ppResponse, "Connection", "close");
     dwError = VmRESTSetHttpHeader(ppResponse, "Content-Length", "0");
     dwError = VmRESTSetHttpHeader(ppResponse, "WWW-Authenticate", (char *)pszNegotiate);
-    dwError = VmRESTSetHttpPayload(ppResponse,"", 0, &temp );
+    dwError = VmRESTSetHttpPayload(pRestHandle, ppResponse,"", 0, &temp );
     dwError = EACCES;
     return dwError;
 }
@@ -179,6 +180,7 @@ error:
 
 uint32_t
 verify_krb_auth(
+    PVMREST_HANDLE pRestHandle,
     PREST_REQUEST pRequest,
     PREST_RESPONSE* ppResponse
     )
@@ -301,7 +303,7 @@ cleanup:
 error:
     if(dwError == EACCES)
     {
-        request_negotiate_auth(pRequest, ppResponse, NULL);
+        request_negotiate_auth(pRestHandle, pRequest, ppResponse, NULL);
     }
     goto cleanup;
 }

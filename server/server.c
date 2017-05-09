@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
 cleanup:
     if(nRestServerStarted)
     {
-        VmRESTStop();
+        StopRestServer();
     }
     pmd_free_server_env(gpServerEnv);
 
