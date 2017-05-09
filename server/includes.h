@@ -40,7 +40,7 @@
 
 #include <vmdirclient.h>
 #include <vmafdclient.h>
-#include <vmware-rest/vmrest.h>
+#include <c-rest-engine/vmrest.h>
 #include <tdnf/tdnf.h>
 #include <netmgmt/netmgr.h>
 #include <jansson.h>
