@@ -200,6 +200,7 @@ free_api_def(
 //restauth.c
 uint32_t
 process_auth(
+    PVMREST_HANDLE pRestHandle,
     PREST_REQUEST pRequest,
     PREST_RESPONSE* ppResponse
     );
@@ -207,6 +208,7 @@ process_auth(
 //restutils.c
 uint32_t
 rest_register_api_spec(
+    PVMREST_HANDLE pRestHandle,
     PREST_API_DEF pApiDef,
     PREST_PROCESSOR *ppRestProcessor
     );
@@ -220,6 +222,7 @@ rest_get_keyvalues(
 
 uint32_t
 rest_method(
+    PVMREST_HANDLE pHandle,
     PREST_REQUEST pRequest,
     PREST_RESPONSE* ppResponse,
     uint32_t paramsCount
@@ -256,6 +259,7 @@ pmd_check_password(
 //restnegauth.c
 uint32_t
 request_negotiate_auth(
+    PVMREST_HANDLE pRestHandle,
     PREST_REQUEST pRequest,
     PREST_RESPONSE* ppResponse,
     const char* pszToken
@@ -269,6 +273,7 @@ make_negotiate_string(
 
 uint32_t
 verify_krb_auth(
+    PVMREST_HANDLE pRestHandle,
     PREST_REQUEST pRequest,
     PREST_RESPONSE* ppResponse
     );
@@ -276,12 +281,14 @@ verify_krb_auth(
 //restbasicauth.c
 uint32_t
 request_basic_auth(
+    PVMREST_HANDLE pRestHandle,
     PREST_REQUEST pRequest,
     PREST_RESPONSE* ppResponse
     );
 
 uint32_t
 verify_basic_auth(
+    PVMREST_HANDLE pRestHandle,
     PREST_REQUEST pRequest,
     PREST_RESPONSE* ppResponse
     );
