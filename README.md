@@ -71,7 +71,7 @@ help(srv)
 help(srv.net)
 
 ## Releases & Major Branches
-Initial release 0.1
+Initial release 0.0.1
 
 ## Contributing
 
@@ -81,3 +81,4 @@ questions about the CLA process, please refer to our [FAQ](https://cla.vmware.co
 refer to [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
+pmd is available under the [Apache 2 license](LICENSE).

@@ -7,8 +7,12 @@ signed our contributor license agreement (CLA), our bot will update the issue wh
 questions about the CLA process, please refer to our [FAQ](https://cla.vmware.com/faq).
 
 ## Community
+Contributors and users are encouraged to collaborate using GitHub issue tracker.
 
 ## Getting Started
+First, fork the repository on GitHub to your personal account.
+
+See the [README](README.md#try-it-out) for build instructions.
 
 ## Contribution Flow
 
@@ -81,3 +85,7 @@ and commits.
 When opening a new issue, try to roughly follow the commit message format conventions above.
 
 ## Repository Structure
+* server - rpc and rest server code and functional modules
+* client - rpc client lib
+* tools  - client modules and cmd line cli
+* python - python interface
