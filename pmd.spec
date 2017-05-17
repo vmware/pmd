@@ -4,7 +4,7 @@
 
 Summary:	Photon Management Daemon
 Name:		pmd
-Version:	0.1
+Version:	0.0.1
 Release:	1%{?dist}
 License:	Apache 2.0
 URL:            https://www.github.com/vmware/pmd
@@ -84,7 +84,6 @@ autoreconf -mif
     --libdir=%{_libdir} \
     --sysconfdir=/etc \
     --with-likewise=/opt/likewise \
-    --with-vmware-rest=/usr/lib \
     --enable-python=no \
     --disable-static
 make
