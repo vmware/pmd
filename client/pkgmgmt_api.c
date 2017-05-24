@@ -326,6 +326,55 @@ error:
 }
 
 uint32_t
+pkg_updateinfo(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    char **ppszPackageNameSpecs,
+    PTDNF_UPDATEINFO *ppUpdateInfo
+    )
+{
+    uint32_t dwError = 0;
+    uint32_t dwIndex = 0;
+
+    PTDNF_UPDATEINFO pUpdateInfo = NULL;
+    PTDNF_RPC_UPDATEINFO_SUMMARY_ARRAY pRpcSummary = NULL;
+
+    if(!hHandle || !ppUpdateInfo)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    DO_RPC(pkg_rpc_updateinfo_summary(hHandle->hRpc,
+                                      hPkgHandle,
+                                      &pRpcSummary), dwError);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if(!pRpcSummary || !pRpcSummary->dwCount)
+    {
+        dwError = ERROR_PMD_NO_DATA;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateMemory(
+                  sizeof(TDNF_UPDATEINFO) * pRpcSummary->dwCount,
+                  (void**)&pUpdateInfo);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppUpdateInfo = pUpdateInfo;
+
+cleanup:
+    return dwError;
+
+error:
+    if(ppUpdateInfo)
+    {
+        *ppUpdateInfo = NULL;
+    }
+    goto cleanup;
+}
+
+uint32_t
 pkg_updateinfo_summary(
     PPMDHANDLE hHandle,
     PPKGHANDLE hPkgHandle,
@@ -368,6 +417,7 @@ pkg_updateinfo_summary(
             pRpcSummary->pRpcUpdateInfoSummaries[dwIndex].nType;
         pSummary[dwIndex].nCount =
             pRpcSummary->pRpcUpdateInfoSummaries[dwIndex].nCount;
+printf("i = %d, count = %d\n", dwIndex, pSummary[dwIndex].nCount);
     }
 
     *ppSummary = pSummary;

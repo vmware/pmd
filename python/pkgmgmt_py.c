@@ -428,8 +428,10 @@ pkg_py_alter(
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = pkg_resolve(self->hHandle, hPkgHandle, alterTypeToUse, &pSolvedInfo);
+printf("dwError = %d\n", dwError);
     BAIL_ON_PMD_ERROR(dwError);
 
+printf("need = %d\n", pSolvedInfo->nNeedAction);
     if(pSolvedInfo->nNeedAction)
     {
         dwError = pkg_alter(self->hHandle, hPkgHandle, alterTypeToUse, NULL);
