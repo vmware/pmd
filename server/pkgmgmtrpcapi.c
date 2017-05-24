@@ -270,7 +270,7 @@ pkg_rpc_updateinfo_summary(
                   &pUpdateInfoSummary);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwCount = UPDATE_ENHANCEMENT - UPDATE_UNKNOWN;
+    dwCount = (UPDATE_ENHANCEMENT - UPDATE_UNKNOWN) + 1;
 
     dwError = PMDRpcServerAllocateMemory(
         sizeof(TDNF_RPC_UPDATEINFO_SUMMARY_ARRAY),
@@ -285,7 +285,9 @@ pkg_rpc_updateinfo_summary(
     BAIL_ON_PMD_ERROR(dwError);
 
     pRpcUpdateInfoSummary = pRpcUpdateInfoArray->pRpcUpdateInfoSummaries;
-    for(dwIndex = 0; dwIndex < dwCount; ++dwIndex, ++pRpcUpdateInfoSummary)
+    for(dwIndex = UPDATE_UNKNOWN;
+        dwIndex <= UPDATE_ENHANCEMENT;
+        ++dwIndex, ++pRpcUpdateInfoSummary)
     {
         pRpcUpdateInfoSummary->nCount = pUpdateInfoSummary[dwIndex].nCount;
         pRpcUpdateInfoSummary->nType = pUpdateInfoSummary[dwIndex].nType;
