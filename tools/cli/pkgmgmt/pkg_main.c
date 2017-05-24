@@ -66,6 +66,7 @@ pkg_main(
     stContext.pFnList       = pkg_invoke_list;
     stContext.pFnRepoList   = pkg_invoke_repolist;
     stContext.pFnResolve    = pkg_invoke_resolve;
+    stContext.pFnUpdateInfo = pkg_invoke_updateinfo;
     stContext.pFnUpdateInfoSummary = pkg_invoke_updateinfo_summary;
 
     dwError = pkg_parse_args(argc, argv, &pCmdArgs);
@@ -241,6 +242,21 @@ pkg_invoke_resolve(
 }
 
 uint32_t
+pkg_invoke_updateinfo(
+    PTDNF_CLI_CONTEXT pContext,
+    PTDNF_UPDATEINFO_ARGS pInfoArgs,
+    PTDNF_UPDATEINFO *ppUpdateInfo
+    )
+{
+    PPMD_PKG_CLI_CONTEXT pLocalContext = pContext->pUserData;
+    return pkg_updateinfo(
+               pLocalContext->hPMD,
+               pLocalContext->hPkgHandle,
+               pInfoArgs->ppszPackageNameSpecs,
+               ppUpdateInfo);
+}
+
+uint32_t
 pkg_invoke_updateinfo_summary(
     PTDNF_CLI_CONTEXT pContext,
     TDNF_AVAIL nAvail,
@@ -249,6 +265,7 @@ pkg_invoke_updateinfo_summary(
     )
 {
     PPMD_PKG_CLI_CONTEXT pLocalContext = pContext->pUserData;
+
     return pkg_updateinfo_summary(
                pLocalContext->hPMD,
                pLocalContext->hPkgHandle,
