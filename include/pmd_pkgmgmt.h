@@ -55,6 +55,14 @@ pkg_repolist(
     );
 
 uint32_t
+pkg_updateinfo(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE phPkgHandle,
+    char **ppszPackageNameSpecs,
+    PTDNF_UPDATEINFO *ppUpdateInfo
+    );
+
+uint32_t
 pkg_updateinfo_summary(
     PPMDHANDLE hHandle,
     PPKGHANDLE phPkgHandle,
