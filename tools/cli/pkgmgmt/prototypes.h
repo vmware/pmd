@@ -66,6 +66,13 @@ pkg_invoke_resolve(
     );
 
 uint32_t
+pkg_invoke_updateinfo(
+    PTDNF_CLI_CONTEXT pContext,
+    PTDNF_UPDATEINFO_ARGS pInfoArgs,
+    PTDNF_UPDATEINFO *ppUpdateInfo
+    );
+
+uint32_t
 pkg_invoke_updateinfo_summary(
     PTDNF_CLI_CONTEXT pContext,
     TDNF_AVAIL nAvail,
