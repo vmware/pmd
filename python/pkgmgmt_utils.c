@@ -110,6 +110,9 @@ pkg_translate_alter_cmd(
                 alterTypeToUse = ALTER_DOWNGRADEALL;
             }
         break;
+        case ALTER_DISTRO_SYNC:
+            alterTypeToUse = ALTER_DISTRO_SYNC;
+        break;
         default:
             dwError = ERROR_PMD_ALTER_MODE_INVALID;
             BAIL_ON_PMD_ERROR(dwError);
