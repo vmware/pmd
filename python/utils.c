@@ -83,9 +83,14 @@ py_list_as_string_list(
     for(i = 0; i < nCount; ++i)
     {
         PyObject *pyItem = NULL;
+        PyObject *pyString = NULL;
         pyItem = PyList_GetItem(pyList, i);
-        dwError = PMDAllocateString(PyBytes_AsString(pyItem),
+        dwError = py_string_as_string(pyItem, &pyString);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        dwError = PMDAllocateString(PyBytes_AsString(pyString),
                                     &ppszStrings[i]);
+        BAIL_ON_PMD_ERROR(dwError);
     }
 
     *pppszStrings = ppszStrings;
@@ -107,3 +112,52 @@ error:
     goto cleanup;
 }
 
+uint32_t
+py_string_as_string(
+    PyObject *pyObj,
+    PyObject **ppString
+    )
+{
+    uint32_t dwError = 0;
+    PyObject *pString = NULL;
+    if(!pyObj || !ppString)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+    if(PyBytes_Check(pyObj))
+    {
+        Py_XINCREF(pyObj);
+        pString = pyObj;
+    }
+    else if(PyUnicode_Check(pyObj))
+    {
+        pString = PyUnicode_AsUTF8String(pyObj);
+    }
+
+    if(!pString)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    *ppString = pString;
+cleanup:
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+char *
+string_from_py_string(
+    PyObject *pyString
+    )
+{
+    char *pszResult = PyBytes_AsString(pyString);
+    if(!pszResult || !*pszResult)
+    {
+        pszResult = NULL;
+    }
+    return pszResult;
+}
