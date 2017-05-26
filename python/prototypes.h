@@ -47,6 +47,17 @@ py_list_as_string_list(
     size_t *pnCount
     );
 
+uint32_t
+py_string_as_string(
+    PyObject *pyObj,
+    PyObject **ppString
+    );
+
+char *
+string_from_py_string(
+    PyObject *pyString
+    );
+
 //pkgmgmt_repodata.c
 uint32_t
 py_make_repodata(
