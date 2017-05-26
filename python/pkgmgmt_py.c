@@ -541,13 +541,14 @@ pkg_py_resolve(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    if (IsNullOrEmptyString(pszAction))
+    if(IsNullOrEmptyString(pszAction))
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
     dwError = parse_action(pszAction, &nAlterType);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if(pyPkgList)
     {

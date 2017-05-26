@@ -74,12 +74,12 @@ server_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static int
 server_init(PY_PMD_SERVER *self, PyObject *args, PyObject *kwds)
 {
+    uint32_t dwError = 0;
     PyObject *name = NULL;
     PyObject *user = NULL;
     PyObject *pass = NULL;
     PyObject *domain = NULL;
     PyObject *spn = NULL;
-    PyObject *tmp = NULL;
 
     static char *kwlist[] = {"name", "user", "pwd", "domain", "spn", NULL};
 
@@ -91,54 +91,32 @@ server_init(PY_PMD_SERVER *self, PyObject *args, PyObject *kwds)
 
     if (name)
     {
-        tmp = self->name;
-        Py_INCREF(name);
-        self->name = name;
-        Py_XDECREF(tmp);
+        dwError = py_string_as_string(name, &self->name);
+        BAIL_ON_PMD_ERROR(dwError);
     }
     if (user)
     {
-        tmp = self->user;
-        Py_INCREF(user);
-        self->user = user;
-        Py_XDECREF(tmp);
+        dwError = py_string_as_string(user, &self->user);
+        BAIL_ON_PMD_ERROR(dwError);
     }
     if (pass)
     {
-        tmp = self->pass;
-        Py_INCREF(pass);
-        self->pass = pass;
-        Py_XDECREF(tmp);
+        dwError = py_string_as_string(pass, &self->pass);
+        BAIL_ON_PMD_ERROR(dwError);
     }
     if (domain)
     {
-        tmp = self->domain;
-        Py_INCREF(domain);
-        self->domain = domain;
-        Py_XDECREF(tmp);
+        dwError = py_string_as_string(domain, &self->domain);
+        BAIL_ON_PMD_ERROR(dwError);
     }
     if (spn)
     {
-        tmp = self->spn;
-        Py_INCREF(spn);
-        self->spn = spn;
-        Py_XDECREF(tmp);
+        dwError = py_string_as_string(spn, &self->spn);
+        BAIL_ON_PMD_ERROR(dwError);
     }
 
-    return 0;
-}
-
-char *
-string_from_py_string(
-    PyObject *pyString
-    )
-{
-    char *pszResult = PyBytes_AsString(pyString);
-    if(!pszResult || !*pszResult)
-    {
-        pszResult = NULL;
-    }
-    return pszResult;
+error:
+    return dwError;
 }
 
 static PyObject *
