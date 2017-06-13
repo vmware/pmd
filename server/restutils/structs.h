@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 
 typedef struct _REST_MODULE_ENTRY_

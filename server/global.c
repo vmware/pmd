@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 PSERVER_ENV gpServerEnv = NULL;

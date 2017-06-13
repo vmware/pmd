@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 
 #define FIREWALL_API_VERSION "0.1"

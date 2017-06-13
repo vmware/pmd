@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 //openidconnect.c
 uint32_t
@@ -222,7 +221,7 @@ rest_get_keyvalues(
 
 uint32_t
 rest_method(
-    PVMREST_HANDLE pHandle,
+    PVMREST_HANDLE pRestHandle,
     PREST_REQUEST pRequest,
     PREST_RESPONSE* ppResponse,
     uint32_t paramsCount

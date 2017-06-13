@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 REST_MODULE _usrmgmt_rest_module[] =

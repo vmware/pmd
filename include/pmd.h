@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 
 #ifdef __cplusplus

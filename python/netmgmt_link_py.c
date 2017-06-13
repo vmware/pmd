@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 static char link__doc__[] = "";

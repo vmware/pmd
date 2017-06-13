@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 
 typedef enum _FWMGMT_OPERATION

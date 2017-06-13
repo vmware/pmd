@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 static DEMO_CMD_ARGS _opt = {0};

@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 
 #define ERROR_PKG_BASE_BEGIN  1000

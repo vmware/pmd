@@ -11,7 +11,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-
 #pragma once
 
 #include <lw/base.h>
@@ -31,6 +30,7 @@
 #include "../idl/pkgmgmt_h.h"
 #include "../idl/pmd_h.h"
 #include "../idl/netmgmt_h.h"
+#include "../idl/rolemgmt_h.h"
 #include "../idl/rpmostree_h.h"
 #include "../idl/usermgmt_h.h"
 

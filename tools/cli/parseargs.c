@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 static PMD_CMD_ARGS _main_opt = {0};

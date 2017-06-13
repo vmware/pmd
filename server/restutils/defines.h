@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 
 #define MAX_HTTP_DATA_LEN 4094

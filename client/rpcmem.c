@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 uint32_t
@@ -398,7 +397,6 @@ PMDRpcClientConvertSolvedPkgInfo(
 
 cleanup:
     return dwError;
-
 error:
     if(ppSolvedInfo)
     {

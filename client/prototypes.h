@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 
 void
@@ -118,6 +117,7 @@ PMDGetDceRpcErrorString(
     uint32_t dwRpcError,
     char** ppszErrorMessage
     );
+
 //rpcpkgmisc.c
 uint32_t
 pkg_get_rpc_cmd_args(

@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #ifndef __PMDTYPES_H__
 #define __PMDTYPES_H__
 

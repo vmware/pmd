@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 #include <lw/base.h>
 #include <lw/types.h>

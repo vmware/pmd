@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 //demoapi.c
 uint32_t

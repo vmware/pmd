@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #ifndef __FIREWALL_RPC_TYPES_H__
 #define __FIREWALL_RPC_TYPES_H__
 

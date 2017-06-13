@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 
 typedef struct _USERMGMT_CMD_ARGS_

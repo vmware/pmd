@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 
 #define MAX_API_SECURITY_LINE_LENGTH 150000

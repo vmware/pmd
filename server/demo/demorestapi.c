@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 REST_MODULE _demo_rest_module[] = 

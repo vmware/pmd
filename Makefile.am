@@ -3,8 +3,8 @@ ACLOCAL_AMFLAGS = -I m4
 APP_NAME=pmd
 CLEANFILES =
 EXTRA_DIST =
-conf_DATA = conf/pmd.conf
-pkginclude_HEADERS = include/pmd.h include/pmdtypes.h include/pmderror.h
+conf_DATA = pmd.conf
+pkginclude_HEADERS = include/pmd.h include/pmdtypes.h include/pmderror.h include/roleplugin.h
 pkgconfigdir = $(libdir)/pkgconfig
 
 SUBDIRS = \
@@ -36,7 +36,7 @@ rpm: tar-src
 	-rm -rf .rpm/SOURCES/$(APP_NAME)-*
 	mv $(APP_NAME)-$(VERSION).tar.gz .rpm/SOURCES
 	rpmbuild --quiet --nodeps --define="_topdir $(abs_top_builddir)/.rpm" \
-	-bb $(APP_NAME).spec
+	-bb tools/$(APP_NAME).spec
 	mkdir -p rpms
 	mv .rpm/RPMS/x86_64/$(APP_NAME)-*$(VERSION)-*.x86_64.rpm rpms
 

@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 
 //fwmgmt_api.c

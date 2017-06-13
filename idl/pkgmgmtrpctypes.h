@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #ifndef __PKGMGMT_RPC_TYPES_H__
 #define __PKGMGMT_RPC_TYPES_H__
 

@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 //apisecurity.c
 uint32_t

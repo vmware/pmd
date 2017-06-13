@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 //jsonutils.c
 uint32_t

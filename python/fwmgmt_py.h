@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 
 extern PyTypeObject firewallType;

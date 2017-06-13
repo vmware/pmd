@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 unsigned32
@@ -115,7 +114,7 @@ usermgmt_rpc_get_groupid(
     }
 
     CHECK_RPC_ACCESS(hBinding, dwError);
-
+    
     dwError = PMDAllocateStringAFromW(pwszName, &pszName);
     BAIL_ON_PMD_ERROR(dwError);
 

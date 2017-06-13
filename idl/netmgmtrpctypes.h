@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #ifndef __NTM_RPC_TYPES_H__
 #define __NTM_RPC_TYPES_H__
 

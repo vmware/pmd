@@ -12,6 +12,5 @@
  * under the License.
  */
 
-
 #pragma once
 

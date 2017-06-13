@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 unsigned32
@@ -457,7 +456,6 @@ pkg_rpc_resolve(
 
 cleanup:
     return dwError;
-
 error:
     if(ppSolvedInfo)
     {

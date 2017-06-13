@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #ifndef __RPMOSTREE_RPC_TYPES_H__
 #define __RPMOSTREE_RPC_TYPES_H__
 

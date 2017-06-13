@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 uint32_t
@@ -45,6 +44,7 @@ rpc_open(
         {"pkg", pkg_v1_0_c_ifspec},
         {"pmd", pmd_v1_0_c_ifspec},
         {"net", netmgmt_v1_0_c_ifspec},
+        {"rolemgmt", rolemgmt_v1_0_c_ifspec},
         {"rpmostree", rpmostree_v1_0_c_ifspec},
         {"usermgmt", usermgmt_v1_0_c_ifspec},
     };

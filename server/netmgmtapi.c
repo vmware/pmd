@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 unsigned32
@@ -1715,7 +1714,6 @@ netmgr_rpc_add_ntp_servers(
 cleanup:
     PMDFreeStringArray(ppszNtpServers);
     return dwError;
-
 error:
     goto cleanup;
 }
@@ -1760,7 +1758,6 @@ netmgr_rpc_delete_ntp_servers(
 cleanup:
     PMDFreeStringArray(ppszNtpServers);
     return dwError;
-
 error:
     goto cleanup;
 }
