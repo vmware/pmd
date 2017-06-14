@@ -1,0 +1,12 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include/vmware-rest
+
+Name: vmware-rest
+Description: VMware REST Library
+Version: 1.0
+Requires.private: libssl
+Libs: -L${libdir}/vmware-rest/lib64 -lrestengine
+Libs.private: -pthread -lvmsockposix
+Cflags: -I${includedir}

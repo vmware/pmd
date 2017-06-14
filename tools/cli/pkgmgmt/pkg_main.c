@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 uint32_t
@@ -265,7 +264,6 @@ pkg_invoke_updateinfo_summary(
     )
 {
     PPMD_PKG_CLI_CONTEXT pLocalContext = pContext->pUserData;
-
     return pkg_updateinfo_summary(
                pLocalContext->hPMD,
                pLocalContext->hPkgHandle,

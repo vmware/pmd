@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 
 struct _PMD_SECURITY_CONTEXT_;
@@ -25,6 +24,12 @@ typedef struct _PMD_REST_CONFIG_
     char *pszApiSpec;
 }PMD_REST_CONFIG, *PPMD_REST_CONFIG;
 
+typedef struct _PMD_ROLES_CONFIG_
+{
+    char *pszDir;
+    char *pszPluginsDir;
+}PMD_ROLES_CONFIG, *PPMD_ROLES_CONFIG;
+
 typedef struct _PMD_CONFIG_
 {
     int nServerType;
@@ -33,6 +38,7 @@ typedef struct _PMD_CONFIG_
     char* pszComposeServer;
     char *pszApiSecurityConf;
     PPMD_REST_CONFIG pRestConfig;
+    PPMD_ROLES_CONFIG pRolesConfig;
 }PMD_CONFIG, *PPMD_CONFIG;
 
 typedef struct _SERVER_ENV_

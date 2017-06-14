@@ -20,6 +20,10 @@ _pmd_la_SOURCES = \
     pkgmgmt_solvedinfo_py.c \
     pkgmgmt_utils.c \
     pmdmodule.c \
+    rolemgmt_py.c \
+    rolemgmt_prereq_py.c \
+    rolemgmt_role_py.c \
+    rolemgmt_logentry_py.c \
     server_py.c \
     utils.c
 
