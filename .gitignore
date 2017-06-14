@@ -12,6 +12,8 @@ pmdclient.pc
 *_sstub.c
 .deps
 .libs
+.rpm
+rpms
 
 
 # autoconf
@@ -44,6 +46,7 @@ ar-lib
 /include/stamp*
 /server/pmd
 /tools/cli/pmd-cli
+/tools/pmd.spec
 build/*
 
 # Object files

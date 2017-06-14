@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 //netmgmtrestapi.c
 uint32_t
@@ -389,6 +388,11 @@ pkg_rpc_get_cmd_args(
     PTDNF_CMD_ARGS *ppArgs
     );
 
+//rolemgmt_restapi.c
+uint32_t
+rolemgmt_rest_get_registration(
+    PREST_MODULE *ppRestModule
+    );
 
 //pkgmgmtapi.c
 unsigned32
@@ -510,6 +514,16 @@ pmd_free_config(
     PPMD_CONFIG pConf
     );
 
+void
+pmd_free_rest_config(
+    PPMD_REST_CONFIG pRestConf
+    );
+
+void
+pmd_free_roles_config(
+    PPMD_ROLES_CONFIG pRolesConf
+    );
+
 //utils.c
 uint32_t
 PPMDGetHostName(
@@ -535,6 +549,15 @@ split_user_and_pass(
     const char* pszUserPass,
     char** ppszUser,
     char** ppszPass
+    );
+
+//rolemgmt_api.c
+uint32_t
+pmd_rolemgmt_load(
+    );
+
+uint32_t
+pmd_rolemgmt_unload(
     );
 
 //restserver.c

@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 //Does command dispatch
@@ -63,6 +62,7 @@ route_cmd(
         {"firewall", "firewall management", fwmgmt_main},
         {"net", "network management", netmgr_main},
         {"pkg", "package management", pkg_main},
+        {"rolemgmt", "role management", rolemgmt_main},
         {"usr", "user management", usermgmt_main},
         {NULL, NULL, NULL}
     };

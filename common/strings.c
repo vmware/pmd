@@ -12,8 +12,21 @@
  * under the License.
  */
 
-
 #include "includes.h"
+
+uint32_t
+PMDSafeAllocateString(
+    const char *pszSrc,
+    char **ppszDest
+    )
+{
+    if(!pszSrc && ppszDest)
+    {
+        *ppszDest = NULL;
+        return 0;
+    }
+    return PMDAllocateString(pszSrc, ppszDest);
+}
 
 uint32_t
 PMDGetStringLengthW(
