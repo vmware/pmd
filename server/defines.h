@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 
 #ifndef HOST_NAME_MAX
@@ -30,20 +29,24 @@
         }                                                          \
     } while(0)
 
-#define PKG_CONFIG_FILE_NAME "/etc/tdnf/tdnf.conf"
-#define PMD_CONFIG_FILE_NAME "/etc/pmd/pmd.conf"
-#define PMD_CONFIG_MAIN_GROUP "main"
-#define PMD_CONFIG_REST_GROUP "rest-server"
+#define PKG_CONFIG_FILE_NAME   "/etc/tdnf/tdnf.conf"
+#define PMD_CONFIG_FILE_NAME   "/etc/pmd/pmd.conf"
+#define PMD_CONFIG_MAIN_GROUP  "main"
+#define PMD_CONFIG_REST_GROUP  "rest-server"
+#define PMD_CONFIG_ROLES_GROUP "roles"
 
 #define PMD_CONFIG_KEY_REST_ENABLED "enabled"
 #define PMD_CONFIG_KEY_REST_PORT    "port"
 #define PMD_CONFIG_KEY_REST_APISPEC "apispec"
 
-#define PMD_CONFIG_KEY_SERVERTYPE "servertype"
-#define PMD_CONFIG_KEY_CURRENTHASH "currenthash"
-#define PMD_CONFIG_KEY_SERVERURL "serverurl"
-#define PMD_CONFIG_KEY_COMPOSESERVER "composeserver"
-#define PMD_CONFIG_KEY_API_SECURITY "apisecurity"
+#define PMD_CONFIG_KEY_SERVERTYPE      "servertype"
+#define PMD_CONFIG_KEY_CURRENTHASH     "currenthash"
+#define PMD_CONFIG_KEY_SERVERURL       "serverurl"
+#define PMD_CONFIG_KEY_COMPOSESERVER   "composeserver"
+#define PMD_CONFIG_KEY_API_SECURITY    "apisecurity"
+
+#define PMD_CONFIG_KEY_ROLES_DIR        "dir"
+#define PMD_CONFIG_KEY_ROLES_PLUGINSDIR "pluginsdir"
 
 #define REST_COMMA "%2C"
 
