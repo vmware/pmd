@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 static const char *szLinkStateString[] =
@@ -144,7 +143,35 @@ py_string_as_string(
     *ppString = pString;
 cleanup:
     return dwError;
+error:
+    goto cleanup;
+}
 
+void
+raise_exception(
+    uint32_t dwErrorCode
+    )
+{
+    uint32_t dwError = 0;
+    char *pszError = NULL;
+    char *pszMessage = NULL;
+
+    dwError = PMDGetErrorString(dwErrorCode, &pszError);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateStringPrintf(&pszMessage,
+                                      "Error = %d: %s",
+                                      dwErrorCode,
+                                      pszError);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    PyErr_SetString(PyExc_Exception, pszMessage);
+
+cleanup:
+
+    PMD_SAFE_FREE_MEMORY(pszMessage);
+    PMD_SAFE_FREE_MEMORY(pszError);
+    return;
 error:
     goto cleanup;
 }
