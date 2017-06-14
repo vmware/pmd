@@ -34,6 +34,7 @@ StartRestServer(
         {"net",     net_rest_get_registration},
         {"pkg",     pkg_rest_get_registration},
         {"pmd",     pmd_rest_get_registration},
+        {"rolemgmt",rolemgmt_rest_get_registration},
         {"usrmgmt", usrmgmt_rest_get_registration},
 
         {NULL, NULL}

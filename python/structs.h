@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 
 typedef struct _PY_PMD_
@@ -87,3 +86,33 @@ typedef struct _PY_FIREWALL_
     PyObject *server;
     PPMDHANDLE hHandle;
 }PY_FIREWALL, *PPY_FIREWALL;
+
+typedef struct _PY_ROLEMGMT_
+{
+    PyObject_HEAD
+    PyObject *server;
+    PPMDHANDLE hHandle;
+}PY_ROLEMGMT, *PPY_ROLEMGMT;
+
+typedef struct _PY_ROLEMGMT_ROLE_
+{
+    PyObject_HEAD
+    PyObject *id;
+    PyObject *name;
+    PyObject *displayname;
+    PyObject *description;
+}PY_ROLEMGMT_ROLE, *PPY_ROLEMGMT_ROLE;
+
+typedef struct _PY_ROLEMGMT_PREREQ_
+{
+    PyObject_HEAD
+    PyObject *name;
+    PyObject *description;
+}PY_ROLEMGMT_PREREQ, *PPY_ROLEMGMT_PREREQ;
+
+typedef struct _PY_ROLEMGMT_LOG_ENTRY_
+{
+    PyObject_HEAD
+    long tStamp;
+    PyObject *log;
+}PY_ROLEMGMT_LOG_ENTRY, *PPY_ROLEMGMT_LOG_ENTRY;
