@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 
 uint32_t
@@ -34,6 +33,13 @@ PMDAllocateStringWFromA(
     );
 
 uint32_t
+PMDSafeAllocateString(
+    const char* pszSrc,
+    char** ppszDest
+    );
+
+uint32_t
+
 PMDAllocateString(
     const char* pszSrc,
     char** ppszDest

@@ -28,6 +28,7 @@
 #define ERROR_PMD_CLI_OPTION_ARG_UNEXPECTED   (ERROR_PMD_CLI_BASE + 11)
 #define ERROR_PMD_CLI_SERVER_NAME_REQUIRED    (ERROR_PMD_CLI_BASE + 12)
 #define ERROR_PMD_CLI_SYNCTO_REQUIRED         (ERROR_PMD_CLI_BASE + 13)
+#define ERROR_PMD_CLI_NO_SUCH_OPTION          (ERROR_PMD_CLI_BASE + 14)
 
 //main cli options
 #define OPT_SERVERNAME      "servername"
@@ -76,4 +77,5 @@
     {ERROR_PMD_CLI_PROVIDES_EXPECT_ARG,     "ERROR_PMD_CLI_PROVIDES_EXPECT_ARG",    "Need an item to match"}, \
     {ERROR_PMD_CLI_SERVER_NAME_REQUIRED,    "ERROR_PMD_CLI_SERVER_NAME_REQUIRED",   "Server name or ip address must be specified. Please specify using --server."}, \
     {ERROR_PMD_CLI_SYNCTO_REQUIRED,         "ERROR_PMD_CLI_SYNCTO_REQUIRED",        "Please specify a hash to sync to."}, \
+    {ERROR_PMD_CLI_NO_SUCH_OPTION,          "ERROR_PMD_CLI_NO_SUCH_OPTION",         "Specified option is invalid."}, \
 };
