@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 
 //rolemgmt_main.c
@@ -30,6 +29,30 @@ rolemgmt_cli_roles_cmd(
 
 uint32_t
 rolemgmt_cli_get_roles_cmd(
+    PPMDHANDLE hPMD,
+    PROLEMGMT_CMD_ARGS pCmdArgs
+    );
+
+uint32_t
+rolemgmt_cli_get_version_cmd(
+    PPMDHANDLE hPMD,
+    PROLEMGMT_CMD_ARGS pCmdArgs
+    );
+
+uint32_t
+rolemgmt_cli_get_prereqs_cmd(
+    PPMDHANDLE hPMD,
+    PROLEMGMT_CMD_ARGS pCmdArgs
+    );
+
+uint32_t
+rolemgmt_cli_get_status_cmd(
+    PPMDHANDLE hPMD,
+    PROLEMGMT_CMD_ARGS pCmdArgs
+    );
+
+uint32_t
+rolemgmt_cli_enable_cmd(
     PPMDHANDLE hPMD,
     PROLEMGMT_CMD_ARGS pCmdArgs
     );
@@ -54,8 +77,6 @@ rolemgmt_options_error(
 
 uint32_t
 rolemgmt_validate_options(
-    const char *pszName,
-    const char *pszArg,
     PROLEMGMT_CMD_ARGS pCmdArgs
     );
 

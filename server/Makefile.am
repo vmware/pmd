@@ -28,6 +28,7 @@ pmd_SOURCES = \
     pkgmgmt_sstub.c \
     pmd_sstub.c \
     netmgmt_sstub.c \
+    rolemgmt_sstub.c \
     rpmostree_sstub.c \
     utils.c
 
@@ -40,6 +41,8 @@ pmd_sstub.c:
 netmgmt_sstub.c:
 	cp ../idl/netmgmt_sstub.c .
 
+rolemgmt_sstub.c:
+	cp ../idl/rolemgmt_sstub.c .
 
 rpmostree_sstub.c:
 	cp ../idl/rpmostree_sstub.c .
@@ -48,10 +51,12 @@ CLEANFILES = \
     pkgmgmt_sstub.c \
     pmd_sstub.c \
     netmgmt_sstub.c \
+    rolemgmt_sstub.c \
     rpmostree_sstub.c
 
 
 SUBDIRS = restutils \
+          rolemgmt \
           security \
           extras
 
@@ -65,6 +70,7 @@ pmd_LDADD =  \
     @top_builddir@/server/restutils/librestutils.la \
     @top_builddir@/server/extras/libpmdextras.la \
     @top_builddir@/server/security/libpmdsecurity.la \
+    @top_builddir@/server/rolemgmt/librolemgmt.la \
     @DCERPC_LIBS@ \
     @JANSSON_LIBS@ \
     @CREST_LIBS@ \

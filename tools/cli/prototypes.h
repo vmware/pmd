@@ -11,8 +11,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-
-
 #pragma once
 
 //component main functions
@@ -142,6 +140,12 @@ pkg_validate_options(
     struct option* pKnownOptions
     );
 
+//helper.c
+char*
+pkg_get_updateinfo_type(
+    int nType
+    );
+
 //parseargs.c
 uint32_t
 parse_comp_cmd(
@@ -172,6 +176,7 @@ free_cmd_args(
     );
 
 //utils.c
+
 int
 PMDIsSystemError(
     uint32_t dwError
