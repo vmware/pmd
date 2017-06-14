@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 static char server__doc__[] = "";
@@ -117,6 +116,7 @@ server_init(PY_PMD_SERVER *self, PyObject *args, PyObject *kwds)
 
 error:
     return dwError;
+
 }
 
 static PyObject *
@@ -227,6 +227,42 @@ error:
     goto cleanup;
 }
 
+static PyObject *
+server_get_rolemgmt(
+    PPY_PMD_SERVER self,
+    void *closure)
+{
+    uint32_t dwError = 0;
+    PPMDHANDLE hHandle = NULL;
+    PPY_ROLEMGMT pRolemgmt = NULL;
+    PyObject *pyRolemgmt = NULL;
+    PyTypeObject *retType = &rolemgmtType;
+
+    dwError = rpc_open("rolemgmt",
+                       string_from_py_string(self->name),
+                       string_from_py_string(self->user),
+                       string_from_py_string(self->domain),
+                       string_from_py_string(self->pass),
+                       string_from_py_string(self->spn),
+                       &hHandle);
+    if(dwError > 0)
+    {
+        goto error;
+    }
+
+    pRolemgmt = (PPY_ROLEMGMT)retType->tp_alloc(retType, 0);
+    pRolemgmt->hHandle = hHandle;
+    pRolemgmt->server = (PyObject *)self;
+
+    pyRolemgmt = (PyObject *)pRolemgmt;
+
+cleanup:
+    return pyRolemgmt;
+error:
+    pyRolemgmt = Py_None;
+    goto cleanup;
+}
+
 static PyGetSetDef server_getset[] = {
     {"firewall",
      (getter)server_get_firewall, (setter)NULL,
@@ -238,6 +274,10 @@ static PyGetSetDef server_getset[] = {
      NULL},
     {"pkg",
      (getter)server_getpkg, (setter)NULL,
+     "pkgmgmt interface",
+     NULL},
+    {"rolemgmt",
+     (getter)server_get_rolemgmt, (setter)NULL,
      "pkgmgmt interface",
      NULL},
     {NULL}  /* Sentinel */
