@@ -104,6 +104,8 @@ python3 setup.py install --skip-build --root %{buildroot}
 popd
 
 install -d $RPM_BUILD_ROOT/var/log/pmd
+install -d $RPM_BUILD_ROOT/etc/pmd.roles.d
+install -d $RPM_BUILD_ROOT/etc/pmd.roles.plugins.d
 install -D -m 444 pmd.service %{buildroot}/lib/systemd/system/pmd.service
 install -D -m 444 conf/restapispec.json %{buildroot}/etc/pmd/restapispec.json
 install -D -m 444 conf/api_sddl.conf %{buildroot}/etc/pmd/api_sddl.conf

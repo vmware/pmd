@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 
 #ifdef __cplusplus
@@ -22,8 +21,23 @@ extern "C" {
 typedef struct _PMD_ROLEMGMT_ROLE_
 {
     char *pszRole;
+    char *pszId;
+    char *pszName;
+    char *pszDisplayName;
+    char *pszDescription;
+    char *pszParent;
+    char *pszPlugin;
+    int nChildCount;
+    struct _PMD_ROLEMGMT_ROLE_ *pParent;
+    struct _PMD_ROLEMGMT_ROLE_ **ppChildren;
     struct _PMD_ROLEMGMT_ROLE_ *pNext;
 }PMD_ROLEMGMT_ROLE, *PPMD_ROLEMGMT_ROLE;
+
+typedef struct _PMD_ROLEMGMT_TASK_LOG_
+{
+    time_t tStamp;
+    char *pszLog;
+}PMD_ROLEMGMT_TASK_LOG, *PPMD_ROLEMGMT_TASK_LOG;
 
 #ifdef __cplusplus
 }

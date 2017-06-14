@@ -12,14 +12,15 @@
  * under the License.
  */
 
-
 #pragma once
 
 #include <stdio.h>
 #include <stdint.h>
+#include <unistd.h>
 
 #include "../includes.h"
 #include <pmd_rolemgmt.h>
+#include <roleplugin.h>
 
 #include "structs.h"
 #include "prototypes.h"
