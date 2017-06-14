@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 REST_MODULE _net_rest_module[] =

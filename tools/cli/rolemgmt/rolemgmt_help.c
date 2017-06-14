@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 void
@@ -25,7 +24,35 @@ rolemgmt_cli_show_help(
     printf("List of Main Commands\n");
     printf("\n");
 
-    printf("help                      Display a helpful usage message\n");
     printf("roles                     Show current roles.\n");
     printf("version                   Show version.\n");
+    printf("help                         Display a helpful usage message\n");
+
+    printf("roles --list (default)       Show available roles.\n");
+
+    printf("roles\n"
+           "  --prereqs\n"
+           "  --name <rolename>          List prerequisites.\n");
+
+    printf("roles\n"
+           "  --status\n"
+           "  --name <rolename>\n"
+           "  --taskid <task uuid>       Show status of task.\n");
+
+    printf("roles\n"
+           "  --enable\n"
+           "  --name <rolename>\n"
+           "  --config <configfile>  Enable role.\n");
+
+    printf("roles\n"
+           "  --update\n"
+           "  --name <rolename>\n"
+           "  --config <configfile>  Update role.\n");
+
+    printf("roles\n"
+           "  --remove\n"
+           "  --name <rolename>\n"
+           "  --config <configfile>  Remove role.\n");
+
+    printf("version                      Show version.\n");
 }

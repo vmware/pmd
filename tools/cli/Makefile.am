@@ -12,6 +12,7 @@ SUBDIRS = \
     fwmgmt \
     pkgmgmt \
     netmgmt \
+    rolemgmt \
     usermgmt
 
 if ENABLE_DEMO
@@ -24,6 +25,7 @@ pmd_cli_LDADD =  \
     $(top_builddir)/tools/cli/fwmgmt/libfwmgmtcli.la \
     $(top_builddir)/tools/cli/pkgmgmt/libpkgmgmtcli.la \
     $(top_builddir)/tools/cli/netmgmt/libnetmgmtcli.la \
+    $(top_builddir)/tools/cli/rolemgmt/librolemgmtcli.la \
     $(top_builddir)/tools/cli/usermgmt/libusermgmtcli.la
 if ENABLE_DEMO
     pmd_cli_LDADD += $(top_builddir)/tools/cli/demo/libdemocli.la

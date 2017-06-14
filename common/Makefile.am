@@ -18,5 +18,8 @@ libcommon_la_CPPFLAGS = \
     @LW_INCLUDES@
 
 libcommon_la_LDFLAGS = \
+    @DCERPC_LIBS@ \
     @LIBCURL_LIBS@ \
+    -lpthread \
+    -llwbase_nothr \
     -static
