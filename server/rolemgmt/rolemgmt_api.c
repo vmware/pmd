@@ -50,11 +50,12 @@ pmd_rolemgmt_load(
     )
 {
     uint32_t dwError = 0;
-    int nLocked = 0;
+    int nLocked = 0, nPrefix = 0;
     PPMD_ROLEMGMT_ROLE pRoles = NULL;
     PPMD_ROLEMGMT_ROLE pRole = NULL;
     PPMD_PLUGIN_CONTEXT pContexts = NULL;
     PPMD_PLUGIN_CONTEXT pContext = NULL;
+    char resolved_path[PATH_MAX];
 
     pthread_mutex_lock(&gRoleMgmtEnv.mutexEnv);
     nLocked = 1;
@@ -84,6 +85,23 @@ pmd_rolemgmt_load(
                       PMD_ROLE_PLUGINS_DIR,
                       pRole->pszPlugin);
         BAIL_ON_PMD_ERROR(dwError);
+
+        if(NULL == realpath(pContext->pszPluginPath, resolved_path))
+        {
+            dwError = ERROR_PMD_SYSTEM_BASE + errno;
+        }
+        BAIL_ON_PMD_ERROR(dwError);
+
+        dwError = isStringPrefix(resolved_path,
+                      PMD_ROLE_PLUGINS_DIR,
+                      &nPrefix);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        if(!nPrefix)
+        {
+            dwError = ERROR_PMD_ROLE_PATH_MISMATCH;
+            BAIL_ON_PMD_ERROR(dwError);
+        }
 
         dwError = PMDAllocateMemory(sizeof(PMD_PLUGIN_MODULE),
                                     (void **)&pContext->pModule);
@@ -190,7 +208,7 @@ pmd_load_plugin(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    //unload can be null. 
+    //unload can be null.
     stModule.pFnUnload = dlsym(stModule.pHandle,
                                PMD_ROLEPLUGIN_UNLOAD_INTERFACE);
 

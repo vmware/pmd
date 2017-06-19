@@ -39,7 +39,6 @@ PMDSafeAllocateString(
     );
 
 uint32_t
-
 PMDAllocateString(
     const char* pszSrc,
     char** ppszDest
@@ -215,6 +214,13 @@ PMDGetSystemErrorString(
     uint32_t dwSystemError,
     char** ppszError
     );
+
+uint32_t
+isStringPrefix(
+        char *pszString,
+        char *pszPrefix,
+        int *result
+   );
 
 //rpcsrvutils.c
 uint32_t
