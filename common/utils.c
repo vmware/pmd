@@ -717,3 +717,37 @@ error:
     PMD_SAFE_FREE_MEMORY(pszError);
     goto cleanup;
 }
+
+uint32_t
+isStringPrefix(
+        char *pszString,
+        char *pszPrefix,
+        int *pnResult
+   )
+{
+    uint32_t dwError = 0;
+    uint32_t nPrefixLen = 0, nStrLen = 0;
+    if(pnResult == NULL || IsNullOrEmptyString(pszPrefix) || IsNullOrEmptyString(pszString))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+    *pnResult = 0;
+    nPrefixLen = strlen(pszPrefix);
+    nStrLen = strlen(pszString);
+
+    if(nStrLen <= nPrefixLen)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(!strncmp(pszString, pszPrefix, nPrefixLen))
+    {
+        *pnResult = 1;
+    }
+cleanup:
+    return dwError;
+error:
+    goto cleanup;
+}

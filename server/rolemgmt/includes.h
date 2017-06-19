@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <ctype.h>
 #include <unistd.h>
@@ -39,6 +40,7 @@
 #include "../../common/structs.h"
 #include "../../common/prototypes.h"
 #include "../../include/pmderror.h"
+#include "../server/defines.h"
 #include "defines.h"
 #include "structs.h"
 
