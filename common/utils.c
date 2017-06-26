@@ -125,7 +125,7 @@ file_read_all_text(
     if(!fp)
     {
         dwError = ENOENT;
-        BAIL_ON_PMD_ERROR(dwError);
+        BAIL_ON_PMD_SYSTEM_ERROR(dwError);
     }
     fseek(fp, 0, SEEK_END);
     nLength = ftell(fp);
