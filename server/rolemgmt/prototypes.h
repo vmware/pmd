@@ -74,6 +74,11 @@ rolemgmt_find_task_by_id(
     PPMD_PLUGIN_TASK *ppTask
     );
 
+uint32_t
+rolemgmt_find_archived_task_by_id(
+    const char *pszTaskUUID,
+    PPMD_PLUGIN_TASK *ppTask
+    );	
 void
 rolemgmt_free_plugin_task_logs(
     PPMD_PLUGIN_TASK_LOG pLogs

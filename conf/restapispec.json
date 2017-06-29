@@ -61,6 +61,15 @@
     "description":"Find out more",
     "url":"http://wiki.eng.vmware.com/Photon/Javelin"
    }
+  },
+  {
+   "name":"rolemgmt",
+   "description":"role management module",
+   "externalDocs":
+   {
+    "description":"Find out more",
+    "url":"http://wiki.eng.vmware.com/Photon/Javelin"
+   }
   }
  ],
  "paths":
@@ -1776,6 +1785,68 @@
     }
    }
  },
+ "/rolemgmt/version":
+   {
+   "get":
+   {
+    "tags":["rolemgmt"],
+    "summary":"get rolemgmt version",
+    "description":"get rolemgmt version",
+    "operationId":"get_rolemgmt_version",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[],
+    "responses":{"200":{"result":"success"}},
+    "security":[]
+    }
+   },
+   "/rolemgmt/roleversion":
+   {
+   "get":
+   {
+    "tags":["rolemgmt"],
+    "summary":"get rolemgmt role version",
+    "description":"get rolemgmt role version",
+    "operationId":"get_rolemgmt_role_version",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"role",
+                  "in":"query",
+                  "description":"role name",
+                  "required":true,
+                  "type":"string"
+                  }],
+    "responses":{"200":{"result":"success"}},
+    "security":[]
+    }
+   },
+   "/rolemgmt/roles":
+   {
+   "get":
+   {
+    "tags":["rolemgmt"],
+    "summary":"get roles",
+    "description":"get roles",
+    "operationId":"get_rolemgmt_roles",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[],
+    "responses":{
+        "200":{"description":"ip addresses",
+            "schema": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/Role"
+                }
+            },
+        "400":{"description":"no roles configured"}
+        }
+      },
+    "security":[]
+    }
+   }
+ },
  "securityDefinitions": {
    "lightwave_oauth": {
      "type": "oauth2",
@@ -1971,6 +2042,14 @@
              "interface": {"type": "string"},
              "addr_type": {"type": "string"},
              "prefix": {"type": "string"}
+         }
+     }
+     "Role": {
+         "type": "object",
+         "properties":  {
+             "id": {"type": "string"},
+             "name": {"type": "string"},
+             "description": {"type": "string"}
          }
      }
   }

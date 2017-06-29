@@ -385,30 +385,40 @@ rolemgmt_rpc_role_get_log(
                                 nOffset,
                                 nEntriesToFetch,
                                 &pTaskLogs);
-    BAIL_ON_PMD_ERROR(dwError);
+    if (dwError != ERROR_PMD_ROLE_TASK_NO_LOGS)
+    {
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+    else
+    {
+        dwError = 0;
+    }
 
     for(pTemp = pTaskLogs, i = 0;
         pTemp && i < nEntriesToFetch;
         pTemp = pTemp->pNext, ++i);
 
-    dwError = PMDRpcServerAllocateMemory(
+    if (i > 0)
+    {
+        dwError = PMDRpcServerAllocateMemory(
                   sizeof(PMD_RPC_ROLEMGMT_TASK_LOG_ARRAY),
                   (void **)&pTaskLogArray);
-    BAIL_ON_PMD_ERROR(dwError);
+        BAIL_ON_PMD_ERROR(dwError);
 
-    pTaskLogArray->dwCount = i;
+        pTaskLogArray->dwCount = i;
 
-    dwError = PMDRpcServerAllocateMemory(
+        dwError = PMDRpcServerAllocateMemory(
                   sizeof(PMD_RPC_ROLEMGMT_TASK_LOG) * i,
                   (void **)&pTaskLogArray->pTaskLogs);
-    BAIL_ON_PMD_ERROR(dwError);
+        BAIL_ON_PMD_ERROR(dwError);
 
-    for(i = 0, pTemp = pTaskLogs; i < pTaskLogArray->dwCount; ++i)
-    {
-        dwError = PMDRpcServerAllocateWFromA(
+        for(i = 0, pTemp = pTaskLogs; i < pTaskLogArray->dwCount; ++i)
+        {
+            dwError = PMDRpcServerAllocateWFromA(
                       pTemp->pszLog,
                       &pTaskLogArray->pTaskLogs[i].pwszLog);
-        BAIL_ON_PMD_ERROR(dwError);
+            BAIL_ON_PMD_ERROR(dwError);
+        }
     }
 
     *ppTaskLogArray = pTaskLogArray;
