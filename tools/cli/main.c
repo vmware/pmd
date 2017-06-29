@@ -120,6 +120,7 @@ error:
     {
         ShowRegisteredComponents(arKnownComps);
         show_usage();
+	dwError = 0;
     }
     if(dwError == ESRCH)
     {
