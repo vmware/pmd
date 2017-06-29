@@ -395,12 +395,11 @@ rolemgmt_cli_enable_cmd(
                       dwEntriesToFetch,
                       &pTaskLogs,
                       &dwTaskLogCount);
-        if(dwError == ERROR_PMD_ROLE_TASK_NO_LOGS)
+        if(dwError == ERROR_PMD_ROLE_TASK_NO_LOGS || dwError == ERROR_PMD_NO_DATA)
         {
-            fprintf(stdout, "Task is in progress. Waiting for more logs..");
             dwError = 0;
         }
-        else if(!dwError)
+        else if(!dwError && pTaskLogs)
         {
             dwError = print_task_logs(pTaskLogs, dwTaskLogCount);
             BAIL_ON_CLI_ERROR(dwError);
