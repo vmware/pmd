@@ -74,7 +74,7 @@ verify_basic_auth(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    pszUserPassBase64 = pszAuth + strlen(BASIC_AUTH_STRING) + 1;
+    pszUserPassBase64 = pszAuth + strlen(BASIC_AUTH_STRING);
     if(IsNullOrEmptyString(pszUserPassBase64))
     {
         dwError = EACCES;
