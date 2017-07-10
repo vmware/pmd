@@ -633,6 +633,60 @@ error:
 }
 
 uint32_t
+rolemgmt_find_archived_task_by_id(
+    const char *pszTaskUUID,
+    PPMD_PLUGIN_TASK *ppTask
+)
+{
+    uint32_t dwError = 0;
+    PPMD_PLUGIN_TASK pTask = NULL;
+    PPMD_PLUGIN_CONTEXT pContext = NULL;
+
+    if(IsNullOrEmptyString(pszTaskUUID) || !ppTask)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    for(pContext = gRoleMgmtEnv.pContexts; pContext; pContext = pContext->pNext)
+    {
+        PPMD_PLUGIN_TASK pCurrentTask = NULL;
+        if(!pContext->pModule || !pContext->pModule->pTaskHistory)
+        {
+            continue;
+        }
+
+        pCurrentTask = pContext->pModule->pTaskHistory;
+        while(pCurrentTask != NULL)
+        {
+            if(!strcasecmp(pCurrentTask->pszTaskUUID, pszTaskUUID))
+            {
+                pTask = pCurrentTask;
+                break;
+            }
+            pCurrentTask = pCurrentTask->pNext;
+        }
+    }
+
+    if(!pTask)
+    {
+        dwError = ERROR_PMD_ROLE_TASK_NO_LOGS;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    *ppTask = pTask;
+cleanup:
+    return dwError;
+
+error:
+    if(ppTask)
+    {
+        *ppTask = NULL;
+    }
+    goto cleanup;
+}
+
+uint32_t
 rolemgmt_find_task_by_id(
     const char *pszTaskUUID,
     PPMD_PLUGIN_TASK *ppTask
@@ -701,8 +755,15 @@ pmd_rolemgmt_get_status(
     }
 
     dwError = rolemgmt_find_task_by_id(pszTaskUUID, &pTask);
-    BAIL_ON_PMD_ERROR(dwError);
-
+    if (dwError != ERROR_PMD_ROLE_TASK_NOT_FOUND)
+    {
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+    else
+    {
+        dwError = rolemgmt_find_archived_task_by_id(pszTaskUUID, &pTask);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
     *pnStatus = pTask->nStatus;
 
 cleanup:
@@ -736,7 +797,15 @@ pmd_rolemgmt_get_logs(
     }
 
     dwError = rolemgmt_find_task_by_id(pszTaskUUID, &pTask);
-    BAIL_ON_PMD_ERROR(dwError);
+    if (dwError != ERROR_PMD_ROLE_TASK_NOT_FOUND)
+    {
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+    else
+    {
+        dwError = rolemgmt_find_archived_task_by_id(pszTaskUUID, &pTask);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
 
     pTaskLogs = pTask->pLogData;
     for(i = 0; pTaskLogs && i < dwOffset; ++i, pTaskLogs = pTaskLogs->pNext);
@@ -746,7 +815,6 @@ pmd_rolemgmt_get_logs(
         dwError = ERROR_PMD_ROLE_TASK_NO_LOGS;
         BAIL_ON_PMD_ERROR(dwError);
     }
-
     *ppTaskLogs = pTaskLogs;
 
 cleanup:
