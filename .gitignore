@@ -80,3 +80,6 @@ build/*
 python/setup.py
 python/build
 python/pmd/__pycache__
+
+#vscode editor
+.vscode/settings.json

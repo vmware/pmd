@@ -254,6 +254,7 @@ AC_CONFIG_FILES([Makefile
                  tools/cli/pkgmgmt/Makefile
                  tools/cli/netmgmt/Makefile
                  tools/cli/usermgmt/Makefile
+                 tools/cli/gpomgmt/Makefile
                 ])
 
 #pmd conf dir

@@ -1,0 +1,5 @@
+[gerrit]
+host=photon-jenkins.eng.vmware.com
+port=29418
+project=pmd.git
+defaultbranch=grouppolicy
