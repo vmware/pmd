@@ -52,6 +52,12 @@ usermgmt_main(
     char* const* argv,
     PPMD_CMD_ARGS pMainArgs);
 
+uint32_t
+gpmgmt_main(
+    int argc,
+    char* const* argv,
+    PPMD_CMD_ARGS pMainArgs);
+
 //main.c
 uint32_t
 get_error_string(

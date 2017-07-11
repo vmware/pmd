@@ -53,7 +53,8 @@ CLEANFILES = \
 
 SUBDIRS = restutils \
           security \
-          extras
+          extras \
+          grouppolicy
 
 if ENABLE_DEMO
     SUBDIRS += demo
@@ -65,6 +66,7 @@ pmd_LDADD =  \
     @top_builddir@/server/restutils/librestutils.la \
     @top_builddir@/server/extras/libpmdextras.la \
     @top_builddir@/server/security/libpmdsecurity.la \
+    @top_builddir@/server/grouppolicy/libpmdgp.la \
     @DCERPC_LIBS@ \
     @JANSSON_LIBS@ \
     @CREST_LIBS@ \

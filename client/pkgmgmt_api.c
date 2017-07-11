@@ -47,6 +47,7 @@ rpc_open(
         {"net", netmgmt_v1_0_c_ifspec},
         {"rpmostree", rpmostree_v1_0_c_ifspec},
         {"usermgmt", usermgmt_v1_0_c_ifspec},
+        {"gpmgmt",gpmgmt_v1_0_c_ifspec}
     };
 
     int nNumKnownIfspecs =
