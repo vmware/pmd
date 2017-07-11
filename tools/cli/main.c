@@ -64,6 +64,7 @@ route_cmd(
         {"net", "network management", netmgr_main},
         {"pkg", "package management", pkg_main},
         {"usr", "user management", usermgmt_main},
+        {"gpo", "group policy management", gpomgmt_main},
         {NULL, NULL, NULL}
     };
     int nIndex = 0;
