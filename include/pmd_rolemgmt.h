@@ -51,7 +51,7 @@ rolemgmt_get_prereqs(
     );
 
 uint32_t
-rolemgmt_alter_with_config_json(
+rolemgmt_alter(
     PPMDHANDLE hHandle,
     const char *pszName,
     int nOperation,

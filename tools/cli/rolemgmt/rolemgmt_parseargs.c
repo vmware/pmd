@@ -25,7 +25,10 @@ static struct option pstOptions[] =
     {OPT_SPN,         required_argument, 0, 0},//--spn
     {"config",        required_argument, 0, 0},
     {"enable",        no_argument, 0, 0},
+    {"update",        no_argument, 0, 0},
+    {"remove",        no_argument, 0, 0},
     {"list",          no_argument, 0, 0},
+    {"logs",          no_argument, 0, 0},
     {"prereqs",       no_argument, 0, 0},
     {"name",          required_argument, 0, 0},
     {"status",        no_argument, 0, 0},
@@ -182,6 +185,30 @@ rolemgmt_validate_options(
         }
         BAIL_ON_CLI_ERROR(dwError);
     }
+    else if(pCmdArgs->nOperation == ROLEMGMT_OPERATION_REMOVE)
+    {
+        if(IsNullOrEmptyString(pCmdArgs->pszRole))
+        {
+            fprintf(stderr,
+                    "Specify a role name with --name to do this operation\n");
+            fprintf(stderr,
+                    "--config might be required. Please refer to your role docs.\n");
+            dwError = ERROR_PMD_INVALID_PARAMETER;
+        }
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+    else if(pCmdArgs->nOperation == ROLEMGMT_OPERATION_UPDATE)
+    {
+        if(IsNullOrEmptyString(pCmdArgs->pszRole))
+        {
+            fprintf(stderr,
+                    "Specify a role name with --name to do this operation\n");
+            fprintf(stderr,
+                    "--config might be required. Please refer to your role docs.\n");
+            dwError = ERROR_PMD_INVALID_PARAMETER;
+        }
+        BAIL_ON_CLI_ERROR(dwError);
+    }
     else if(pCmdArgs->nOperation == ROLEMGMT_OPERATION_STATUS)
     {
         if(IsNullOrEmptyString(pCmdArgs->pszRole))
@@ -191,6 +218,16 @@ rolemgmt_validate_options(
             dwError = ERROR_PMD_INVALID_PARAMETER;
         }
         else if(IsNullOrEmptyString(pCmdArgs->pszTaskUUID))
+        {
+            fprintf(stderr,
+                    "Specify a task id with --taskid to do this operation\n");
+            dwError = ERROR_PMD_INVALID_PARAMETER;
+        }
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+    else if(pCmdArgs->nOperation == ROLEMGMT_OPERATION_LOGS)
+    {
+        if(IsNullOrEmptyString(pCmdArgs->pszTaskUUID))
         {
             fprintf(stderr,
                     "Specify a task id with --taskid to do this operation\n");
@@ -283,6 +320,10 @@ rolemgmt_parse_option(
     {
         pCmdArgs->nOperation = ROLEMGMT_OPERATION_LIST;
     }
+    else if(!strcasecmp(pszName, "logs"))
+    {
+        pCmdArgs->nOperation = ROLEMGMT_OPERATION_LOGS;
+    }
     else if(!strcasecmp(pszName, "version"))
     {
         pCmdArgs->nOperation = ROLEMGMT_OPERATION_VERSION;
@@ -305,9 +346,13 @@ rolemgmt_parse_option(
         dwError = PMDAllocateString(pszArg, &pCmdArgs->pszConfigFile);
         BAIL_ON_CLI_ERROR(dwError);
     }
-    else if(!strcasecmp(pszName, "delete"))
+    else if(!strcasecmp(pszName, "remove"))
     {
-        pCmdArgs->nOperation = ROLEMGMT_OPERATION_DELETE;
+        pCmdArgs->nOperation = ROLEMGMT_OPERATION_REMOVE;
+    }
+    else if(!strcasecmp(pszName, "update"))
+    {
+        pCmdArgs->nOperation = ROLEMGMT_OPERATION_UPDATE;
     }
     else if(!strcasecmp(pszName, "status"))
     {

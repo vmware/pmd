@@ -296,7 +296,7 @@ error:
 }
 
 unsigned32
-rolemgmt_rpc_role_alter_with_config_json(
+rolemgmt_rpc_role_alter(
     handle_t hBinding,
     wstring_t pwszName,
     RPC_ROLE_OPERATION nOperation,
@@ -322,7 +322,7 @@ rolemgmt_rpc_role_alter_with_config_json(
     dwError = PMDAllocateStringAFromW(pwszConfigJson, &pszConfigJson);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = pmd_rolemgmt_role_alter_with_config_json(
+    dwError = pmd_rolemgmt_role_alter(
                   pszName,
                   nOperation,
                   pszConfigJson,

@@ -32,7 +32,7 @@ pmd_rolemgmt_role_version(
     );
 
 uint32_t
-pmd_rolemgmt_role_alter_with_config_json(
+pmd_rolemgmt_role_alter(
     const char *pszName,
     PMD_ROLE_OPERATION nOperation,
     const char *pszConfigJson,
@@ -263,3 +263,22 @@ rolemgmt_rest_alter(
     void *pInputJson,
     void **ppszOutputJson
     );
+
+uint32_t
+rolemgmt_rest_alter_put(
+    void *pInputJson,
+    void **ppszOutputJson
+    );
+
+uint32_t
+rolemgmt_rest_alter_delete(
+    void *pInputJson,
+    void **ppszOutputJson
+    );
+
+uint32_t
+rolemgmt_rest_alter_patch(
+    void *pInputJson,
+    void **ppszOutputJson
+    );
+

@@ -26,7 +26,7 @@ REST_MODULE _rolemgmt_rest_module[] =
         }
     },
     {
-        "/v1/rolemgmt/roleversion",
+        "/v1/rolemgmt/role/version",
         {
             rolemgmt_rest_get_roleversion,
             NULL,
@@ -44,7 +44,7 @@ REST_MODULE _rolemgmt_rest_module[] =
         }
     },
     {
-        "/v1/rolemgmt/roles/status",
+        "/v1/rolemgmt/role/status",
         {
             rolemgmt_rest_get_status,
             NULL,
@@ -53,21 +53,22 @@ REST_MODULE _rolemgmt_rest_module[] =
         }
     },
     {
-        "/v1/rolemgmt/roles/logs",
+        "/v1/rolemgmt/role/logs",
         {
-            rolemgmt_rest_get_status,
+            rolemgmt_rest_get_logs,
             NULL,
             NULL,
             NULL
         }
     },
     {
-        "/v1/rolemgmt/roles/alter",
+        "/v1/rolemgmt/role/alter",
         {
-            rolemgmt_rest_get_status,
             NULL,
+            rolemgmt_rest_alter_put,
             NULL,
-            NULL
+            rolemgmt_rest_alter_delete,
+            rolemgmt_rest_alter_patch
         }
     },
     {0}
@@ -147,17 +148,27 @@ rolemgmt_rest_get_roleversion(
     )
 {
     uint32_t dwError = 0;
+    char *pszName = NULL;
     char *pszVersion = NULL;
     char *pszOutputJson = NULL;
     PKEYVALUE pKeyValue = NULL;
-
-    if(!ppszOutputJson)
+    const char *pszInputJson = pInputJson;
+    json_t *pJson = NULL;
+    if(!pszInputJson || !ppszOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
     dwError = pmd_rolemgmt_get_version(&pszVersion);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = get_json_object_from_string(pszInputJson, &pJson);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = json_get_string_value(pJson, "name", &pszName);
+
+    dwError = pmd_rolemgmt_role_version(pszName, &pszVersion);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = make_keyvalue("version", pszVersion, &pKeyValue);
@@ -184,6 +195,59 @@ error:
     PMD_SAFE_FREE_MEMORY(pszOutputJson);
     goto cleanup;
 }
+
+uint32_t
+get_tasklogs_json(
+    int nCount,
+    PPMD_PLUGIN_TASK_LOG pTaskLogs,
+    char **ppszJson
+    )
+{
+    uint32_t dwError = 0;
+    char *pszJson = NULL;
+    json_t *pRoot = NULL;
+    int i = 0;
+
+    if(!pTaskLogs || !ppszJson)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    pRoot = json_array();
+    if(!pRoot)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    for(; pTaskLogs && i < nCount; pTaskLogs = pTaskLogs->pNext, ++i)
+    {
+        json_t *pLogObj = json_object();
+        json_object_set_new(pLogObj, "log", json_string(pTaskLogs->pszLog));
+        json_array_append_new(pRoot, pLogObj);
+    }
+
+    pszJson = json_dumps(pRoot, 0);
+
+    *ppszJson = pszJson;
+
+cleanup:
+    if(pRoot)
+    {
+        json_decref(pRoot);
+    }
+    return dwError;
+
+error:
+    if(ppszJson)
+    {
+        *ppszJson = NULL;
+    }
+    PMD_SAFE_FREE_MEMORY(pszJson);
+    goto cleanup;
+}
+
 
 uint32_t
 get_roles_json_string(
@@ -353,6 +417,8 @@ rolemgmt_rest_get_logs(
     uint32_t dwError = 0;
     char *pszTaskUUID = NULL;
     char *pszOutputJson = NULL;
+    char *pszStartAt = NULL;
+    char *pszCount = NULL;
     char *pszStatus = NULL;
     json_t *pJson = NULL;
     char *pszInputJson = pInputJson;
@@ -372,6 +438,15 @@ rolemgmt_rest_get_logs(
     dwError = json_get_string_value(pJson, "taskid", &pszTaskUUID);
     BAIL_ON_PMD_ERROR(dwError);
 
+    dwError = json_get_string_value(pJson, "startat", &pszStartAt);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = json_get_string_value(pJson, "count", &pszCount);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    nStartAt = atoi(pszStartAt);
+    nCount = atoi(pszCount);
+
     dwError = pmd_rolemgmt_get_logs(
                   pszTaskUUID,
                   nStartAt,
@@ -379,9 +454,80 @@ rolemgmt_rest_get_logs(
                   &pTaskLogs);
     BAIL_ON_PMD_ERROR(dwError);
 
+    dwError = get_tasklogs_json(nCount, pTaskLogs, &pszOutputJson);
+    BAIL_ON_PMD_ERROR(dwError);
+
     *ppszOutputJson = pszOutputJson;
 
 cleanup:
+    PMD_SAFE_FREE_MEMORY(pszTaskUUID);
+    PMD_SAFE_FREE_MEMORY(pszStartAt);
+    PMD_SAFE_FREE_MEMORY(pszCount);
+    return dwError;
+
+error:
+    if(ppszOutputJson)
+    {
+        *ppszOutputJson = NULL;
+    }
+    PMD_SAFE_FREE_MEMORY(pszOutputJson);
+    goto cleanup;
+}
+
+uint32_t
+rolemgmt_rest_do_alter(
+    PMD_ROLE_OPERATION nOperation,
+    void *pInputJson,
+    void **ppszOutputJson
+    )
+{
+    uint32_t dwError = 0;
+    char *pszTaskUUID = NULL;
+    char *pszOutputJson = NULL;
+    char *pszConfig = NULL;
+    char *pszName = NULL;
+    json_t *pJson = NULL;
+    char *pszInputJson = pInputJson;
+    PKEYVALUE pKeyValue = NULL;
+
+    if(IsNullOrEmptyString(pszInputJson) || !ppszOutputJson)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = get_json_object_from_string(pszInputJson, &pJson);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = json_get_string_value(pJson, "name", &pszName);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = json_get_string_value(pJson, "config", &pszConfig);
+    if(nOperation != ROLE_OPERATION_ENABLE && !pszConfig)
+    {
+        dwError = PMDAllocateString("{}", &pszConfig);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = pmd_rolemgmt_role_alter(
+                  pszName,
+                  nOperation,
+                  pszConfig,
+                  &pszTaskUUID);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = make_keyvalue("taskid", pszTaskUUID, &pKeyValue);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = get_json_string(pKeyValue, &pszOutputJson);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppszOutputJson = pszOutputJson;
+
+cleanup:
+    free_keyvalue(pKeyValue);
+    PMD_SAFE_FREE_MEMORY(pszName);
+    PMD_SAFE_FREE_MEMORY(pszConfig);
     PMD_SAFE_FREE_MEMORY(pszTaskUUID);
     return dwError;
 
@@ -393,3 +539,39 @@ error:
     PMD_SAFE_FREE_MEMORY(pszOutputJson);
     goto cleanup;
 }
+uint32_t
+rolemgmt_rest_alter_put(
+    void *pInputJson,
+    void **ppszOutputJson
+    )
+{
+    return rolemgmt_rest_do_alter(
+               ROLE_OPERATION_ENABLE,
+               pInputJson,
+               ppszOutputJson);
+}
+
+uint32_t
+rolemgmt_rest_alter_delete(
+    void *pInputJson,
+    void **ppszOutputJson
+    )
+{
+    return rolemgmt_rest_do_alter(
+               ROLE_OPERATION_REMOVE,
+               pInputJson,
+               ppszOutputJson);
+}
+
+uint32_t
+rolemgmt_rest_alter_patch(
+    void *pInputJson,
+    void **ppszOutputJson
+    )
+{
+    return rolemgmt_rest_do_alter(
+               ROLE_OPERATION_UPDATE,
+               pInputJson,
+               ppszOutputJson);
+}
+

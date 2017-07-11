@@ -34,6 +34,12 @@ rolemgmt_cli_get_roles_cmd(
     );
 
 uint32_t
+rolemgmt_cli_get_logs_cmd(
+    PPMDHANDLE hPMD,
+    PROLEMGMT_CMD_ARGS pCmdArgs
+    );
+
+uint32_t
 rolemgmt_cli_get_version_cmd(
     PPMDHANDLE hPMD,
     PROLEMGMT_CMD_ARGS pCmdArgs
@@ -52,9 +58,10 @@ rolemgmt_cli_get_status_cmd(
     );
 
 uint32_t
-rolemgmt_cli_enable_cmd(
+rolemgmt_cli_alter_cmd(
     PPMDHANDLE hPMD,
-    PROLEMGMT_CMD_ARGS pCmdArgs
+    PROLEMGMT_CMD_ARGS pCmdArgs,
+    PMD_ROLE_OPERATION nOperation
     );
 
 void
@@ -90,4 +97,10 @@ rolemgmt_parse_option(
 void
 rolemgmt_free_cmd_args(
     PROLEMGMT_CMD_ARGS pCmdArgs
+    );
+
+uint32_t
+rolemgmt_status_to_string(
+    PMD_ROLE_STATUS nStatus,
+    char **ppszStatus
     );

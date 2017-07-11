@@ -60,7 +60,7 @@ interface rolemgmt
         );
 
     unsigned32
-    rolemgmt_rpc_role_alter_with_config_json(
+    rolemgmt_rpc_role_alter(
         [in] handle_t hBinding,
         [in] wstring_t pwszName,
         [in] RPC_ROLE_OPERATION nOperation,

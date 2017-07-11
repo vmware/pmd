@@ -30,7 +30,7 @@
 #include <dce/dce_error.h>
 
 #include <curl/curl.h>
-
+#include <roleplugin.h>
 #include "defines.h"
 #include "structs.h"
 #include "prototypes.h"

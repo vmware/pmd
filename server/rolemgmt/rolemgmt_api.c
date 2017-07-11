@@ -517,6 +517,7 @@ rolemgmt_archive_current_task(
     pTask->pNext = pModule->pTaskHistory;
     pModule->pTaskHistory = pTask;
 
+    fprintf(stdout, "Archiving task %s\n", pTask->pszTaskUUID);
 error:
     return dwError;
 }
@@ -562,7 +563,7 @@ error:
 }
 
 uint32_t
-pmd_rolemgmt_role_alter_with_config_json(
+pmd_rolemgmt_role_alter(
     const char *pszName,
     PMD_ROLE_OPERATION nOperation,
     const char *pszConfigJson,

@@ -248,7 +248,7 @@ error:
 }
 
 uint32_t
-rolemgmt_alter_with_config_json(
+rolemgmt_alter(
     PPMDHANDLE hHandle,
     const char *pszName,
     int nOperation,
@@ -264,12 +264,24 @@ rolemgmt_alter_with_config_json(
 
     if(!hHandle ||
        IsNullOrEmptyString(pszName) ||
-       IsNullOrEmptyString(pszConfigJson) ||
        !ppszTaskUUID)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    if(nOperation == ROLE_OPERATION_ENABLE &&
+       IsNullOrEmptyString(pszConfigJson))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(IsNullOrEmptyString(pszConfigJson))
+    {
+        pszConfigJson = "{}";
+    }
+
 
     dwError = PMDAllocateStringWFromA(
                   pszName,
@@ -281,7 +293,7 @@ rolemgmt_alter_with_config_json(
                   &pwszConfigJson);
     BAIL_ON_PMD_ERROR(dwError);
 
-    DO_RPC(rolemgmt_rpc_role_alter_with_config_json(
+    DO_RPC(rolemgmt_rpc_role_alter(
                hHandle->hRpc,
                pwszName,
                nOperation,

@@ -322,7 +322,13 @@ rolemgmt_py_alter(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = rolemgmt_alter_with_config_json(
+    if(nOperation <= ROLE_OPERATION_NONE || nOperation >= ROLE_OPERATION_MAX)
+    {
+        dwError = ERROR_PMD_ROLE_BAD_OPERATION;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = rolemgmt_alter(
                   self->hHandle,
                   pszRoleName,
                   nOperation,
