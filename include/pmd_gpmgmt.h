@@ -15,37 +15,19 @@
 
 #pragma once
 
-//gpomgmt_main.c
-uint32_t
-gpomgmt_main(
-    int argc,
-    char* const* argv,
-    PPMD_CMD_ARGS pMainArgs
-    );
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+#include "pmdtypes.h"
 
 uint32_t
-gpomgmt_cli_show_version_cmd(
-    PPMDHANDLE hPMD,
-    PGPOMGMT_CMD_ARGS pCmdArgs
-    );    
-
-//gpomgmt_parseargs.c
-uint32_t
-gpomgmt_parse_args(
-    int argc,
-    char* const* argv,
-    PGPOMGMT_CMD_ARGS* ppCmdArgs
-    );
-void
-gpomgmt_free_cmd_args(
-    PGPOMGMT_CMD_ARGS pCmdArgs
-    );
-
-//gpomgmt_help.c
-void
-gpomgmt_cli_show_help(
+gpmgmt_get_version(
+    PPMDHANDLE hHandle,
+    char **ppszVersion
     );
 
 
-
+#ifdef __cplusplus
+}
+#endif

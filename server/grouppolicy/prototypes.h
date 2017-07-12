@@ -15,21 +15,8 @@
 
 #pragma once
 
-//TODO: imported the stsructure from FWMGMT, remove unnecessary arguments later
-typedef struct _GPOMGMT_CMD_ARGS_
-{
-    int nShowHelp;
-    int nShowVersion;
-    int nCmdCount;
-    char *pszOpArgs;
-    char *pszChain;
-    char **ppszCmds; 
-}GPOMGMT_CMD_ARGS, *PGPOMGMT_CMD_ARGS; 
-
-typedef uint32_t (*PFN_GPOMGMT_CMD)(PPMDHANDLE, PGPOMGMT_CMD_ARGS);
-
-typedef struct _GPOMGMT_CLI_CMD_MAP
-{
-    char* pszCmdName;
-    PFN_GPOMGMT_CMD pFnCmd;
-}GPOMGMT_CLI_CMD_MAP, *PGPOMGMT_CLI_CMD_MAP;
+//gpmgmt_api.c
+uint32_t
+pmd_gpmgmt_get_version(
+    char **ppszVersion
+    );

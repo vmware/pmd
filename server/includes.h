@@ -53,7 +53,7 @@
 #include "../idl/netmgmt_h.h"
 #include "../idl/rpmostree_h.h"
 #include "../idl/usermgmt_h.h"
-#include "../idl/gpomgmt_h.h"
+#include "../idl/gpmgmt_h.h"
 
 #include "../common/includes.h"
 

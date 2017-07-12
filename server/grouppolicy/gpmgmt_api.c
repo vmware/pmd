@@ -13,20 +13,35 @@
  */
 
 
-[
-    uuid (2503169e-c43c-4210-9e9d-763456fefc16),
-    version(1.0),
-    pointer_default(unique)
-]
+#include "includes.h"
 
-interface gpomgmt
+uint32_t
+pmd_gpmgmt_get_version(
+    char **ppszVersion
+    )
 {
-#include <lw/types.h>
-#include "pmdrpctypes.h"
+    uint32_t dwError = 0;
+    char *pszVersion = NULL;
 
-    unsigned32
-    gpomgmt_rpc_version(
-        [in] handle_t hBinding,
-        [out] wstring_t* ppwszVersion
-        );
+    if(!ppszVersion)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateString("0.1", &pszVersion);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppszVersion = pszVersion;
+
+cleanup:
+    return dwError;
+
+error:
+    if(ppszVersion)
+    {
+        *ppszVersion = NULL;
+    }
+    goto cleanup;
 }
+

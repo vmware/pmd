@@ -33,7 +33,7 @@
 #include "../idl/netmgmt_h.h"
 #include "../idl/rpmostree_h.h"
 #include "../idl/usermgmt_h.h"
-#include "../idl/gpomgmt_h.h"
+#include "../idl/gpmgmt_h.h"
 
 #ifdef DEMO_ENABLED
 #include "../idl/demo_h.h"
@@ -47,7 +47,7 @@
 #include <pmd_pkgmgmt.h>
 #include <pmd_rolemgmt.h>
 #include <pmd_usermgmt.h>
-#include <pmd_gpomgmt.h>
+#include <pmd_gpmgmt.h>
 
 #include "defines.h"
 #include "structs.h"

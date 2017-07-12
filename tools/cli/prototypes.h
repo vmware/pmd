@@ -53,7 +53,7 @@ usermgmt_main(
     PPMD_CMD_ARGS pMainArgs);
 
 uint32_t
-gpomgmt_main(
+gpmgmt_main(
     int argc,
     char* const* argv,
     PPMD_CMD_ARGS pMainArgs);

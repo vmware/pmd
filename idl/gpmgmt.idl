@@ -13,19 +13,20 @@
  */
 
 
-#include "includes.h"
+[
+    uuid (2503169e-c43c-4210-9e9d-763456fefc16),
+    version(1.0),
+    pointer_default(unique)
+]
 
-void
-gpomgmt_cli_show_help(
-    )
+interface gpmgmt
 {
-    printf("usage: pmd-cli [connection options] gpo <command> [command options]\n");
-    printf("\n");
+#include <lw/types.h>
+#include "pmdrpctypes.h"
 
-    printf("List of Main Commands\n");
-    printf("\n");
-    //TODO:
-    printf("help                      Display a helpful usage message\n");
-    printf("rules                     Show current persistent firewall rules.\n");
-    printf("version                   Show version.\n");
+    unsigned32
+    gpmgmt_rpc_version(
+        [in] handle_t hBinding,
+        [out] wstring_t* ppwszVersion
+        );
 }

@@ -27,9 +27,9 @@ CLEANFILES = \
     usermgmt_h.h \
     usermgmt_cstub.c \
     usermgmt_sstub.c \
-    gpomgmt_h.h \
-    gpomgmt_cstub.c \
-    gpomgmt_sstub.c
+    gpmgmt_h.h \
+    gpmgmt_cstub.c \
+    gpmgmt_sstub.c
 
 BUILT_SOURCES = demo_h.h \
                 fwmgmt_h.h \
@@ -38,7 +38,7 @@ BUILT_SOURCES = demo_h.h \
                 netmgmt_h.h \
                 rpmostree_h.h \
                 usermgmt_h.h \
-                gpomgmt_h.h
+                gpmgmt_h.h
 
 demo_h.h demo_cstub.c: $(idl_srcdir)/demo.idl
 	$(DCEIDL) $(IDLFLAGS) -keep c_source -header demo_h.h -I$(idl_srcdir) $<
@@ -54,5 +54,5 @@ rpmostree_h.h rpmostree_cstub.c: $(idl_srcdir)/rpmostree.idl
 	$(DCEIDL) $(IDLFLAGS) -keep c_source -header rpmostree_h.h -I$(idl_srcdir) $<
 usermgmt_h.h usermgmt_cstub.c: $(idl_srcdir)/usermgmt.idl
 	$(DCEIDL) $(IDLFLAGS) -keep c_source -header usermgmt_h.h -I$(idl_srcdir) $<
-gpomgmt_h.h gpomgmt_cstub.c: $(idl_srcdir)/gpomgmt.idl
-	$(DCEIDL) $(IDLFLAGS) -keep c_source -header gpomgmt_h.h -I$(idl_srcdir) $<
+gpmgmt_h.h gpmgmt_cstub.c: $(idl_srcdir)/gpmgmt.idl
+	$(DCEIDL) $(IDLFLAGS) -keep c_source -header gpmgmt_h.h -I$(idl_srcdir) $<

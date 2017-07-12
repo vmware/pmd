@@ -15,7 +15,7 @@
 
 #include "includes.h"
 
-static GPOMGMT_CMD_ARGS _opt = {0};
+static gpMGMT_CMD_ARGS _opt = {0};
 
 //TODO: Modify the options later for group management
 static struct option pstOptions[] =
@@ -26,14 +26,14 @@ static struct option pstOptions[] =
 };
 
 uint32_t
-gpomgmt_parse_args(
+gpmgmt_parse_args(
     int argc,
     char* const* argv,
-    PGPOMGMT_CMD_ARGS* ppCmdArgs
+    PgpMGMT_CMD_ARGS* ppCmdArgs
     )
 {
     uint32_t dwError = 0;
-    PGPOMGMT_CMD_ARGS pCmdArgs = NULL;
+    PgpMGMT_CMD_ARGS pCmdArgs = NULL;
     int nOptionIndex = 0;
     int nOption = 0;
     int nIndex = 0;
@@ -46,7 +46,7 @@ gpomgmt_parse_args(
         BAIL_ON_CLI_ERROR(dwError);
     }
 
-    dwError = PMDAllocateMemory(sizeof(GPOMGMT_CMD_ARGS),
+    dwError = PMDAllocateMemory(sizeof(gpMGMT_CMD_ARGS),
                                (void**)&pCmdArgs);
     BAIL_ON_CLI_ERROR(dwError);
 
@@ -64,8 +64,8 @@ gpomgmt_parse_args(
 
     pCmdArgs->nShowHelp = _opt.nShowHelp;
     pCmdArgs->nShowVersion = _opt.nShowVersion;
-    fprintf(stdout,"\nParsing the commandline arguments\n");
-    fprintf(stdout,"Helpflag = %d, Versionflag =%d \n",pCmdArgs->nShowHelp,pCmdArgs->nShowVersion);
+    //fprintf(stdout,"\nParsing the commandline arguments\n");
+    //fprintf(stdout,"Helpflag = %d, Versionflag =%d \n",pCmdArgs->nShowHelp,pCmdArgs->nShowVersion);
     
     *ppCmdArgs = pCmdArgs;
 
@@ -79,14 +79,14 @@ error:
     }
     if(pCmdArgs)
     {
-        gpomgmt_free_cmd_args(pCmdArgs);
+        gpmgmt_free_cmd_args(pCmdArgs);
     }
     goto cleanup;
 }
 
 void
-gpomgmt_free_cmd_args(
-    PGPOMGMT_CMD_ARGS pCmdArgs
+gpmgmt_free_cmd_args(
+    PgpMGMT_CMD_ARGS pCmdArgs
     )
 {
     if(pCmdArgs)

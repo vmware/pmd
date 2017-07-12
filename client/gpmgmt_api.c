@@ -15,47 +15,41 @@
 
 #include "includes.h"
 
-unsigned32
-gpomgmt_rpc_version(
-    handle_t hBinding,
-    wstring_t* ppwszVersion
+uint32_t
+gpmgmt_get_version(
+    PPMDHANDLE hHandle,
+    char **ppszVersion
     )
 {
     uint32_t dwError = 0;
-    char* pszVersion = NULL;
+    char *pszVersion = NULL;
     wstring_t pwszVersion = NULL;
 
-    if(!hBinding || !ppwszVersion)
+    if(!hHandle || !ppszVersion)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = pmd_gpomgmt_get_version(&pszVersion);
+    DO_RPC(gpmgmt_rpc_version(hHandle->hRpc, &pwszVersion), dwError);
+    BAIL_ON_PMD_ERROR(dwError);
+ 
+    dwError = PMDAllocateStringAFromW(
+                  pwszVersion,
+                  &pszVersion);
     BAIL_ON_PMD_ERROR(dwError);
 
-    if(IsNullOrEmptyString(pszVersion))
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDRpcServerAllocateWFromA(pszVersion, &pwszVersion);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    *ppwszVersion = pwszVersion;
-
-     fprintf(stdout,"\n In the server: returned version string -- Works!! \n");
+    *ppszVersion = pszVersion;
 
 cleanup:
-    PMD_SAFE_FREE_MEMORY(pszVersion);
+    PMDRpcClientFreeStringW(pwszVersion);
     return dwError;
 
 error:
-    if(ppwszVersion)
+    if(ppszVersion)
     {
-        *ppwszVersion = NULL;
+        *ppszVersion = NULL;
     }
-    PMD_SAFE_FREE_MEMORY(pwszVersion);
+    PMD_SAFE_FREE_MEMORY(pszVersion);
     goto cleanup;
 }

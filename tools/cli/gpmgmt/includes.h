@@ -19,7 +19,7 @@
 #include <stdint.h>
 
 #include "../includes.h"
-#include <pmd_gpomgmt.h>
+#include <pmd_gpmgmt.h>
 
 #include "structs.h"
 #include "prototypes.h"

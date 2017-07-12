@@ -16,35 +16,35 @@
 #include "includes.h"
 
 uint32_t
-gpomgmt_main(
+gpmgmt_main(
     int argc,
     char* const* argv,
     PPMD_CMD_ARGS pMainArgs)
 {
     uint32_t dwError = 0;
     PPMDHANDLE hPMD = NULL;
-    PGPOMGMT_CMD_ARGS pCmdArgs = NULL;
-    GPOMGMT_CLI_CMD_MAP arCmdMap[] =
+    PgpMGMT_CMD_ARGS pCmdArgs = NULL;
+    gpMGMT_CLI_CMD_MAP arCmdMap[] =
     {
        //TODO:// Add the other commands later,  
        // {"restore",     fwmgmt_cli_restore_cmd},
        // {"rules",       fwmgmt_cli_rules_cmd},
-        {"version",     gpomgmt_cli_show_version_cmd},
+        {"version",     gpmgmt_cli_show_version_cmd},
     };
-    int nCommandCount = sizeof(arCmdMap)/sizeof(GPOMGMT_CLI_CMD_MAP);
+    int nCommandCount = sizeof(arCmdMap)/sizeof(gpMGMT_CLI_CMD_MAP);
     const char* pszCmd = NULL;
     int nFound = 0;
     
-    dwError = gpomgmt_parse_args(argc, argv, &pCmdArgs);
+    dwError = gpmgmt_parse_args(argc, argv, &pCmdArgs);
     BAIL_ON_CLI_ERROR(dwError);
 
     if(pCmdArgs->nShowHelp)
     {
-        gpomgmt_cli_show_help();
+        gpmgmt_cli_show_help();
     } else if (pCmdArgs->nShowVersion)
     {
         dwError = rpc_open(
-            "gpomgmt",
+            "gpmgmt",
             pMainArgs->pszServer,
             pMainArgs->pszUser,
             pMainArgs->pszDomain,
@@ -52,14 +52,14 @@ gpomgmt_main(
             pMainArgs->pszSpn,
             &hPMD);
         BAIL_ON_CLI_ERROR(dwError);
-            fprintf(stdout,"\n Opened RPC connection\n");
+            //fprintf(stdout,"\n Opened RPC connection\n");
 
-        gpomgmt_cli_show_version_cmd(hPMD, pCmdArgs);
+        gpmgmt_cli_show_version_cmd(hPMD, pCmdArgs);
         BAIL_ON_CLI_ERROR(dwError);
     }
     else
     {
-        gpomgmt_cli_show_help();
+        gpmgmt_cli_show_help();
     } 
 
 cleanup:
@@ -69,7 +69,7 @@ cleanup:
     }
     if(pCmdArgs)
     {
-        gpomgmt_free_cmd_args(pCmdArgs);
+        gpmgmt_free_cmd_args(pCmdArgs);
     }
     return dwError;
 
@@ -78,12 +78,12 @@ error:
 }
 
 uint32_t
-gpomgmt_cli_show_version_cmd(
+gpmgmt_cli_show_version_cmd(
     PPMDHANDLE hPMD,
-    PGPOMGMT_CMD_ARGS pCmdArgs
+    PgpMGMT_CMD_ARGS pCmdArgs
     )
 {
-    fprintf(stdout,"\n In the client: call gpomgmt_cli_show_version_cmd \n");
+    //fprintf(stdout,"\n In the client: call gpmgmt_cli_show_version_cmd \n");
     uint32_t dwError = 0;
     char* pszVersion = NULL;
 
@@ -93,9 +93,9 @@ gpomgmt_cli_show_version_cmd(
         BAIL_ON_CLI_ERROR(dwError);
     }
     
-    fprintf(stdout,"\n No errors with respect to arguments\n");
+    //fprintf(stdout,"\n No errors with respect to arguments\n");
 
-    dwError = gpomgmt_get_version(hPMD, &pszVersion);
+    dwError = gpmgmt_get_version(hPMD, &pszVersion);
     BAIL_ON_CLI_ERROR(dwError);
 
     fprintf(stdout, "version: %s\n", pszVersion);

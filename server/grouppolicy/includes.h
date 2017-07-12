@@ -16,7 +16,7 @@
 #pragma once
 #include "../../common/includes.h"
 
-#include "../../idl/gpomgmt_h.h"
-#include "pmd_gpomgmt.h"
+#include "../../idl/gpmgmt_h.h"
+#include "pmd_gpmgmt.h"
 
 #include "prototypes.h"

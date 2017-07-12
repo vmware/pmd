@@ -244,7 +244,7 @@ AC_CONFIG_FILES([Makefile
                  server/extras/Makefile
                  server/restutils/Makefile
                  server/security/Makefile
-                 server/gpo/Makefile
+                 server/grouppolicy/Makefile
                  client/Makefile
                  python/Makefile
                  python/setup.py
@@ -255,7 +255,7 @@ AC_CONFIG_FILES([Makefile
                  tools/cli/pkgmgmt/Makefile
                  tools/cli/netmgmt/Makefile
                  tools/cli/usermgmt/Makefile
-                 tools/cli/gpomgmt/Makefile
+                 tools/cli/gpmgmt/Makefile
                 ])
 
 #pmd conf dir

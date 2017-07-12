@@ -13,7 +13,7 @@ SUBDIRS = \
     pkgmgmt \
     netmgmt \
     usermgmt \
-    gpomgmt
+    gpmgmt
 
 if ENABLE_DEMO
     SUBDIRS += demo
@@ -26,7 +26,7 @@ pmd_cli_LDADD =  \
     $(top_builddir)/tools/cli/pkgmgmt/libpkgmgmtcli.la \
     $(top_builddir)/tools/cli/netmgmt/libnetmgmtcli.la \
     $(top_builddir)/tools/cli/usermgmt/libusermgmtcli.la \
-    $(top_builddir)/tools/cli/gpomgmt/libgpomgmtcli.la
+    $(top_builddir)/tools/cli/gpmgmt/libgpmgmtcli.la
 if ENABLE_DEMO
     pmd_cli_LDADD += $(top_builddir)/tools/cli/demo/libdemocli.la
 endif
