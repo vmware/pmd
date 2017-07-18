@@ -104,12 +104,18 @@ python3 setup.py install --skip-build --root %{buildroot}
 popd
 
 install -d $RPM_BUILD_ROOT/var/log/pmd
+install -d $RPM_BUILD_ROOT/etc/pmd/pmd.grouppolicy.plugins.d
 install -D -m 444 pmd.service %{buildroot}/lib/systemd/system/pmd.service
 install -D -m 444 conf/restapispec.json %{buildroot}/etc/pmd/restapispec.json
 install -D -m 444 conf/api_sddl.conf %{buildroot}/etc/pmd/api_sddl.conf
 install -D -m 444 conf/restconfig.txt %{buildroot}/etc/pmd/restconfig.txt
 install -D -m 444 conf/server.crt  %{buildroot}/etc/pmd/server.crt
 install -D -m 444 conf/server.key %{buildroot}/etc/pmd/server.key
+
+# TODO://Currently libs are installed at lib_dir as well as in pmd.
+for file in $(find server -name 'libpmdgpmgmt.so*'); do
+    install -m 777 -D ${file} %{buildroot}/etc/pmd/pmd.grouppolicy.plugins.d
+done
 
 # Pre-install
 %pre
@@ -240,6 +246,9 @@ rm -rf %{buildroot}/*
     /etc/pmd/server.crt
     /etc/pmd/server.key
     %dir /var/log/pmd
+    /etc/pmd/pmd.grouppolicy.plugins.d
+    %{_libdir}/libpmdgpmgmt.so*
+
 
 %files cli
     %{_bindir}/pmd-cli

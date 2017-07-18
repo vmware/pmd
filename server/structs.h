@@ -17,6 +17,7 @@
 
 struct _PMD_SECURITY_CONTEXT_;
 typedef struct _PMD_SECURITY_CONTEXT_ *PPMD_SECURITY_CONTEXT;
+typedef struct _PMD_POLICY_PLUGIN_INTERFACE_ *PPMD_POLICY_PLUGIN_INTERFACE;
 
 typedef struct _PMD_REST_CONFIG_
 {
@@ -45,4 +46,5 @@ typedef struct _SERVER_ENV_
     PREST_PROCESSOR pRestProcessor;
     PPMD_SECURITY_CONTEXT pSecurityContext;
     PVMREST_HANDLE pRestHandle;
+    PPMD_POLICY_PLUGIN_INTERFACE gpGroupInterface;
 }SERVER_ENV, *PSERVER_ENV;
