@@ -13,35 +13,12 @@
  */
 
 
-#include "includes.h"
+#pragma once
+#include "../../../common/includes.h"
 
-uint32_t
-pmd_gpmgmt_get_version(
-    char **ppszVersion
-    )
-{
-    uint32_t dwError = 0;
-    char *pszVersion = NULL;
+#include "../../../idl/gpmgmt_h.h"
+#include "pmd_gpmgmt.h"
 
-    if(!ppszVersion)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateString("0.1", &pszVersion);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    *ppszVersion = pszVersion;
-
-cleanup:
-    return dwError;
-
-error:
-    if(ppszVersion)
-    {
-        *ppszVersion = NULL;
-    }
-    goto cleanup;
-}
-
+#include "prototypes.h"
+#include "../defines.h"
+#include "../../defines.h"

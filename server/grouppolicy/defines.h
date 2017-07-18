@@ -15,8 +15,10 @@
 
 #pragma once
 
-//gpmgmt_api.c
-uint32_t
-pmd_gpmgmt_get_version(
-    char **ppszVersion
-    );
+//defs for the config file
+#define PMD_CONFIG_GP_GROUP "grouppolicy"
+
+//Keys
+#define PMD_CONFIG_KEY_GP_POLICY_JSON "gppolicyjson"
+#define PMD_CONFIG_KEY_GP_PLUGIN_DIR "gpplugindir"
+#define PMD_CONFIG_KEY_GPMGMT_PLUGIN_PATH "gpmgmtpluginpath"

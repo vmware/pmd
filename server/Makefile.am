@@ -66,7 +66,7 @@ pmd_LDADD =  \
     @top_builddir@/server/restutils/librestutils.la \
     @top_builddir@/server/extras/libpmdextras.la \
     @top_builddir@/server/security/libpmdsecurity.la \
-    @top_builddir@/server/grouppolicy/libpmdgp.la \
+    @top_builddir@/server/grouppolicy/libpmdgpwrappers.la \
     @DCERPC_LIBS@ \
     @JANSSON_LIBS@ \
     @CREST_LIBS@ \
@@ -86,7 +86,8 @@ pmd_LDFLAGS = \
     @VMDIRCLI_LDFLAGS@ \
     @CREST_LDFLAGS@ \
     @DCERPC_LDFLAGS@ \
-    @LW_LDFLAGS@
+    @LW_LDFLAGS@ \
+    -rdynamic
 
 if ENABLE_DEMO
     pmd_LDADD += @top_builddir@/server/demo/libdemosrv.la
