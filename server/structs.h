@@ -45,4 +45,5 @@ typedef struct _SERVER_ENV_
     PREST_PROCESSOR pRestProcessor;
     PPMD_SECURITY_CONTEXT pSecurityContext;
     PVMREST_HANDLE pRestHandle;
+    PPMD_POLICY_PLUGIN_INTERFACE gpGroupInterface
 }SERVER_ENV, *PSERVER_ENV;

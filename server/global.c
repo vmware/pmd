@@ -16,3 +16,6 @@
 #include "includes.h"
 
 PSERVER_ENV gpServerEnv = NULL;
+
+//Handle for group policies, global pointer to group policy library
+PPMD_POLICY_PLUGIN_INTERFACE gpGroupInterface= NULL;

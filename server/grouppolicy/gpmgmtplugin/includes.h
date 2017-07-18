@@ -14,5 +14,9 @@
 
 
 #pragma once
+#include "../../../common/includes.h"
 
-extern PSERVER_ENV gpServerEnv;
+#include "../../../idl/gpmgmt_h.h"
+#include "pmd_gpmgmt.h"
+
+#include "prototypes.h"
