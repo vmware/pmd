@@ -66,7 +66,7 @@ pmd_LDADD =  \
     @top_builddir@/server/restutils/librestutils.la \
     @top_builddir@/server/extras/libpmdextras.la \
     @top_builddir@/server/security/libpmdsecurity.la \
-    @top_builddir@/server/grouppolicy/libpmdgp.la \
+    @top_builddir@/server/grouppolicy/libpmdgpwrappers.la \
     @DCERPC_LIBS@ \
     @JANSSON_LIBS@ \
     @CREST_LIBS@ \
