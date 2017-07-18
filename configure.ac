@@ -245,6 +245,7 @@ AC_CONFIG_FILES([Makefile
                  server/restutils/Makefile
                  server/security/Makefile
                  server/grouppolicy/Makefile
+                 server/grouppolicy/gpmgmtplugin/Makefile
                  client/Makefile
                  python/Makefile
                  python/setup.py
