@@ -53,6 +53,9 @@ extern "C" {
 //usermgmt errors 4100 and up
 #define ERROR_PMD_USER_BASE            4100
 
+//gpmgmt errors 5000 and up
+#define ERROR_PMD_GP_PKG_NOT_FOUND     5000
+
 #ifdef __cplusplus
 }
 #endif

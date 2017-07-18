@@ -11,22 +11,49 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-
-
-#pragma once
+ 
+ 
+ #pragma once
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+
+#include <stdint.h>//for uint32_t
 #include "pmdtypes.h"
 
+//Function pointer defs
+   
+//version
+typedef uint32_t
+(*PFN_PMD_POLICY_VERSION)(
+    char **ppszVersion
+    );
+
+typedef struct _PMD_POLICY_PLUGIN_INTERFACE_
+{
+    PFN_PMD_POLICY_VERSION      pFnPolicyVersion;
+}PMD_POLICY_PLUGIN_INTERFACE, *PPMD_POLICY_PLUGIN_INTERFACE;
+  
+//Entry point for group policy plugins
+uint32_t
+pmd_policy_plugin_load_interface(
+    );
+ 
+//Entry point for group policy plugins
+uint32_t
+pmd_policy_plugin_unload_interface(
+    PPMD_POLICY_PLUGIN_INTERFACE pInterface
+    );
+
+
+//Function defs
 uint32_t
 gpmgmt_get_version(
     PPMDHANDLE hHandle,
     char **ppszVersion
     );
-
 
 #ifdef __cplusplus
 }
