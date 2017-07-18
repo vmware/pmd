@@ -48,12 +48,27 @@ init_modules(
     dwError = TDNFInit();
     BAIL_ON_PMD_ERROR(dwError);
 
+    //Initialise the group policy plugin
+    //dwError = pmd_policy_plugin_load_interface();
+    BAIL_ON_PMD_ERROR(dwError);
+    printf("Loaded the group policy management plugin \n");
+
 cleanup:
     return dwError;
 
 error:
     goto cleanup;
 }
+
+void
+uninit_modules(
+    )
+{
+    TDNFUninit();
+    //pmd_policy_plugin_unload_interface();
+}
+
+
 
 unsigned32
 start_rpc_server(
@@ -202,7 +217,7 @@ cleanup:
     }
     pmd_free_server_env(gpServerEnv);
 
-    TDNFUninit();
+    uninit_modules();
 
     return dwError;
 
