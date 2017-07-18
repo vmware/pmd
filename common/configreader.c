@@ -507,3 +507,59 @@ error:
     }
     goto cleanup;
 }
+
+uint32_t
+pmd_gpmgmt_get_val_from_key(
+    const char *pszFile,
+    const char *pszGroup,
+    const char *pszkey,
+    char **ppszValue
+    )
+{
+    uint32_t dwError = 0;
+    char *pszValue;
+    PCONF_DATA pData = NULL;
+    PCONF_SECTION pSection = NULL;
+    PKEYVALUE pKeyValues = NULL;
+
+    if (IsNullOrEmptyString(pszFile) || IsNullOrEmptyString(pszGroup) || 
+        IsNullOrEmptyString(pszkey))
+    {
+        dwError = EINVAL;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = read_config_file(pszFile, 0, &pData);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = config_get_section(pData, pszGroup, &pSection);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pKeyValues = pSection->pKeyValues;
+    for (; pKeyValues; pKeyValues = pKeyValues->pNext)
+    {
+        if (!strcmp(pszkey, pKeyValues->pszKey))
+        {
+            dwError = PMDAllocateString(pKeyValues->pszValue,
+                                        &pszValue);
+            BAIL_ON_PMD_ERROR(dwError);
+            break;
+        }
+    }
+
+    *ppszValue = pszValue;
+
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pData);
+    PMD_SAFE_FREE_MEMORY(pSection);
+    PMD_SAFE_FREE_MEMORY(pKeyValues);
+    return dwError;
+
+error:
+    fprintf(stderr, "Error getting key: %s from group:%s from file: %s \n",
+            pszkey,
+            pszGroup,
+            pszFile);
+
+    goto cleanup;
+}

@@ -30,8 +30,9 @@ gpmgmt_rpc_version(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
-
-    dwError = pmd_gpmgmt_get_version(&pszVersion);
+    
+    //Call the version function to check that the binding is ok
+    dwError= gpServerEnv->gpGroupInterface->pFnPolicyVersion(&pszVersion);
     BAIL_ON_PMD_ERROR(dwError);
 
     if(IsNullOrEmptyString(pszVersion))
@@ -44,8 +45,6 @@ gpmgmt_rpc_version(
     BAIL_ON_PMD_ERROR(dwError);
 
     *ppwszVersion = pwszVersion;
-
-     //fprintf(stdout,"\n In the server: returned version string -- Works!! \n");
 
 cleanup:
     PMD_SAFE_FREE_MEMORY(pszVersion);

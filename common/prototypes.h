@@ -114,6 +114,14 @@ void
 free_config_data(
     PCONF_DATA pData
     );
+    
+uint32_t
+pmd_gpmgmt_get_val_from_key(
+    const char *pszFile,
+    const char *pszGroup,
+    const char *pszkey,
+    char **ppszValue
+    );
 
 //utils.c
 uint32_t
