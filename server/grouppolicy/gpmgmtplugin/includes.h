@@ -14,42 +14,9 @@
 
 
 #pragma once
+#include "../../../common/includes.h"
 
-#include <lw/base.h>
-#include <lw/types.h>
-
-#include <ctype.h>
-#include <locale.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdlib.h>
-
-#include <sys/sysinfo.h>
-#include <sys/utsname.h>
-#include <pwd.h>
-
-#include <vmrest.h>
-#include <netmgmt/netmgr.h>
-#include <jansson.h>
-#include <pmd.h>
-
-
-#include "../../idl/gpmgmt_h.h"
-
-#include "../../common/includes.h"
-
-//jsonutils
-#include "../../jsonutils/includes.h"
-
-//restutils
-#include "../../server/restutils/includes.h"
-
-#include "../structs.h"
-#include "../global.h"
-
-
-//grouppolicy plugin
-#include <dlfcn.h>
+#include "../../../idl/gpmgmt_h.h"
 #include "pmd_gpmgmt.h"
 
+#include "prototypes.h"
