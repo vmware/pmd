@@ -73,6 +73,10 @@
 #include "../server/security/defines.h"
 #include "../server/security/pmdsecurity.h"
 
+//grouppolicy plugin
+#include <dlfcn.h>
+#include "pmd_gpmgmt.h"
+
 #ifdef DEMO_ENABLED
 #include "demo/prototypes.h"
 #include "../idl/demo_h.h"
