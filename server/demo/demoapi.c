@@ -62,22 +62,26 @@ demo_isprime(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
+    if(nNumToCheck == 1)
+    {
+        *pnIsPrime = 0;
+        goto cleanup;
+    }
+
     if(nNumToCheck < 4)
     {
         *pnIsPrime = 1;
         goto cleanup;
     }
 
-    if(nNumToCheck % 2 == 0 ||
-       nNumToCheck % 3 == 0 ||
-       nNumToCheck % 5 == 0)
+    if(nNumToCheck % 2 == 0)
     {
         *pnIsPrime = 0;
         goto cleanup;
     }
 
     nLimit = sqrt(nNumToCheck);
-    for(nIndex = 7; nIndex <= nLimit; nIndex+=2)
+    for(nIndex = 3; nIndex <= nLimit; nIndex+=2)
     {
         if(nNumToCheck % nIndex == 0)
         {
