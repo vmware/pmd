@@ -31,7 +31,7 @@ fwmgmt_rpc_version(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = pmd_usermgmt_get_version(&pszVersion);
+    dwError = pmd_firewall_get_version(&pszVersion);
     BAIL_ON_PMD_ERROR(dwError);
 
     if(IsNullOrEmptyString(pszVersion))
