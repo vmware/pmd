@@ -116,7 +116,7 @@ free_config_data(
     );
     
 uint32_t
-pmd_gpmgmt_get_val_from_key(
+get_val_from_file(
     const char *pszFile,
     const char *pszGroup,
     const char *pszkey,

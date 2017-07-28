@@ -50,21 +50,23 @@ pmd_gpmgmt_start_policies(
     )
 {   
     uint32_t dwError =0;
-    char *pszPolicyJsonPath =NULL;
+    PPMD_POLICY_DATA pPolicies= NULL;
+    
+    dwError = pmd_gpmgmt_load_policies(&pPolicies);
+    BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = pmd_gpmgmt_get_val_from_key(PMD_CONFIG_FILE_NAME,
-                                          PMD_CONFIG_GP_GROUP,
-                                          PMD_CONFIG_KEY_GP_POLICY_JSON, 
-                                          &pszPolicyJsonPath);
+    fprintf(stdout,"Loaded the policies successfully\n");
+    pmd_gpmgmt_create_policy_json();
+
+    fprintf(stdout,"Created the policy json correctly\n");
+    dwError = pmd_gpmgmt_print_polices(pPolicies);
     BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:
+    gpmgmt_free_policies(pPolicies);
     return dwError;
 
 error:
-    if(pszPolicyJsonPath)
-    {
-        pszPolicyJsonPath = NULL;
-    }
+    gpmgmt_free_policies(pPolicies);
     goto cleanup;
 }

@@ -111,6 +111,7 @@ install -D -m 444 conf/api_sddl.conf %{buildroot}/etc/pmd/api_sddl.conf
 install -D -m 444 conf/restconfig.txt %{buildroot}/etc/pmd/restconfig.txt
 install -D -m 444 conf/server.crt  %{buildroot}/etc/pmd/server.crt
 install -D -m 444 conf/server.key %{buildroot}/etc/pmd/server.key
+install -D -m 444 conf/grouppolicies.json %{buildroot}/etc/pmd/grouppolicies.json
 
 # TODO://Currently libs are installed at lib_dir as well as in pmd.
 for file in $(find server -name 'libpmdgpmgmt.so*'); do
@@ -245,6 +246,7 @@ rm -rf %{buildroot}/*
     /etc/pmd/restconfig.txt
     /etc/pmd/server.crt
     /etc/pmd/server.key
+    /etc/pmd/grouppolicies.json
     %dir /var/log/pmd
     /etc/pmd/pmd.grouppolicy.plugins.d
     %{_libdir}/libpmdgpmgmt.so*

@@ -509,7 +509,7 @@ error:
 }
 
 uint32_t
-pmd_gpmgmt_get_val_from_key(
+get_val_from_file(
     const char *pszFile,
     const char *pszGroup,
     const char *pszkey,
@@ -517,7 +517,7 @@ pmd_gpmgmt_get_val_from_key(
     )
 {
     uint32_t dwError = 0;
-    char *pszValue;
+    char *pszValue= NULL;
     PCONF_DATA pData = NULL;
     PCONF_SECTION pSection = NULL;
     PKEYVALUE pKeyValues = NULL;
@@ -560,6 +560,10 @@ error:
             pszkey,
             pszGroup,
             pszFile);
-
+    PMD_SAFE_FREE_MEMORY(pszValue);
+    if(ppszValue)
+    {
+        *ppszValue = NULL;
+    }
     goto cleanup;
 }
