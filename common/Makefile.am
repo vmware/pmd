@@ -11,7 +11,8 @@ libcommon_la_SOURCES = \
     rpcsrvutils.c \
     strings.c \
     usermgmt.c \
-    utils.c
+    utils.c \
+    gpmgmt.c
 
 libcommon_la_CPPFLAGS = \
     -I$(top_srcdir)/include \

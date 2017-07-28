@@ -1,0 +1,15 @@
+{
+    "updatepolicy": 
+    {
+    "kind": "domain",
+    "type": "update", 
+    "order": 1, 
+    "enabled": true, 
+    "start_time": "2015-05-30 18:13:04",
+    "interval": "2015-05-30 18:13:04",
+    "policy_info": 
+        {"type": "updatepackage",
+         "package": "diffutils"
+        }
+    }
+}
