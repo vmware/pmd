@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include <sys/sysinfo.h>
 #include <sys/utsname.h>
@@ -39,6 +40,7 @@
 #include <dlfcn.h>
 #include "pmd_gpmgmt.h"
 #include "defines.h"
+#include "prototypes.h"
 
 #include "../../idl/gpmgmt_h.h"
 
