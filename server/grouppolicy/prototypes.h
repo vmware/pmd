@@ -12,30 +12,28 @@
  * under the License.
  */
 
+uint32_t
+pmd_gpmgmt_load_policies(
+    PPMD_POLICY_DATA *ppPolicies
+    );
 
-#pragma once
+uint32_t
+pmd_gpmgmt_print_polices(
+    PPMD_POLICY_DATA pPolicies
+    );
+    
+uint32_t
+pmd_gpmgmt_load_each_policy(
+    const char *pszPolicyName,
+    json_t *pPolicyData,
+    PPMD_POLICY_DATA *ppPolicy
+    );
 
-#include <lw/base.h>
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-#include <termios.h>
+uint32_t
+pmd_gpmgmt_create_policy_json(
+        );
 
-#include <pmderror.h>
- 
-#include <dce/rpc.h>
-#include <dce/dcethread.h>
-#include <dce/dce_error.h>
-
-#include <curl/curl.h>
-
-#include "defines.h"
-#include "structs.h"
-#include "prototypes.h"
-
-#include <pmd_fwmgmt_types.h>
-#include <pmd_rolemgmt_types.h>
-#include <pmd_usermgmt_types.h>
-#include <pmd_gpmgmt_types.h>
+void
+gpmgmt_free_policies(
+    PPMD_POLICY_DATA pPolicies
+    );

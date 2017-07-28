@@ -22,40 +22,9 @@ extern "C" {
 
 #include <stdint.h>//for uint32_t
 #include "pmdtypes.h"
-#include <jansson.h>
-#include <time.h>
+#include "pmd_gpmgmt_types.h"
 
 typedef void* PFN_PMD_GPMGMT_HANDLE; 
-
-typedef enum
-{
-    POLICY_KIND_LOCAL,
-    POLICY_KIND_SITE,
-    POLICY_KIND_DOMAIN,
-    POLICY_KIND_OU,
-}PMD_POLICY_KIND;
-  
-typedef enum
-{
-    POLICY_TYPE_UNKNOWN,
-    POLICY_TYPE_UPDATE
-}PMD_POLICY_TYPE;
-
-typedef struct _PMD_POLICY_DATA_
-{
-    //Generic details loaded from file
-    PMD_POLICY_KIND nKind;
-    PMD_POLICY_TYPE nType;
-    int nOrder;
-    int nEnabled;
-    time_t StartDate;
-    time_t Interval;
-    // Written by the thread
-    time_t LastImplemented;
-    //Policy speciifc details 
-    json_t *pszPolicyData;
-    struct _PMD_POLICY_DATA_ *pNext;
-}PMD_POLICY_DATA, *PPMD_POLICY_DATA;
 
 //Function pointer defs
    
@@ -109,6 +78,37 @@ gpmgmt_get_version(
     char **ppszVersion
     );
 
+//gpmgmt.c
+uint32_t
+gpmgmt_get_policy_kind_enum(
+    const char *pPolicyKind,
+    PMD_POLICY_KIND *penumKind
+    );
+
+uint32_t
+gpmgmt_get_policy_type_enum(
+    const char *pPolicyType,
+    PMD_POLICY_TYPE *penumType
+    );
+
+uint32_t
+gpmgmt_get_policy_time(
+    const char *pPolicyTime,
+    time_t *ptmTimeRet
+    );
+
+uint32_t
+gpmgmt_get_policy_interval(
+    const char *pPolicyInterval,
+    int *pdIntervalRet
+    );
+
+uint32_t
+gpmgmt_get_policy_enabled_enum(
+    const char *pPolicyEnable,
+    PMD_POLICY_ENABLE *penumEnableRet
+    );
+   
 #ifdef __cplusplus
 }
 #endif

@@ -22,3 +22,5 @@
 #include "prototypes.h"
 #include "../defines.h"
 #include "../../defines.h"
+#include <jansson.h>
+#include "../prototypes.h"
