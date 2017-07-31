@@ -364,12 +364,18 @@ get_uri_from_request(
     char *pszRealURI = NULL;
     char *pszURI = NULL;
     char *pszTempURI = NULL;
+    char *pszParamsStart = NULL;
 
     dwError = VmRESTGetHttpURI(pRequest, &pszRealURI);
     BAIL_ON_PMD_ERROR(dwError);
 
     pszTempURI = strchr(pszRealURI, '?');
-    pszTempURI = pszTempURI ? pszTempURI : pszRealURI;
+    if(pszTempURI)
+    {
+        *pszTempURI = '\0';
+        pszParamsStart = pszTempURI;
+    }
+    pszTempURI = pszRealURI;
 
     if(IsNullOrEmptyString(pszTempURI))
     {
@@ -380,9 +386,14 @@ get_uri_from_request(
     dwError = PMDAllocateString(pszTempURI, &pszURI);
     BAIL_ON_PMD_ERROR(dwError);
 
+    if(pszParamsStart) // reconstruct original string before freeing.
+    {
+        *pszParamsStart = '?';
+    }
     *ppszURI = pszURI;
 
 cleanup:
+    PMD_SAFE_FREE_MEMORY(pszRealURI);
     return dwError;
 
 error:
