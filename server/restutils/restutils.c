@@ -514,29 +514,30 @@ rest_method(
     {
         int nChunkLength = 0;
         int nLengthSent = 0;
-
+        unsigned int nBytesWritten = 0;
         dwError = VmRESTSetDataLength(ppResponse, NULL);
         BAIL_ON_PMD_ERROR(dwError);
 
-        while(!done)
+        do        
         {
             nChunkLength = nDataLength > MAX_HTTP_DATA_LEN ?
                                          MAX_HTTP_DATA_LEN : nDataLength;
-            /*printf("nChunkLength = %d, nDataLength = %d\n", nChunkLength, nDataLength);
-            printf("nLengthSent = %d\n", nLengthSent);
-            printf("Length = %ld\n", strlen(pszJsonOut + nLengthSent));*/
-            dwError = VmRESTSetHttpPayload(
-                          pRestHandle,
-                          ppResponse,
-                          pszJsonOut + nLengthSent,
-                          nChunkLength,
-                          &done
-                          );
-            BAIL_ON_PMD_ERROR(dwError);
-            nLengthSent += nChunkLength;
-            nDataLength -= nChunkLength;
+            dwError = VmRESTSetData(
+                            pRestHandle,
+                            ppResponse,
+                            pszJsonOut + nLengthSent,
+                            nChunkLength,
+                            &nBytesWritten
+                               );
+            if (dwError != REST_ENGINE_MORE_IO_REQUIRED)
+            {
+                BAIL_ON_PMD_ERROR(dwError);
+            }
+            nLengthSent += nBytesWritten;
+            nDataLength -= nBytesWritten;
+            nBytesWritten = 0; //reset the value
             usleep(1000);
-        }
+        }while(dwError == REST_ENGINE_MORE_IO_REQUIRED);
     }
 cleanup:
     PMD_SAFE_FREE_MEMORY(pszURI);
