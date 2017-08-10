@@ -14,13 +14,43 @@
 
 
 #pragma once
-#include "../../../common/includes.h"
 
-#include "../../../idl/gpmgmt_h.h"
+#include <lw/base.h>
+#include <lw/types.h>
+
+#include <tdnf/tdnftypes.h>
+
+#include <ctype.h>
+#include <locale.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdlib.h>
+
+#include "../../../idl/pkgmgmt_h.h"
+
+#include "../../../common/includes.h"
 #include "pmd_gpmgmt.h"
 
-#include "prototypes.h"
 #include "../defines.h"
 #include "../../defines.h"
 #include <jansson.h>
 #include "../prototypes.h"
+#include <pthread.h>
+
+#include <tdnf/tdnf.h>
+#include <tdnf/tdnfcli.h>
+//jsonutils
+#include "../../../jsonutils/includes.h"
+
+//restutils
+#include "../../../server/restutils/includes.h"
+#include <vmrest.h>
+
+//Global variable
+#include "../../structs.h"
+#include "../../global.h"
+
+
+#include "../../prototypes.h"
+#include "prototypes.h"
