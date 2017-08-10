@@ -369,8 +369,12 @@ get_uri_from_request(
     BAIL_ON_PMD_ERROR(dwError);
 
     pszTempURI = strchr(pszRealURI, '?');
-    pszTempURI = pszTempURI ? pszTempURI : pszRealURI;
-
+    if(pszTempURI)
+    {
+        *pszTempURI = '\0';
+    }
+    pszTempURI = pszRealURI;
+ 
     if(IsNullOrEmptyString(pszTempURI))
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
@@ -383,6 +387,7 @@ get_uri_from_request(
     *ppszURI = pszURI;
 
 cleanup:
+    PMD_SAFE_FREE_MEMORY(pszRealURI);
     return dwError;
 
 error:

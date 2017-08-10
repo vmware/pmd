@@ -3,9 +3,7 @@ noinst_LTLIBRARIES = libpmdgpwrappers.la
 libpmdgpwrappers_la_CPPFLAGS = \
     -I$(top_srcdir)/include \
     -I$(top_srcdir)/idl \
-    @LW_INCLUDES@ \
-    @CREST_INCLUDES@ \
-    @VMAFD_INCLUDES@
+    @LW_INCLUDES@ 
 
 libpmdgpwrappers_la_SOURCES = \
     gpwrappers.c \

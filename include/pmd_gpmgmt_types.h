@@ -54,13 +54,13 @@ typedef const struct _PMD_POLICY_TYPE_MAP_
 {
     PMD_POLICY_TYPE  type;
     const char *str;
-}PMD_POLICY_TYPE_MAP; 
+}PMD_POLICY_TYPE_MAP;
 
 typedef const struct _PMD_POLICY_ENABLE_MAP_
 {
     PMD_POLICY_ENABLE  enable;
     const char *str;
-}PMD_POLICY_ENABLE_MAP; 
+}PMD_POLICY_ENABLE_MAP;
 
 
 typedef struct _PMD_POLICY_DATA_
@@ -72,10 +72,10 @@ typedef struct _PMD_POLICY_DATA_
     int nOrder;
     bool nEnabled;
     time_t tmStartTime;
-    int dInterval;
+    long lInterval;
     // Written by the thread
     time_t tmLastEnforced;
-    //Policy speciifc details 
+    //Policy speciifc details
     json_t *pszPolicyData;
     struct _PMD_POLICY_DATA_ *pNext;
 }PMD_POLICY_DATA, *PPMD_POLICY_DATA;

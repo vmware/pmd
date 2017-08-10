@@ -22,8 +22,10 @@ pmd_policy_plugin_load_interface()
     char *pszGpmgmtPluginPath = NULL;
 
     dlerror();
-    PMDAllocateMemory(sizeof(PMD_POLICY_PLUGIN_INTERFACE),
+    dwError =PMDAllocateMemory(sizeof(PMD_POLICY_PLUGIN_INTERFACE),
                       (void **)&gpServerEnv->gpGroupInterface);
+    BAIL_ON_PMD_ERROR(dwError);
+
     dwError = get_val_from_file(PMD_CONFIG_FILE_NAME,
                                 PMD_CONFIG_GP_GROUP,
                                 PMD_CONFIG_KEY_GPMGMT_PLUGIN_PATH,
@@ -46,7 +48,7 @@ pmd_policy_plugin_load_interface()
         "pmd_gpmgmt_get_version");
     if (!gpServerEnv->gpGroupInterface->pFnPolicyVersion)
     {
-        fprintf(stderr, "\n Group policy symbol \"pmd_gpmgmt_get_version\" not found %s\n", 
+        fprintf(stderr, "\n Group policy symbol \"pmd_gpmgmt_get_version\" not found %s\n",
                                                                                 dlerror());
         dwError = ERROR_PMD_GPMGMT_SYMBOL_NOT_FOUND;
         BAIL_ON_PMD_ERROR(dwError);
@@ -139,7 +141,7 @@ pmd_gpmgmt_load_policies(
     }
 
     json_object_foreach(root, pKey, pValue)
-    {   
+    {
         if (!pPoliciesHead)
         {
             dwError = pmd_gpmgmt_load_each_policy(
@@ -164,7 +166,7 @@ pmd_gpmgmt_load_policies(
 
     *ppPolicies = pPoliciesHead;
 
-cleanup : 
+cleanup :
     PMD_SAFE_FREE_MEMORY(pszPolicyJsonPath);
     if(root)
     {
@@ -172,14 +174,13 @@ cleanup :
     }
     return dwError;
 
-error : 
+error :
     fprintf(stderr, "Error in loading policies\"\n");
     if (ppPolicies)
     {
          *ppPolicies = NULL;
     }
-    PMD_SAFE_FREE_MEMORY(pPoliciesHead);
-    PMD_SAFE_FREE_MEMORY(pPolicy);
+    gpmgmt_free_policies(pPoliciesHead);
     goto cleanup;
 }
 
@@ -195,6 +196,9 @@ pmd_gpmgmt_print_polices(
     fprintf(stdout,"Priniting Policies \n");
     fprintf(stdout, "==================================================================\n");
 
+    if(!pPolicies)
+        fprintf(stdout,"No policies to print \n");
+
     while (pPolicies)
     {
         fprintf(stdout, "Name                   :%s\n", pPolicies->pszPolicyName);
@@ -204,7 +208,7 @@ pmd_gpmgmt_print_polices(
         ptmInfo = localtime(&pPolicies->tmStartTime);
         strftime(szTimeStr,sizeof(szTimeStr),"%b %d %H:: %M",ptmInfo);
         fprintf(stdout, "Starttype              :%s\n", szTimeStr);
-        fprintf(stdout, "Interval               :%d\n", pPolicies->dInterval);
+        fprintf(stdout, "Interval               :%ld\n", pPolicies->lInterval);
         ptmInfo = localtime(&pPolicies->tmLastEnforced);
         strftime(szTimeStr,sizeof(szTimeStr),"%b %d %H:: %M",ptmInfo);
         fprintf(stdout, "Last Implemented       :%s\n", szTimeStr);
@@ -234,6 +238,11 @@ pmd_gpmgmt_load_each_policy(
     json_t *ptempJson = NULL;
     bool isJson = false;
 
+    uint32_t *pnKind = NULL;
+    uint32_t *pnType = NULL;
+    time_t  *ptmStart = NULL;
+    long lInterval = 0;
+
     dwError = PMDAllocateMemory(sizeof(PMD_POLICY_DATA),(void **)&pPolicy);
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -241,7 +250,7 @@ pmd_gpmgmt_load_each_policy(
     BAIL_ON_PMD_ERROR(dwError);
 
     json_object_foreach(pPolicyData, pKey, pValue)
-    {   
+    {
         if (!strcmp(pKey, "kind"))
         {
             isJson = json_is_string(pValue);
@@ -251,12 +260,14 @@ pmd_gpmgmt_load_each_policy(
                 BAIL_ON_PMD_ERROR(dwError);
             }
             pszTempStr = json_string_value(pValue);
-            
-            dwError = gpmgmt_get_policy_kind_enum(pszTempStr, &(pPolicy->nKind));
+
+            dwError = gpmgmt_get_policy_kind_enum(pszTempStr, &pnKind);
             BAIL_ON_PMD_ERROR(dwError);
+
+            pPolicy->nKind = *pnKind;
         }
         else if (!strcmp(pKey, "type"))
-        {   
+        {
             isJson = json_is_string(pValue);
             if(!isJson)
             {
@@ -265,11 +276,13 @@ pmd_gpmgmt_load_each_policy(
             }
             pszTempStr = json_string_value(pValue);
 
-            dwError = gpmgmt_get_policy_type_enum(pszTempStr,&(pPolicy->nType));
+            dwError = gpmgmt_get_policy_type_enum(pszTempStr,&pnType);
             BAIL_ON_PMD_ERROR(dwError);
+
+            pPolicy->nType = *pnType;
         }
         else if(!strcmp(pKey,"order"))
-        {   
+        {
             nTempInt = json_integer_value(pValue);
             if(nTempInt == 0)
             {
@@ -280,7 +293,7 @@ pmd_gpmgmt_load_each_policy(
             pPolicy->nOrder = nTempInt;
         }
         else if(!strcmp(pKey,"enabled"))
-        {   
+        {
             isJson = json_is_boolean(pValue);
             if(!isJson)
             {
@@ -291,7 +304,7 @@ pmd_gpmgmt_load_each_policy(
             pPolicy->nEnabled = json_is_true(pValue)? true : false;
         }
         else if(!strcmp(pKey,"start_time"))
-        {   
+        {
             isJson = json_is_string(pValue);
             if(!isJson)
             {
@@ -299,9 +312,11 @@ pmd_gpmgmt_load_each_policy(
                 BAIL_ON_PMD_ERROR(dwError);
             }
             pszTempStr = json_string_value(pValue);
-            
-            dwError =gpmgmt_get_policy_time(pszTempStr,&(pPolicy->tmStartTime));
+
+            dwError =gpmgmt_get_policy_time(pszTempStr,&ptmStart);
             BAIL_ON_PMD_ERROR(dwError);
+
+            pPolicy->tmStartTime = *ptmStart;
 
         }
         else if(!strcmp(pKey,"interval"))
@@ -313,20 +328,21 @@ pmd_gpmgmt_load_each_policy(
                 BAIL_ON_PMD_ERROR(dwError);
             }
             pszTempStr = json_string_value(pValue);
-            
-            dwError = gpmgmt_get_policy_interval(pszTempStr,&(pPolicy->dInterval));
+
+            dwError = gpmgmt_get_policy_interval(pszTempStr,&lInterval);
             BAIL_ON_PMD_ERROR(dwError);
+
+            pPolicy->lInterval = lInterval;
 
         }
         else if(!strcmp(pKey,"policy_info"))
-        {   
-            if(!pValue)
-                dwError= ERROR_PMD_GPMGMT_JSON_PARSE_ERROR;
-            
+        {
             ptempJson = json_deep_copy(pValue);
             if(!ptempJson)
+            {
                 BAIL_ON_PMD_ERROR(dwError);
-            
+            }
+
             pPolicy->pszPolicyData = ptempJson;
         }
         else
@@ -342,10 +358,14 @@ pmd_gpmgmt_load_each_policy(
     *ppPolicy = pPolicy;
 
 cleanup:
+    PMD_SAFE_FREE_MEMORY(pnKind);
+    PMD_SAFE_FREE_MEMORY(pnType);
+    PMD_SAFE_FREE_MEMORY(ptmStart);
     return dwError;
 
 error:
     fprintf(stderr, "Error in parsing each policy\"\n");
+    gpmgmt_free_policies(pPolicy);
     if(ppPolicy)
     {
         ppPolicy = NULL;
@@ -380,7 +400,7 @@ pmd_gpmgmt_create_policy_json(
     if(nError == -1)
     {
         dwError = ERROR_PMD_GPMGMT_JSON_PARSE_ERROR;
-        BAIL_ON_PMD_ERROR(dwError); 
+        BAIL_ON_PMD_ERROR(dwError);
     }
 
     json_decref(pRoot);
@@ -397,9 +417,9 @@ void
 gpmgmt_free_policies(
     PPMD_POLICY_DATA pPolicies
     )
-{   
+{
     PPMD_POLICY_DATA pPoliciesPrev = NULL;
-    
+
     while(pPolicies)
     {
         PMD_SAFE_FREE_MEMORY(pPolicies->pszPolicyName);
