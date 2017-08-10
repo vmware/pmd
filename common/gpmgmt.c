@@ -17,7 +17,7 @@
 uint32_t
 gpmgmt_get_policy_kind_enum(
     const char *pPolicyKind,
-    PMD_POLICY_KIND *penumKindRet
+    PMD_POLICY_KIND **ppenumKind
     )
 {
     uint32_t i = 0;
@@ -47,21 +47,22 @@ gpmgmt_get_policy_kind_enum(
         dwError = ERROR_PMD_GPMGMT_JSON_UNKNOWN_VALUE;
         BAIL_ON_PMD_ERROR(dwError);
     }
-    *penumKindRet = *penumKind;
+    *ppenumKind = penumKind;
 
 cleanup:
     return dwError;
 
 error:
     PMD_SAFE_FREE_MEMORY(penumKind);
-    PMD_SAFE_FREE_MEMORY(penumKindRet);
+    if(ppenumKind)
+        ppenumKind = NULL;
     goto cleanup;
 }
 
 uint32_t
 gpmgmt_get_policy_type_enum(
     const char *pPolicyType,
-    PMD_POLICY_TYPE *penumTypeRet
+    PMD_POLICY_TYPE **ppenumType
     )
 {
     uint32_t i = 0;
@@ -91,65 +92,22 @@ gpmgmt_get_policy_type_enum(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    *penumTypeRet = *penumType;
+    *ppenumType = penumType;
 
 cleanup:
     return dwError;
 
 error:
     PMD_SAFE_FREE_MEMORY(penumType);
-    PMD_SAFE_FREE_MEMORY(penumTypeRet);
-    goto cleanup;
-}
-
-uint32_t
-gpmgmt_get_policy_enabled_enum(
-    const char *pPolicyEnable,
-    PMD_POLICY_ENABLE *penumEnableRet
-    )
-{
-    uint32_t i = 0;
-    uint32_t dwError = 0;
-    bool bValidString = false;
-    PMD_POLICY_ENABLE_MAP policyEnableMap[] = {
-        {POLICY_ENABLED, "true"},
-        {POLICY_DISABLED, "false"},
-    };
-    PMD_POLICY_ENABLE *penumEnable = NULL;
-
-    dwError = PMDAllocateMemory(sizeof(PMD_POLICY_ENABLE_MAP), (void **)&penumEnable);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    for (i = 0; i < sizeof(policyEnableMap) / sizeof(policyEnableMap[0]); i++)
-    {
-        if (!strcmp(pPolicyEnable, policyEnableMap[i].str))
-        {
-            memcpy(penumEnable, &policyEnableMap[i].enable, sizeof(PMD_POLICY_ENABLE_MAP));
-            bValidString = true;
-        }
-    }
-
-    if(!bValidString)
-    {
-        dwError = ERROR_PMD_GPMGMT_JSON_UNKNOWN_VALUE;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    *penumEnableRet = *penumEnable;
-
-cleanup:
-    return dwError;
-
-error:
-    PMD_SAFE_FREE_MEMORY(penumEnableRet);
-    PMD_SAFE_FREE_MEMORY(penumEnable);
+    if(ppenumType)
+        ppenumType = NULL;
     goto cleanup;
 }
 
 uint32_t
 gpmgmt_get_policy_time(
     const char *pPolicyTime,
-    time_t *ptmTimeRet
+    time_t **pptmTime
     )
 {
     uint32_t i = 0;
@@ -174,14 +132,15 @@ gpmgmt_get_policy_time(
     tmMaker.tm_isdst = -1; // daylight savings is unknown
 
     *ptmTime = mktime(&tmMaker);
-    *ptmTimeRet = *ptmTime;
+    *pptmTime = ptmTime;
 
 cleanup:
     return dwError;
 
 error:
-    PMD_SAFE_FREE_MEMORY(ptmTimeRet);
     PMD_SAFE_FREE_MEMORY(ptmTime);
+    if(pptmTime)
+        pptmTime = NULL;
     goto cleanup;
 }
 
@@ -193,11 +152,12 @@ Interval can be
 2) Time string    "6s" => taken as 6 seconds
 3) Time string    "6h" => taken as 6 hours
 4) Time string    "6d" => taken as 6 days
+5) Empty String    ""  => Default implementation interval
 */
 uint32_t
 gpmgmt_get_policy_interval(
     const char *pPolicyInterval,
-    int *pdIntervalRet)
+    int **ppdInterval)
 {   
     uint32_t dwError = 0;
     char intStr[100];
@@ -206,10 +166,12 @@ gpmgmt_get_policy_interval(
     int *pdInterval = NULL;
     int dTime = 0;
     int dLength = 0;
+    int dTimeStrTotLen =0;
+    int dTimeStrCharLen =0;
 
     dwError = PMDAllocateMemory(sizeof(int),(void**)&pdInterval);
     BAIL_ON_PMD_ERROR(dwError);
-
+    
     dLength = strlen(pPolicyInterval);
     if (dLength > 100)
     {
@@ -218,13 +180,14 @@ gpmgmt_get_policy_interval(
     }
     else if (dLength == 0)
     {
-        *pdInterval = 5 * 60;
+        *pdInterval = PMD_GPMGMT_DEFAULT_POLICY_INTERVAL;
     }
     else
     {
         pCh = pPolicyInterval;
+        dTimeStrTotLen = strlen(pPolicyInterval);
         dLength = 0;
-        while (*pCh >= '0' && *pCh <= '9')
+        while (*pCh >= '0' && *pCh <= '9' && (dLength <= dTimeStrTotLen))
         {
             dLength++;
             pCh++;
@@ -238,8 +201,10 @@ gpmgmt_get_policy_interval(
             *pdInterval = dTime;
         }
         else
-        {
-            strcpy(timeStr, pCh);
+        {   
+            dTimeStrCharLen = strlen(pCh);
+            strncpy(timeStr, pCh,dTimeStrCharLen);
+            timeStr[dTimeStrCharLen] ='\0';
             if (!strcmp(timeStr, "d"))
             {
                 *pdInterval = dTime * 24 * 3600;
@@ -260,12 +225,14 @@ gpmgmt_get_policy_interval(
         }
     }
 
-    *pdIntervalRet = *pdInterval;
+    *ppdInterval = pdInterval;
 
 cleanup:
     return dwError;
 
 error:
     PMD_SAFE_FREE_MEMORY(pdInterval);
+    if(ppdInterval)
+        ppdInterval = NULL;
     goto cleanup;
 }

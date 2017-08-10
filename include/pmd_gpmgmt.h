@@ -23,6 +23,8 @@ extern "C" {
 #include <stdint.h>//for uint32_t
 #include "pmdtypes.h"
 #include "pmd_gpmgmt_types.h"
+#include <pthread.h>
+#include <signal.h>
 
 typedef void* PFN_PMD_GPMGMT_HANDLE; 
 
@@ -57,6 +59,8 @@ typedef struct _PMD_POLICY_PLUGIN_INTERFACE_
     PFN_PMD_POLICY_START        pFnStartPolicies;
     PFN_PMD_POLICY_LIST         pFnListPolicies;
     PFN_PMD_POLICY_STOP         pFnStopPolicies;
+    pthread_mutex_t             mutexJsonPolicyFile;
+    volatile sig_atomic_t       enforcePolices;
 }PMD_POLICY_PLUGIN_INTERFACE, *PPMD_POLICY_PLUGIN_INTERFACE;
 
 
@@ -82,32 +86,27 @@ gpmgmt_get_version(
 uint32_t
 gpmgmt_get_policy_kind_enum(
     const char *pPolicyKind,
-    PMD_POLICY_KIND *penumKind
+    PMD_POLICY_KIND **ppenumKind
     );
 
 uint32_t
 gpmgmt_get_policy_type_enum(
     const char *pPolicyType,
-    PMD_POLICY_TYPE *penumType
+    PMD_POLICY_TYPE **ppenumType
     );
 
 uint32_t
 gpmgmt_get_policy_time(
     const char *pPolicyTime,
-    time_t *ptmTimeRet
+    time_t **pptmTimeRet
     );
 
 uint32_t
 gpmgmt_get_policy_interval(
     const char *pPolicyInterval,
-    int *pdIntervalRet
+    int **ppdIntervalRet
     );
 
-uint32_t
-gpmgmt_get_policy_enabled_enum(
-    const char *pPolicyEnable,
-    PMD_POLICY_ENABLE *penumEnableRet
-    );
    
 #ifdef __cplusplus
 }
