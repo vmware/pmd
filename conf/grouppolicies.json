@@ -1,28 +1,32 @@
 {
     "updatepolicy": 
     {
-    "kind": "domain",
+    "kind": "local",
     "type": "update", 
     "order": 1, 
     "enabled": true, 
     "start_time": "2015-05-30 18:13:04",
     "interval": "6h",
     "policy_info": 
-        {"type": "security",
-         "package": [ "diffutils", "netmgmt" ]
+        {
+         "type": "security",
+         "altertype" : "update",
+         "packages": [ "diffutils", "vim" ]
         }
     },
-     "Updatepolicy1": 
+     "downgradepolicy": 
     {
-    "kind": "domain",
+    "kind": "site",
     "type": "update", 
     "order": 1, 
     "enabled": true, 
     "start_time": "2015-05-30 18:13:04",
     "interval": "6h",
     "policy_info": 
-        {"type": "compiler",
-         "package": [ "diffutils", "gcc" ]
+        {
+         "type": "compiler",
+         "altertype": "downgrade",
+         "packages": [ "strace", "go" ]
         }
     }
 }
