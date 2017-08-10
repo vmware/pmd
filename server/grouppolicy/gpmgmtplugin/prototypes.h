@@ -24,3 +24,58 @@ pmd_gpmgmt_get_version(
 uint32_t
 pmd_gpmgmt_start_policies(
     );
+
+uint32_t
+pmd_gpmgmt_enforce_polices(
+    const PPMD_POLICY_DATA pPolicies
+    );
+
+void *
+pmd_gpmgmt_enforcement_thread(
+    void *args
+    );
+
+uint32_t
+pmd_gpmgmt_execute_polices(
+    const PPMD_POLICY_DATA pPolicies,
+    const PMD_POLICY_KIND nPolicyKind
+    );
+
+uint32_t
+pmd_gpmgmt_execute_updatepolicy(
+    const PPMD_POLICY_DATA pPolicy
+    );
+
+uint32_t
+pmd_gpmgmt_update_pkgmgmt_args(
+    const PPMD_POLICY_DATA pPolicy,
+    PTDNF_CMD_ARGS *ppArgs
+    );
+
+uint32_t
+pmd_gpmgmt_update_error(
+    uint32_t dwErrorCode
+    );
+
+uint32_t
+pmd_gpmgmt_open_tdnf(
+    const PTDNF_CMD_ARGS pArgs,
+    PTDNF *ppTdnf
+    );
+
+uint32_t
+pmd_gpmgmt_invoke_tdnf_alter(
+    const PTDNF pTdnf,
+    const TDNF_ALTERTYPE nAlterType
+    );
+
+uint32_t
+pmd_gpmgmt_print_tdnf_args(
+    const PTDNF_CMD_ARGS pArgs
+    );
+
+uint32_t
+pmd_gpmgmt_update_handle_error(
+    uint32_t dwErrorCode,
+    const PPMD_POLICY_DATA pPolicy
+    );
