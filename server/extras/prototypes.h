@@ -16,6 +16,11 @@
 #pragma once
 
 //fwmgmt_api.c
+ uint32_t
+ pmd_firewall_get_version(
+     char **ppszVersion
+     );
+
 uint32_t
 pmd_firewall_get_rules(
     uint32_t nIPV6,

@@ -24,6 +24,8 @@ int main(int argc, char* argv[])
     uint32_t dwError = 0;
     PPMD_CMD_ARGS pCmdArgs = NULL;
     char** argvDup = NULL;
+    setlocale(LC_ALL, "");
+
 
     dwError = dup_argv(argc, argv, &argvDup);
     BAIL_ON_CLI_ERROR(dwError);
