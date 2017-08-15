@@ -46,5 +46,5 @@ typedef unsigned short* wstring_t;
     {ERROR_PMD_CONF_FILE_LOAD,      "ERROR_PMD_CONF_FILE_LOAD",      "Error reading config file."}, \
 };
 
-//Default Policy implementation interval in seconds is 5 minutes
-#define PMD_GPMGMT_DEFAULT_POLICY_INTERVAL 5*60
+//Default Policy implementation interval in seconds is 5 seconds
+#define PMD_GPMGMT_DEFAULT_POLICY_INTERVAL 5
