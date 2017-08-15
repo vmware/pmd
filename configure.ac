@@ -234,6 +234,11 @@ AM_CONDITIONAL([LIBCURL],  [test "$have_libcurl" = "yes"])
 PKG_CHECK_MODULES([COPENAPI], [copenapi], [have_libcopenapi=yes], [have_libcopenapi=no])
 AM_CONDITIONAL([COPENAPI],  [test "$have_libcopenapi" = "yes"])
 
+#SQLlite
++PKG_CHECK_MODULES([SQLITE3], [sqlite3], [have_sqlite3=yes], [have_sqlite3=no])
++AM_CONDITIONAL([SQLITE3],  [test "$have_sqlite3" = "yes"])
+
+
 #makefiles
 AC_CONFIG_FILES([Makefile
                  common/Makefile

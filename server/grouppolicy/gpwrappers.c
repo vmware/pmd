@@ -20,7 +20,12 @@ pmd_policy_plugin_load_interface()
     uint32_t dwError = 0;
     char *pszVersion = NULL;
     char *pszGpmgmtPluginPath = NULL;
-
+        //Test code for logs to be relocated
+    char * pszGpmgmtSQLLogsPath = NULL;
+    sqlite3 *pDb;
+    PPMD_POLICY_LOG pLogEntry = NULL;
+    uint32_t dwLogCount =0;
+        // End of test code
     dlerror();
     dwError =PMDAllocateMemory(sizeof(PMD_POLICY_PLUGIN_INTERFACE),
                       (void **)&gpServerEnv->gpGroupInterface);
@@ -65,6 +70,17 @@ pmd_policy_plugin_load_interface()
         BAIL_ON_PMD_ERROR(dwError);
     }
 
+    gpServerEnv->gpGroupInterface->pFnStopPolicies = dlsym(
+        gpServerEnv->gpGroupInterface->hHandle,
+        "pmd_gpmgmt_stop_policies");
+    if (!gpServerEnv->gpGroupInterface->pFnStopPolicies)
+    {
+        fprintf(stderr, "\n Group policy symbol \"pmd_gpmgmt_stop_policies\" not found %s\n",
+                                                                                 dlerror());
+        dwError = ERROR_PMD_GPMGMT_SYMBOL_NOT_FOUND;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
     gpServerEnv->gpGroupInterface->pFnPolicyVersion(&pszVersion);
     if (IsNullOrEmptyString(pszVersion))
     {
@@ -73,12 +89,53 @@ pmd_policy_plugin_load_interface()
     }
     fprintf(stdout, "Group policy version is %s\n", pszVersion);
 
+    //Test code for logs to be relocated
+        //Start a sql log  connection;
+    dwError = get_val_from_file(PMD_CONFIG_FILE_NAME,
+                                PMD_CONFIG_GP_GROUP,
+                                PMD_CONFIG_KEY_GPMGMT_SQL_LOGS,
+                                &pszGpmgmtSQLLogsPath);
+    BAIL_ON_PMD_ERROR(dwError);
+    fprintf(stdout, "Logs path is %s\n", pszGpmgmtSQLLogsPath);
+
+   //Create the file and create a default file
+    dwError = gpmgmt_sql_create_logs(
+       pszGpmgmtSQLLogsPath,
+       &pDb
+        );
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateMemory(sizeof(PMD_POLICY_LOG),(void **)&pLogEntry);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pLogEntry->pszIPAddress = "127.0.0.1";
+    pLogEntry->pszTime = "15th Aug, 2017";
+    pLogEntry->pszLogType = "127.0.0.1";
+    pLogEntry->pszPolicyName = "updatepolicy";
+    pLogEntry->pszIsSuccessful = "True";
+    pLogEntry->pszErrorStr = "Sample Error";
+
+    dwError = gpmgmt_sql_add_log(pDb,pLogEntry);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = gpmgmt_sql_query_all_logs(pDb,&pLogEntry,&dwLogCount);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = gpmgmt_sql_print_logs(pLogEntry);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    gpmgmt_sql_database_close(pDb);
+
+    gpmgmt_sql_free_log_entry(pLogEntry);
+    //End of testcode for SQLlogs
+
 cleanup:
     PMD_SAFE_FREE_MEMORY(pszVersion);
     PMD_SAFE_FREE_MEMORY(pszGpmgmtPluginPath);
     return dwError;
 
 error:
+    fprintf(stdout, "Error opening the policy interface:  Error(%d) \n\n",dwError);
     PMD_SAFE_FREE_MEMORY(gpServerEnv->gpGroupInterface);
     goto cleanup;
 }
@@ -246,6 +303,10 @@ pmd_gpmgmt_load_each_policy(
     dwError = PMDAllocateMemory(sizeof(PMD_POLICY_DATA),(void **)&pPolicy);
     BAIL_ON_PMD_ERROR(dwError);
 
+    pPolicy->pszPolicyName = NULL;
+    pPolicy->pszPolicyData = NULL;
+    pPolicy->pNext = NULL;
+
     dwError =PMDAllocateString(pszPolicyName,&pPolicy->pszPolicyName);
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -368,7 +429,7 @@ error:
     gpmgmt_free_policies(pPolicy);
     if(ppPolicy)
     {
-        ppPolicy = NULL;
+        *ppPolicy = NULL;
     }
     goto cleanup;
 }

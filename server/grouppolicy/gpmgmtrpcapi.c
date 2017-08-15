@@ -30,7 +30,7 @@ gpmgmt_rpc_version(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
-    
+
     //Call the version function to check that the binding is ok
     dwError= gpServerEnv->gpGroupInterface->pFnPolicyVersion(&pszVersion);
     BAIL_ON_PMD_ERROR(dwError);

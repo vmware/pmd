@@ -551,6 +551,14 @@ uint32_t
 pmd_handle_signals(
     );
 
+uint32_t
+pmd_unblock_sigusr1(
+    );
+
+uint32_t
+pmd_block_sigusr1(
+    );
+
 //server.c
 void
 pmd_free_server_env(

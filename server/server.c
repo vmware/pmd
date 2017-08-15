@@ -53,6 +53,10 @@ init_modules(
     BAIL_ON_PMD_ERROR(dwError);
     fprintf(stdout,"Loaded the group policy management plugin \n");
 
+    //Block the sigusr1 signal
+    dwError = pmd_block_sigusr1();
+    BAIL_ON_PMD_ERROR(dwError);
+
     dwError = gpServerEnv->gpGroupInterface->pFnStartPolicies();
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -196,6 +200,13 @@ int main(int argc, char *argv[])
     }
     print_endpoints(hRpc);
 
+    fprintf(stdout,"Sending kill signal \n");
+
+    dwError = gpServerEnv->gpGroupInterface->pFnStopPolicies();
+    BAIL_ON_PMD_ERROR(dwError);
+
+    fprintf(stdout,"Sent kill signal Successfully \n");
+
     /*
      * Begin listening for calls
      */
@@ -214,6 +225,7 @@ int main(int argc, char *argv[])
     BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:
+    fprintf(stdout,"Exiting from threads due to a signal!! and cleaning up\n");
     if(nRestServerStarted)
     {
         StopRestServer();
