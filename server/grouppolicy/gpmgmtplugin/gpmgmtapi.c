@@ -64,11 +64,36 @@ pmd_gpmgmt_start_policies()
     BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:
-    gpmgmt_free_policies(pPolicies);
     return dwError;
 
 error:
     fprintf(stderr, "Starting policies failed  \n");
+    goto cleanup;
+}
+
+
+uint32_t
+pmd_gpmgmt_stop_policies()
+{
+    uint32_t dwError = 0;
+
+    if(gpServerEnv->gpGroupInterface->pidPolicyEncforcement>0)
+    {
+        dwError = pthread_kill(gpServerEnv->gpGroupInterface->pidPolicyEncforcement,SIGUSR1);
+        BAIL_ON_PMD_ERROR(dwError);
+        fprintf(stderr, "Signalled the thread \n");
+    }
+    else
+    {
+        dwError = ERROR_PMD_GPMGMT_SIGNAL_ERROR;
+        goto error;
+    }
+
+cleanup:
+    return dwError;
+
+error:
+    fprintf(stderr, "Stopping policies failed  \n");
     goto cleanup;
 }
 
@@ -128,21 +153,53 @@ error:
     goto cleanup;
 }
 
+void
+pmd_gpthread_usr1_handle (int sig)
+{
+
+  fprintf(stdout,"Handling SIGUSR1 for the enforcement thread \n ");
+
+  if(sig ==SIGUSR1 )
+  {
+     gpServerEnv->gpGroupInterface->enforcePolices = 0;
+
+  } else
+  {
+     fprintf(stderr,"Handling SIGUSR1 failed \n");
+  }
+}
+
 void *
 pmd_gpmgmt_enforcement_thread(
     void *args)
 {
     uint32_t dwError = 0;
     PPMD_POLICY_DATA pPolicies = (PPMD_POLICY_DATA)args;
-    gpServerEnv->gpGroupInterface->enforcePolices = 1;
-    // TODO: if we get a kill signal from stop polices stop enforcing polices
-    // Handle signals
-    // Kill signals
-    // TODO: Open an sqllite db
-    // Open handle for logging
-    fprintf(stdout, "In the policy enforcement thread \n");
+    struct sigaction action;
 
-    while (gpServerEnv->gpGroupInterface->enforcePolices)
+    //Setup the signalling
+    gpServerEnv->gpGroupInterface->enforcePolices = 1;
+
+    //Unblock the thread
+    dwError = pmd_unblock_sigusr1();
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (sigaction (SIGUSR1, NULL, &action) < 0)
+    {
+        dwError = ERROR_PMD_GPMGMT_SIGNAL_ERROR;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+    //Check if the inherited handler is set to ignore
+    if (action.sa_handler != SIG_IGN)
+    {
+        action.sa_handler = pmd_gpthread_usr1_handle;
+        sigemptyset (&action.sa_mask);
+        sigaction (SIGUSR1, &action, NULL);
+    }
+
+    fprintf(stdout, "In the policy enforcement thread, enforcepolicies is %d \n", gpServerEnv->gpGroupInterface->enforcePolices);
+
+    while (gpServerEnv->gpGroupInterface->enforcePolices >0)
     {
         // Enforce local policies first
         dwError = pmd_gpmgmt_execute_polices(pPolicies, POLICY_KIND_LOCAL);
@@ -151,11 +208,16 @@ pmd_gpmgmt_enforcement_thread(
         dwError = pmd_gpmgmt_execute_polices(pPolicies, POLICY_KIND_SITE);
         BAIL_ON_PMD_ERROR(dwError);
 
-        gpServerEnv->gpGroupInterface->enforcePolices--;
-        //sleep();
+        fprintf(stdout, "Running thread, enforcepolicies is %d \n", gpServerEnv->gpGroupInterface->enforcePolices);
+
+        sleep(PMD_GPMGMT_DEFAULT_POLICY_INTERVAL);
     }
+    //Clear the pid
+    gpServerEnv->gpGroupInterface->pidPolicyEncforcement = -1;
+    fprintf(stdout, " Exited policy enforcement thread \n");
 
 cleanup:
+    gpmgmt_free_policies(pPolicies);
     return NULL;
 
 error:
@@ -174,12 +236,20 @@ pmd_gpmgmt_enforce_polices(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
-    // Create a thread to handle the policies
-    //dwError = pthread_create(&pid, NULL, pmd_gpmgmt_enforcement_thread, pPolicies);
+    /*
+    // Execute without using a separate thread
     pmd_gpmgmt_enforcement_thread(pPolicies);
-
-    //BAIL_ON_PMD_ERROR(dwError);
-
+    BAIL_ON_PMD_ERROR(dwError);
+    */
+    dwError = pthread_create(&gpServerEnv->gpGroupInterface->pidPolicyEncforcement,
+                                NULL,
+                              pmd_gpmgmt_enforcement_thread, pPolicies);
+    if(dwError)
+    {
+        gpServerEnv->gpGroupInterface->pidPolicyEncforcement = -1;
+        dwError = ERROR_PMD_FAIL;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
     //pthread_join(pid, status);
 
 cleanup:

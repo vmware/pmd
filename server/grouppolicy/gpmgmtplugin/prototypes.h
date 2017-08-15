@@ -26,6 +26,10 @@ pmd_gpmgmt_start_policies(
     );
 
 uint32_t
+pmd_gpmgmt_stop_policies(
+    );
+
+uint32_t
 pmd_gpmgmt_enforce_polices(
     const PPMD_POLICY_DATA pPolicies
     );
