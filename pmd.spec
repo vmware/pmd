@@ -18,6 +18,7 @@ Requires:       vmware-afd-client
 Requires:       vmware-directory-client
 Requires:       jansson
 Requires:       copenapi
+Requires:       sqlite3
 BuildRequires:	popt-devel
 BuildRequires:	rpm-devel
 BuildRequires:	tdnf-devel >= 1.2.0
@@ -31,6 +32,7 @@ BuildRequires:	likewise-open-devel >= 6.2.9
 BuildRequires:	krb5-devel
 BuildRequires:	glib-devel
 BuildRequires:	curl-devel
+BuildRequires:	sqlite3-devel
 Source0:	%{name}-%{version}.tar.gz
 
 %description
@@ -160,6 +162,7 @@ done
 
     # First argument is 0 => Uninstall
     # First argument is 1 => Upgrade
+    # TODO:// Remove the database file used for logs
     %systemd_preun pmd.service
 if [ "$1" = 0 ]; then
     if [ ! -e %{_bindir}/pmd-cli ]; then

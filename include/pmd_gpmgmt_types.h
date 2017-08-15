@@ -80,6 +80,19 @@ typedef struct _PMD_POLICY_DATA_
     struct _PMD_POLICY_DATA_ *pNext;
 }PMD_POLICY_DATA, *PPMD_POLICY_DATA;
 
+typedef struct _PMD_POLICY_LOG_
+{
+    uint32_t dLogID;
+    char *pszIPAddress;
+    char *pszTime;
+    char *pszLogType;
+    char *pszPolicyName;
+    char *pszIsSuccessful;
+    char *pszErrorStr;
+    int  counter;
+    struct _PMD_POLICY_LOG_ *pNext;
+}PMD_POLICY_LOG, *PPMD_POLICY_LOG;
+
 #ifdef __cplusplus
 }
 #endif

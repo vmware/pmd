@@ -522,8 +522,8 @@ get_val_from_file(
     PCONF_SECTION pSection = NULL;
     PKEYVALUE pKeyValues = NULL;
 
-    if (IsNullOrEmptyString(pszFile) || IsNullOrEmptyString(pszGroup) || 
-        IsNullOrEmptyString(pszkey))
+    if (IsNullOrEmptyString(pszFile) || IsNullOrEmptyString(pszGroup) ||
+        IsNullOrEmptyString(pszkey) || !ppszValue)
     {
         dwError = EINVAL;
         BAIL_ON_PMD_ERROR(dwError);
