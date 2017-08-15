@@ -83,6 +83,37 @@ AC_SUBST(CREST_LDFLAGS)
 saved_CPPFLAGS="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS $CREST_INCLUDES"
 
+# SQLITE components
+
+AC_ARG_WITH([sqlite],
+    [AC_HELP_STRING([--with-sqlite=<dir>], [use SQLITE binaries rooted at prefix <dir> ])],
+    [
+        SQLITE_BASE_PATH="$withval"
+        SQLITE_INCLUDES="-I$withval/include"
+        SQLITE_LDFLAGS="-L$withval/lib"
+    ])
+
+AC_ARG_WITH([sqlite-includes],
+    [AC_HELP_STRING([--with-sqlite-includes=<dir>], [use SQLITE headers located in prefix <dir> ])],
+    [
+        SQLITE_INCLUDES="-I$withval"
+    ])
+
+AC_ARG_WITH([sqlite-libs],
+    [AC_HELP_STRING([--with-sqlite-libs=<dir>], [use SQLITE libraries located in prefix <dir> ])],
+    [
+        SQLITE_LDFLAGS="-L$withval"
+    ])
+echo $(SQLITE_BASE_PATH)
+AC_SUBST(SQLITE_BASE_PATH)
+AC_SUBST(SQLITE_INCLUDES)
+AC_SUBST(SQLITE_LDFLAGS)
+
+saved_CPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $SQLITE_INCLUDES"
+AC_CHECK_HEADERS(sqlite3.h)
+CPPFLAGS="$saved_CPPFLAGS"
+
 #c-rest-engine lib
 echo "Looking for rest headers"
 AC_CHECK_HEADERS(vmrest.h)
@@ -233,6 +264,11 @@ AM_CONDITIONAL([LIBCURL],  [test "$have_libcurl" = "yes"])
 #copenapi
 PKG_CHECK_MODULES([COPENAPI], [copenapi], [have_libcopenapi=yes], [have_libcopenapi=no])
 AM_CONDITIONAL([COPENAPI],  [test "$have_libcopenapi" = "yes"])
+
+#SQLlite
+AC_CHECK_LIB([sqlite3], [sqlite3_open], [SQLITE_LIBS="-lsqlite3"], [], [$SQLITE_LDFLAGS])
+AC_SUBST(SQLITE_LIBS)
+
 
 #makefiles
 AC_CONFIG_FILES([Makefile

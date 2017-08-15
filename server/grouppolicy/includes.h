@@ -23,6 +23,7 @@
 #include <stdbool.h>
 
 //grouppolicy plugin
+#include <sqlite3.h>
 #include <dlfcn.h>
 #include "pmd_gpmgmt.h"
 #include "defines.h"
