@@ -25,6 +25,7 @@ extern "C" {
 #include "pmd_gpmgmt_types.h"
 #include <pthread.h>
 #include <signal.h>
+#include <sqlite3.h>
 
 typedef void* PFN_PMD_GPMGMT_HANDLE;
 
@@ -61,6 +62,8 @@ typedef struct _PMD_POLICY_PLUGIN_INTERFACE_
     PFN_PMD_POLICY_STOP         pFnStopPolicies;
     pthread_mutex_t             mutexJsonPolicyFile;
     volatile sig_atomic_t       enforcePolices;
+    sqlite3 *                   pGpmgmtLogsDB;
+    pthread_t                   pidPolicyEncforcement;
 }PMD_POLICY_PLUGIN_INTERFACE, *PPMD_POLICY_PLUGIN_INTERFACE;
 
 

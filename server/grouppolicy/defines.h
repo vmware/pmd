@@ -22,3 +22,4 @@
 #define PMD_CONFIG_KEY_GP_POLICY_JSON "gppolicyjson"
 #define PMD_CONFIG_KEY_GP_PLUGIN_DIR "gpplugindir"
 #define PMD_CONFIG_KEY_GPMGMT_PLUGIN_PATH "gpmgmtpluginpath"
+#define PMD_CONFIG_KEY_GPMGMT_SQL_LOGS "gpmgmtsqllogs"
