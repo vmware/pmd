@@ -37,6 +37,92 @@ pmd_block_selected_signals(
 
     pthread_sigmask(SIG_BLOCK,  &default_signal_mask, &old_signal_mask);
 }
+/* sigusr1 is blocked by the main process and only
+   pmd_gpmgmt_enforcement_thread handles it.
+*/
+uint32_t
+pmd_block_sigusr1(
+    )
+{
+    uint32_t dwError =0;
+
+    sigset_t default_signal_mask;
+    sigset_t old_signal_mask;
+    // Get the old mask and add sigusr1
+    dwError = pthread_sigmask(SIG_BLOCK,NULL, &old_signal_mask);
+    if(dwError)
+    {
+        dwError = ERROR_PMD_GPMGMT_SIGNAL_ERROR;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    default_signal_mask = old_signal_mask;
+
+    dwError = sigaddset(&default_signal_mask, SIGUSR1);
+    if(dwError)
+    {
+        dwError = ERROR_PMD_GPMGMT_SIGNAL_ERROR;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = pthread_sigmask(SIG_BLOCK,  &default_signal_mask, &old_signal_mask);
+    if(dwError)
+    {
+        dwError = ERROR_PMD_GPMGMT_SIGNAL_ERROR;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+cleanup:
+    return dwError;
+
+error:
+    fprintf(stderr,"System error while blocking sigusr1 in pmd_block_sigusr1\n");
+    goto cleanup;
+}
+
+/*
+pmd_gpmgmt_enforcement_thread is unblocked by the pmd_gpmgmt_enforcement_thread
+*/
+uint32_t
+pmd_unblock_sigusr1(
+    )
+{
+    uint32_t dwError =0;
+
+    sigset_t default_signal_mask;
+    sigset_t old_signal_mask;
+
+    // Get the old mask and add sigusr1
+    dwError = pthread_sigmask(SIG_UNBLOCK,NULL, &old_signal_mask);
+    if(dwError)
+    {
+        dwError = ERROR_PMD_GPMGMT_SIGNAL_ERROR;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    default_signal_mask = old_signal_mask;
+
+    dwError = sigaddset(&default_signal_mask, SIGUSR1);
+    if(dwError)
+    {
+        dwError = ERROR_PMD_GPMGMT_SIGNAL_ERROR;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = pthread_sigmask(SIG_UNBLOCK,  &default_signal_mask, &old_signal_mask);
+    if(dwError)
+    {
+        dwError = ERROR_PMD_GPMGMT_SIGNAL_ERROR;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+cleanup:
+    return dwError;
+
+error:
+    fprintf(stderr,"System error while blocking sigusr1 in pmd_unblock_sigusr1\n");
+    goto cleanup;
+}
 
 
 uint32_t
@@ -75,6 +161,11 @@ pmd_handle_signals(
     sigaddset(&catch_signal_mask, SIGQUIT);
     sigaddset(&catch_signal_mask, SIGHUP);
     sigaddset(&catch_signal_mask, SIGPIPE);
+    sigaddset(&catch_signal_mask, SIGUSR1);
+
+
+    //pmd_block_sigusr1();
+    //printSigMask(stdout,"final signals");
 
     while (1)
     {
@@ -99,6 +190,12 @@ pmd_handle_signals(
             {
                 break;
             }
+            case SIGUSR1:
+            {
+                fprintf(stdout, "Handled SIGUSR1 in the main \n");
+
+                break;
+            }
             default:
                 break;
         }
@@ -112,7 +209,7 @@ error:
 static
 void
 pmd_interrupt_handler(
-    int nSignal 
+    int nSignal
     )
 {
     if (nSignal == SIGINT)

@@ -160,6 +160,7 @@ done
 
     # First argument is 0 => Uninstall
     # First argument is 1 => Upgrade
+    # TODO:// Remove the database file used for logs
     %systemd_preun pmd.service
 if [ "$1" = 0 ]; then
     if [ ! -e %{_bindir}/pmd-cli ]; then
