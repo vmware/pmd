@@ -38,6 +38,7 @@
 #define PMD_CONFIG_KEY_REST_ENABLED "enabled"
 #define PMD_CONFIG_KEY_REST_PORT    "port"
 #define PMD_CONFIG_KEY_REST_APISPEC "apispec"
+#define PMD_CONFIG_KEY_REST_AUTH    "authenticate"
 
 #define PMD_CONFIG_KEY_SERVERTYPE "servertype"
 #define PMD_CONFIG_KEY_CURRENTHASH "currenthash"

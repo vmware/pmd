@@ -31,13 +31,19 @@ request_basic_auth(
 {
     uint32_t dwError = 0;
     uint32_t temp = 0;
+    const char *pszNegotiate = "Negotiate";
+    const char *pszBasic = "Basic realm=\"Photon Management Daemon\"";
 
     dwError = VmRESTSetHttpStatusVersion(ppResponse, "HTTP/1.1");
     dwError = VmRESTSetHttpStatusCode(ppResponse, "401");
     dwError = VmRESTSetHttpReasonPhrase(ppResponse, "Unauthorized");
     dwError = VmRESTSetHttpHeader(ppResponse, "Connection", "close");
     dwError = VmRESTSetHttpHeader(ppResponse, "Content-Length", "0");
-    dwError = VmRESTSetHttpHeader(ppResponse, "WWW-Authenticate", "Basic realm=\"Photon Management Daemon\"");
+    dwError = VmRESTSetHttpHeader(
+                  ppResponse,
+                  "WWW-Authenticate",
+                  gnUseKerberos ? pszNegotiate : pszBasic);
+
     dwError = VmRESTSetHttpPayload(pRestHandle, ppResponse,"", 0, &temp );
     dwError = EACCES;
     return dwError;

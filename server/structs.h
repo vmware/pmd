@@ -22,6 +22,7 @@ typedef struct _PMD_REST_CONFIG_
 {
     int nEnabled;
     int nPort;
+    int nUseKerberos;
     char *pszApiSpec;
 }PMD_REST_CONFIG, *PPMD_REST_CONFIG;
 

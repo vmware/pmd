@@ -1621,6 +1621,62 @@ error:
 }
 
 uint32_t
+get_link_info_json_string(
+    NET_LINK_INFO *pLinkInfo,
+    char **ppszJson
+    )
+{
+    uint32_t dwError = 0;
+    char *pszJson = NULL;
+    json_t *pRoot = NULL;
+    size_t i = 0;
+    size_t dwCount = 0;
+    NET_LINK_INFO *pTemp = NULL;
+
+    if(!pLinkInfo || !ppszJson)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    pRoot = json_array();
+    if(!pRoot)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    for (pTemp = pLinkInfo; pTemp; pTemp = pTemp->pNext)
+    {
+        json_t *pObj = json_object();
+        json_object_set_new(pObj, "interface", json_string(pTemp->pszInterfaceName));
+        json_object_set_new(pObj, "mac_address", json_string(pTemp->pszMacAddress));
+        json_object_set_new(pObj, "mtu", json_integer(pTemp->mtu));
+        json_object_set_new(pObj, "mode", json_integer(pTemp->mode));
+        json_array_append_new(pRoot, pObj);
+    }
+
+    pszJson = json_dumps(pRoot, 0);
+
+    *ppszJson = pszJson;
+
+cleanup:
+    if(pRoot)
+    {
+        json_decref(pRoot);
+    }
+    return dwError;
+
+error:
+    if(ppszJson)
+    {
+        *ppszJson = NULL;
+    }
+    PMD_SAFE_FREE_MEMORY(pszJson);
+    goto cleanup;
+}
+
+uint32_t
 net_rest_get_link_info(
     void *pInputJson,
     void **ppOutputJson
@@ -1629,10 +1685,9 @@ net_rest_get_link_info(
     uint32_t dwError = 0;
     char *pszOutputJson = NULL;
     char *pszIfName = NULL;
-    char *pszLinkMode = NULL;
     json_t *pJson = NULL;
-    NET_LINK_MODE linkMode = LINK_MODE_UNKNOWN;
     const char *pszInputJson = pInputJson;
+    NET_LINK_INFO *pLinkInfo = NULL;
 
     if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
     {
@@ -1646,29 +1701,16 @@ net_rest_get_link_info(
     dwError = json_get_string_value(pJson, "interface", &pszIfName);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = json_get_string_value(pJson, "link_mode", &pszLinkMode);
+    dwError = nm_get_link_info(pszIfName, &pLinkInfo);
     BAIL_ON_PMD_ERROR(dwError);
 
-    if(!strcasecmp(pszLinkMode, "auto"))
-    {
-        linkMode = LINK_AUTO;
-    }
-    else if(!strcasecmp(pszLinkMode, "manual"))
-    {
-        linkMode = LINK_MANUAL;
-    }
-
-    dwError = nm_set_link_mode(pszIfName, linkMode);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = json_make_result_success(&pszOutputJson);
+    dwError = get_link_info_json_string(pLinkInfo, &pszOutputJson);
     BAIL_ON_PMD_ERROR(dwError);
 
     *ppOutputJson = pszOutputJson;
 
 cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
-    PMD_SAFE_FREE_MEMORY(pszLinkMode);
+    nm_free_link_info(pLinkInfo);
     if(pJson)
     {
         json_decref(pJson);

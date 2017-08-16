@@ -61,6 +61,7 @@ StartRestServer(
     dwError = rest_register_api_spec(
                   gpServerEnv->pRestHandle,
                   pApiDef,
+                  pRestConfig->nUseKerberos,
                   &pRestProcessor);
     BAIL_ON_PMD_ERROR(dwError);
 

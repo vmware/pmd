@@ -210,6 +210,7 @@ uint32_t
 rest_register_api_spec(
     PVMREST_HANDLE pRestHandle,
     PREST_API_DEF pApiDef,
+    int nUseKerberos,
     PREST_PROCESSOR *ppRestProcessor
     );
 

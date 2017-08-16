@@ -61,6 +61,11 @@ pmd_get_rest_config(
                                         &pRestConfig->pszApiSpec);
             BAIL_ON_PMD_ERROR(dwError);
         }
+        else if(!strcmp(PMD_CONFIG_KEY_REST_AUTH, pKeyValues->pszKey))
+        {
+            pRestConfig->nUseKerberos =
+                strcmp(pKeyValues->pszValue, "kerberos") == 0;
+        }
     }
 
     *ppRestConfig = pRestConfig;

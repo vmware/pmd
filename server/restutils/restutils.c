@@ -21,6 +21,7 @@ uint32_t
 rest_register_api_spec(
     PVMREST_HANDLE pRestHandle,
     PREST_API_DEF pApiDef,
+    int nUseKerberos,
     PREST_PROCESSOR *ppRestProcessor
     )
 {
@@ -59,6 +60,7 @@ rest_register_api_spec(
 
     *ppRestProcessor = pRestProcessor;
     gpApiDef = pApiDef;
+    gnUseKerberos = nUseKerberos;
 
 cleanup:
     return dwError;

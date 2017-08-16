@@ -13,28 +13,6 @@
  */
 
 
-#pragma once
-#include <lw/base.h>
-#include <lw/types.h>
+#include "includes.h"
 
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <ctype.h>
-#include <unistd.h>
-#include <errno.h>
-#include <pthread.h>
-#include <jansson.h>
-#include <vmrest.h>
-#include <gssapi/gssapi.h>
-#include <copenapi/copenapi.h>
-
-#include "../../common/defines.h"
-#include "../../common/structs.h"
-#include "../../common/prototypes.h"
-#include "../../include/pmderror.h"
-#include "../../jsonutils/prototypes.h"
-#include "defines.h"
-#include "structs.h"
-#include "prototypes.h"
-#include "global.h"
+int gnUseKerberos = 0;
