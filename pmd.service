@@ -1,8 +1,11 @@
 [Unit]
 Description=photon management daemon
+BindsTo=pmdprivsepd.service
 After=syslog.target network.target
 
 [Service]
+User=pmd
+Group=pmd
 Type=simple
 ExecStart=/usr/bin/pmd
 Restart=always
