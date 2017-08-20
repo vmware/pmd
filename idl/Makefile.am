@@ -9,6 +9,9 @@ CLEANFILES = \
     demo_h.h \
     demo_cstub.c \
     demo_sstub.c \
+    demo_privsep_h.h \
+    demo_privsep_cstub.c \
+    demo_privsep_sstub.c \
     fwmgmt_h.h \
     fwmgmt_cstub.c \
     fwmgmt_sstub.c \
@@ -29,6 +32,7 @@ CLEANFILES = \
     usermgmt_sstub.c
 
 BUILT_SOURCES = demo_h.h \
+                demo_privsep_h.h \
                 fwmgmt_h.h \
                 pkgmgmt_h.h \
                 pmd_h.h \
@@ -38,6 +42,8 @@ BUILT_SOURCES = demo_h.h \
 
 demo_h.h demo_cstub.c: $(idl_srcdir)/demo.idl
 	$(DCEIDL) $(IDLFLAGS) -keep c_source -header demo_h.h -I$(idl_srcdir) $<
+demo_privsep_h.h demo_privsep_cstub.c: $(idl_srcdir)/demo_privsep.idl
+	$(DCEIDL) $(IDLFLAGS) -keep c_source -header demo_privsep_h.h -I$(idl_srcdir) $<
 fwmgmt_h.h fwmgmt_cstub.c: $(idl_srcdir)/fwmgmt.idl
 	$(DCEIDL) $(IDLFLAGS) -keep c_source -header fwmgmt_h.h -I$(idl_srcdir) $<
 pkgmgmt_h.h pkgmgmt_cstub.c: $(idl_srcdir)/pkgmgmt.idl

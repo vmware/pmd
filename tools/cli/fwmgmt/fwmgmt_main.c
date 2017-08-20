@@ -77,10 +77,7 @@ fwmgmt_main(
     }
 
 cleanup:
-    if(hPMD)
-    {
-        PMDFreeHandle(hPMD);
-    }
+    rpc_free_handle(hPMD);
     if(pCmdArgs)
     {
         fwmgmt_free_cmd_args(pCmdArgs);

@@ -1375,10 +1375,7 @@ netmgr_main(
     }
 
 cleanup:
-    if(hPMD)
-    {
-        PMDFreeHandle(hPMD);
-    }
+    rpc_free_handle(hPMD);
     if(pCmd)
     {
         netmgrcli_free_cmd(pCmd);
