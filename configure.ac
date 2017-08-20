@@ -244,6 +244,8 @@ AC_CONFIG_FILES([Makefile
                  server/extras/Makefile
                  server/restutils/Makefile
                  server/security/Makefile
+                 privsep/Makefile
+                 privsep/demo/Makefile
                  client/Makefile
                  python/Makefile
                  python/setup.py

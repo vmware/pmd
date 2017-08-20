@@ -15,49 +15,15 @@
 
 #include "includes.h"
 
-uint32_t
-open_privsep(
-    PPMDHANDLE *phPMD
-    )
-{
-    uint32_t dwError = 0;
-    PPMDHANDLE hPMD = NULL;
-
-    if(!phPMD)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = rpc_open(
-        "demo_privsep",
-        "pmdprivsepd",
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        &hPMD);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    *phPMD = hPMD;
-
-cleanup:
-    return dwError;
-
-error:
-    rpc_free_handle(hPMD);
-    goto cleanup;
-}
-
 unsigned32
-demo_rpc_version(
+demo_privsep_rpc_version(
     handle_t hBinding,
     wstring_t* ppwszVersion
     )
 {
     uint32_t dwError = 0;
+    char* pszVersion = NULL;
     wstring_t pwszVersion = NULL;
-    PPMDHANDLE hPMD = NULL;
 
     if(!hBinding || !ppwszVersion)
     {
@@ -65,15 +31,27 @@ demo_rpc_version(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = open_privsep(&hPMD);
+    fprintf(stdout, "checking connection integrity\n");
 
-    dwError = demo_privsep_client_version(hPMD, &pwszVersion);
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = demo_version(&pszVersion);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if(IsNullOrEmptyString(pszVersion))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDRpcServerAllocateWFromA(pszVersion, &pwszVersion);
     BAIL_ON_PMD_ERROR(dwError);
 
     *ppwszVersion = pwszVersion;
 
 cleanup:
-    rpc_free_handle(hPMD);
+    PMD_SAFE_FREE_MEMORY(pszVersion);
     return dwError;
 
 error:
@@ -86,7 +64,7 @@ error:
 }
 
 unsigned32
-demo_rpc_isprime(
+demo_privsep_rpc_isprime(
     handle_t hBinding,
     int nPrime,
     int *pnIsPrime
@@ -117,7 +95,7 @@ error:
 }
 
 unsigned32
-demo_rpc_primes(
+demo_privsep_rpc_primes(
     handle_t hBinding,
     int nStart,
     int nCount,

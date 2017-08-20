@@ -105,6 +105,7 @@ popd
 
 install -d $RPM_BUILD_ROOT/var/log/pmd
 install -D -m 444 pmd.service %{buildroot}/lib/systemd/system/pmd.service
+install -D -m 444 pmdprivsepd.service %{buildroot}/lib/systemd/system/pmdprivsepd.service
 install -D -m 444 conf/restapispec.json %{buildroot}/etc/pmd/restapispec.json
 install -D -m 444 conf/api_sddl.conf %{buildroot}/etc/pmd/api_sddl.conf
 install -D -m 444 conf/restconfig.txt %{buildroot}/etc/pmd/restconfig.txt
@@ -232,7 +233,9 @@ rm -rf %{buildroot}/*
 %files
     %defattr(-,root,root,0755)
     %{_bindir}/pmd
+    %{_bindir}/pmdprivsepd
     /lib/systemd/system/pmd.service
+    /lib/systemd/system/pmdprivsepd.service
     /etc/pmd/pmd.conf
     /etc/pmd/api_sddl.conf
     /etc/pmd/restapispec.json

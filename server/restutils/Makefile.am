@@ -15,6 +15,8 @@ librestutils_la_SOURCES = \
 
 librestutils_la_LDFLAGS =  \
     -static \
+    -lkrb5 \
+    -lgssapi_krb5 \
     @top_builddir@/jsonutils/libjsonutils.la \
     @JANSSON_LIBS@ \
     @COPENAPI_LIBS@

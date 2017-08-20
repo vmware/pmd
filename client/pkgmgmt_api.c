@@ -16,96 +16,6 @@
 #include "includes.h"
 
 uint32_t
-rpc_open(
-    const char* pszModule,
-    const char* pszServer,
-    const char* pszUser,
-    const char* pszDomain,
-    const char* pszPass,
-    const char* pszSpn,
-    PPMDHANDLE* phHandle
-    )
-{
-    uint32_t dwError = 0;
-    PMDHANDLE* hHandle = NULL;
-    char* pszProt = PROTOCOL_TCP;
-    char* pszEndpoint = PMD_RPC_TCP_END_POINT;
-    int nIndex = 0;
-
-    struct _stKnownIfspec
-    {
-        const char* pszModule;
-        rpc_if_handle_t interface_spec;
-    }knownIfspecs[] =
-    {
-#ifdef DEMO_ENABLED
-        {"demo", demo_v1_0_c_ifspec},
-#endif
-        {"fwmgmt", fwmgmt_v1_0_c_ifspec},
-        {"pkg", pkg_v1_0_c_ifspec},
-        {"pmd", pmd_v1_0_c_ifspec},
-        {"net", netmgmt_v1_0_c_ifspec},
-        {"rpmostree", rpmostree_v1_0_c_ifspec},
-        {"usermgmt", usermgmt_v1_0_c_ifspec},
-    };
-
-    int nNumKnownIfspecs =
-        sizeof(knownIfspecs)/sizeof(knownIfspecs[0]);
-
-    rpc_if_handle_t spec = NULL;
-    for(nIndex = 0; nIndex < nNumKnownIfspecs; ++nIndex)
-    {
-        if(!strcasecmp(knownIfspecs[nIndex].pszModule, pszModule))
-        {
-            spec = knownIfspecs[nIndex].interface_spec;
-            break;
-        }
-    }
-
-    if(!spec)
-    {
-        fprintf(stderr, "Module %s is not registered\n", pszModule);
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if(!pszServer || !strcasecmp(pszServer, "localhost"))
-    {
-        pszProt = PROTOCOL_NCALRPC;
-        pszEndpoint = PMD_NCALRPC_END_POINT;
-    }
-
-    dwError = PMDAllocateMemory(
-                  sizeof(PMDHANDLE),
-                  (void**)&hHandle);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = get_client_rpc_binding(
-              &hHandle->hRpc,
-              spec,
-              pszServer,
-              pszUser,
-              pszDomain,
-              pszPass,
-              pszProt,
-              pszEndpoint,
-              pszSpn);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    *phHandle = hHandle;
-
-cleanup:
-    return dwError;
-error:
-    if(phHandle)
-    {
-        *phHandle = NULL;
-    }
-    PMDFreeMemory(hHandle);
-    goto cleanup;
-}
-
-uint32_t
 pkg_open_handle(
     PPMDHANDLE hHandle,
     PTDNF_CMD_ARGS pArgs,
@@ -718,15 +628,20 @@ error:
     goto cleanup;
 }
 
-uint32_t
-PMDFreeHandle(
+void
+rpc_free_handle(
     PPMDHANDLE hPMD
     )
 {
-    uint32_t dwError = 0;
-    dwError = PMDRpcFreeBinding(&hPMD->hRpc);
+    if(!hPMD)
+    {
+        return;
+    }
+    if(hPMD->hRpc)
+    {
+        PMDRpcFreeBinding(&hPMD->hRpc);
+    }
     PMDFreeMemory(hPMD);
-    return dwError;
 }
 
 void

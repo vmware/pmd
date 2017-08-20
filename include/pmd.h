@@ -82,8 +82,8 @@ demo_client_primes(
     int *pnPrimeCount
     );
 
-uint32_t
-PMDFreeHandle(
+void
+rpc_free_handle(
     PPMDHANDLE hHandle
     );
 
