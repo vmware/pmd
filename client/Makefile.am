@@ -24,8 +24,10 @@ libpmdclient_la_SOURCES = \
 if ENABLE_DEMO
 demo_cstub.c:
 	cp ../idl/demo_cstub.c .
+	cp ../idl/demo_privsep_cstub.c .
 
     libpmdclient_la_SOURCES += demo_cstub.c
+    libpmdclient_la_SOURCES += demo_privsep_cstub.c
     libpmdclient_la_SOURCES += demo_api.c
 endif
 
@@ -49,6 +51,7 @@ usermgmt_cstub.c:
 
 CLEANFILES = \
     demo_cstub.c \
+    demo_privsep_cstub.c \
     fwmgmt_cstub.c \
     pkgmgmt_cstub.c \
     pmd_cstub.c \

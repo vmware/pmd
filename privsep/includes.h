@@ -12,45 +12,48 @@
  * under the License.
  */
 
+
 #pragma once
 
 #include <lw/base.h>
+#include <lw/types.h>
+
 #include <ctype.h>
+#include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
- 
-#include <dce/rpc.h>
+#include <stdlib.h>
+
+#include <sys/sysinfo.h>
+#include <sys/utsname.h>
+#include <pwd.h>
+
 #include <dce/dcethread.h>
-#include <dce/dce_error.h>
-
+#include <dce/lrpc.h>
+#include <netdb.h>
+#include <openssl/evp.h>
+#include <openssl/bio.h>
+#include <openssl/buffer.h>
 #include <gssapi/gssapi.h>
-#include <gssapi/gssapi_ext.h>
+#include <gssapi/gssapi_generic.h>
 
-#include "../idl/fwmgmt_h.h"
-#include "../idl/pkgmgmt_h.h"
-#include "../idl/pmd_h.h"
-#include "../idl/netmgmt_h.h"
-#include "../idl/rpmostree_h.h"
-#include "../idl/usermgmt_h.h"
-
-#ifdef DEMO_ENABLED
-#include "../idl/demo_h.h"
-#include "../idl/demo_privsep_h.h"
-#endif
+#include <vmdirclient.h>
+#include <vmafdclient.h>
+#include <vmrest.h>
+#include <tdnf/tdnf.h>
+#include <netmgmt/netmgr.h>
+#include <pmd.h>
 
 #include "../common/includes.h"
-
-#include <tdnf/tdnftypes.h>
-#include <pmd.h>
-#include <pmd_fwmgmt.h>
-#include <pmd_pkgmgmt.h>
-#include <pmd_rolemgmt.h>
-#include <pmd_usermgmt.h>
 
 #include "defines.h"
 #include "structs.h"
 #include "prototypes.h"
 
-#include <netmgmt/netmgr.h>
-#include "pmd_netmgr.h"
+//security
+#include "../server/security/defines.h"
+#include "../server/security/structs.h"
+#include "../server/security/pmdsecurity.h"
+
+#include "../idl/demo_privsep_h.h"
