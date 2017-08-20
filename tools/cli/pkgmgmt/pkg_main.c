@@ -122,10 +122,7 @@ pkg_main(
     }
 
 cleanup:
-    if(stCliContext.hPMD)
-    {
-        PMDFreeHandle(stCliContext.hPMD);
-    }
+    rpc_free_handle(stCliContext.hPMD);
     if(pCmdArgs)
     {
         pkg_free_cmd_args(pCmdArgs);

@@ -13,6 +13,7 @@ SUBDIRS = \
     jsonutils \
     client \
     server \
+    privsep \
     tools
 
 if ENABLE_PYTHON
