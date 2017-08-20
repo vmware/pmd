@@ -50,6 +50,38 @@ error:
 }
 
 uint32_t
+demo_privsep_client_version(
+    PPMDHANDLE hHandle,
+    wstring_t *ppwszVersion
+    )
+{
+    uint32_t dwError = 0;
+    wstring_t pwszVersion = NULL;
+
+    if(!hHandle || !ppwszVersion)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    DO_RPC(demo_privsep_rpc_version(hHandle->hRpc, &pwszVersion), dwError);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszVersion = pwszVersion;
+
+cleanup:
+    return dwError;
+
+error:
+    if(ppwszVersion)
+    {
+        *ppwszVersion = NULL;
+    }
+    PMDRpcClientFreeStringW(pwszVersion);
+    goto cleanup;
+}
+
+uint32_t
 demo_client_isprime(
     PPMDHANDLE hHandle,
     int nNumToCheck,

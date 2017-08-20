@@ -44,4 +44,5 @@ typedef unsigned short* wstring_t;
 { \
     {ERROR_PMD_BASE,                "ERROR_PMD_EBASE",               "Generic base error"}, \
     {ERROR_PMD_CONF_FILE_LOAD,      "ERROR_PMD_CONF_FILE_LOAD",      "Error reading config file."}, \
+    {ERROR_PMD_INVALID_DAEMON_USER, "ERROR_PMD_INVALID_DAEMON_USER", "Invalid daemon user. This incident will be reported."}, \
 };

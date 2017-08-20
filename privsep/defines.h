@@ -13,35 +13,4 @@
  */
 
 
-[
-    uuid (cbfd8ae5-7d4a-4851-87b7-68ee81851a9d),
-    version(1.0),
-    pointer_default(unique)
-]
-
-interface demo
-{
-#include <lw/types.h>
-#include "pmdrpctypes.h"
-
-    unsigned32
-    demo_rpc_version(
-        [in] handle_t hBinding,
-        [out] wstring_t* ppwszVersion
-        );
-
-    unsigned32
-    demo_rpc_isprime(
-        [in] handle_t hBinding,
-        [in] signed32 nPrime,
-        [out] signed32 *pnIsPrime
-        );
-
-    unsigned32
-    demo_rpc_primes(
-        [in] handle_t hBinding,
-        [in] signed32 nStart,
-        [in] signed32 nCount,
-        [out] PINT_ARRAY *ppIntArray
-        );
-}
+#pragma once
