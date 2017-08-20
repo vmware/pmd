@@ -12,45 +12,25 @@
  * under the License.
  */
 
+
 #pragma once
 
-#include <lw/base.h>
-#include <ctype.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
- 
+#include <stdint.h>
+#include <math.h>
+#include <errno.h>
+
 #include <dce/rpc.h>
-#include <dce/dcethread.h>
-#include <dce/dce_error.h>
 
-#include <gssapi/gssapi.h>
-#include <gssapi/gssapi_ext.h>
+#include "../../idl/demo_h.h"
 
-#include "../idl/fwmgmt_h.h"
-#include "../idl/pkgmgmt_h.h"
-#include "../idl/pmd_h.h"
-#include "../idl/netmgmt_h.h"
-#include "../idl/rpmostree_h.h"
-#include "../idl/usermgmt_h.h"
-
-#ifdef DEMO_ENABLED
-#include "../idl/demo_h.h"
-#include "../idl/demo_privsep_h.h"
-#endif
-
-#include "../common/includes.h"
-
-#include <tdnf/tdnftypes.h>
-#include <pmd.h>
-#include <pmd_fwmgmt.h>
-#include <pmd_pkgmgmt.h>
-#include <pmd_rolemgmt.h>
-#include <pmd_usermgmt.h>
+#include "../../common/defines.h"
+#include "../../common/structs.h"
+#include "../../common/prototypes.h"
+#include "../../include/pmderror.h"
+#include "../../server/defines.h"
 
 #include "defines.h"
-#include "structs.h"
 #include "prototypes.h"
-
-#include <netmgmt/netmgr.h>
-#include "pmd_netmgr.h"
+#include "../prototypes.h"
