@@ -42,6 +42,7 @@ rest_register_api_spec(
     pRestProcessor->pfnHandleRead = &rest_method;
     pRestProcessor->pfnHandleUpdate = &rest_method;
     pRestProcessor->pfnHandleDelete = &rest_method;
+    pRestProcessor->pfnHandleOthers = &handle_options;
 
     for(pModule = pApiDef->pModules; pModule; pModule = pModule->pNext)
     {
@@ -543,6 +544,80 @@ cleanup:
     PMD_SAFE_FREE_MEMORY(pszURI);
     PMD_SAFE_FREE_MEMORY(pszJsonIn);
     PMD_SAFE_FREE_MEMORY(pszJsonOut);
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+uint32_t
+handle_options(
+    PVMREST_HANDLE pRestHandle,
+    PREST_REQUEST pRequest,
+    PREST_RESPONSE* ppResponse,
+    uint32_t paramsCount
+    )
+{
+    uint32_t dwError = 0;
+    char* pszHttpMethod = NULL;
+    char *pszURI = NULL;
+    char pszDataLen[10] = {0};
+    uint32_t done = 0;
+
+    dwError =  VmRESTGetHttpMethod(pRequest, &pszHttpMethod);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = get_uri_from_request(pRequest, &pszURI);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    fprintf(stdout, "%s for URI %s\n", pszHttpMethod, pszURI);
+
+    dwError = VmRESTSetHttpHeader(
+                  ppResponse,
+                  "Access-Control-Allow-Methods",
+                  "POST, GET, OPTIONS, PUT, DELETE"
+                  );
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = VmRESTSetHttpHeader(
+                  ppResponse,
+                  "Access-Control-Allow-Headers",
+                  "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+                  );
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = VmRESTSetHttpHeader(
+                  ppResponse,
+                  "Access-Control-Request-Methods",
+                  "*"
+                  );
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = VmRESTSetHttpHeader(
+                  ppResponse,
+                  "Access-Control-Allow-Origin",
+                  "*"
+                  );
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = VmRESTSetSuccessResponse(pRequest, ppResponse);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    sprintf(pszDataLen, "%d", 0);
+    dwError = VmRESTSetDataLength(ppResponse, pszDataLen);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = VmRESTSetData(
+                      pRestHandle,
+                      ppResponse,
+                      "",
+                      0,
+                      &done
+                      );
+    BAIL_ON_PMD_ERROR(dwError);
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pszURI);
+    PMD_SAFE_FREE_MEMORY(pszHttpMethod);
     return dwError;
 
 error:
