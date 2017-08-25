@@ -228,6 +228,15 @@ rest_method(
     PREST_RESPONSE* ppResponse,
     uint32_t paramsCount
     );
+
+uint32_t
+handle_options(
+    PVMREST_HANDLE pHandle,
+    PREST_REQUEST pRequest,
+    PREST_RESPONSE* ppResponse,
+    uint32_t paramsCount
+    );
+
 //
 uint32_t
 base64_encode(
