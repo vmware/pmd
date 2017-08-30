@@ -8,8 +8,8 @@ libdemosrv_la_CPPFLAGS = \
     @LW_INCLUDES@
     
 libdemosrv_la_SOURCES = \
-    demo_sstub.c \
     demoapi.c \
+    demo_sstub.c \
     demorestapi.c \
     demorpcapi.c
 
@@ -24,6 +24,7 @@ libdemosrv_la_LDFLAGS =  \
     -lm \
     @top_builddir@/common/libcommon.la \
     @top_builddir@/client/libpmdclient.la \
+    @top_builddir@/server/security/libpmdsecurity.la \
     @DCERPC_LDFLAGS@ \
     @DCERPC_LIBS@ \
     @JANSSON_LIBS@

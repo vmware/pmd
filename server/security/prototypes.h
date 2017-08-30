@@ -58,3 +58,24 @@ has_group_access(
     const char* domain_group,
     const char* local_group
     );
+
+uint32_t
+verify_privsep_daemon(
+    rpc_binding_handle_t hBinding
+    );
+
+uint32_t
+rsa_public_encrypt(
+    const char *pszData,
+    const char *pszPubKeyFile,
+    unsigned char **ppszEncrypted,
+    int *pnEncryptedLength
+    );
+
+uint32_t
+rsa_private_decrypt(
+    unsigned char *pszEncrypted,
+    int nEncryptedLength,
+    const char *pszPrivateKeyFile,
+    unsigned char **ppszDecrypted
+    );
