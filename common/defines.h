@@ -44,5 +44,7 @@ typedef unsigned short* wstring_t;
 { \
     {ERROR_PMD_BASE,                "ERROR_PMD_EBASE",               "Generic base error"}, \
     {ERROR_PMD_CONF_FILE_LOAD,      "ERROR_PMD_CONF_FILE_LOAD",      "Error reading config file."}, \
-    {ERROR_PMD_INVALID_DAEMON_USER, "ERROR_PMD_INVALID_DAEMON_USER", "Invalid daemon user. This incident will be reported."}, \
+    {ERROR_PMD_INVALID_DAEMON_USER, "ERROR_PMD_INVALID_DAEMON_USER", "Could not verify server integrity for this communication. Cannot proceed."}, \
+    {ERROR_PMD_RPC_PEER_NOT_READY,  "ERROR_PMD_RPC_PEER_NOT_READY",  "rpc connection not established."}, \
+    {ERROR_PMD_PRIVSEP_INTEGRITY,   "ERROR_PMD_PRIVSEP_INTEGRITY",   "Unable to verify privilege separation integrity. Cannot proceed."}, \
 };

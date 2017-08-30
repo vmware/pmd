@@ -18,4 +18,5 @@
 typedef struct _PMDHANDLE_
 {
     rpc_binding_handle_t hRpc;
+    int nPrivSep;
 }PMDHANDLE;

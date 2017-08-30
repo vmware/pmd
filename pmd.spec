@@ -118,7 +118,8 @@ install -D -m 444 conf/restapispec.json %{buildroot}/etc/pmd/restapispec.json
 install -D -m 444 conf/api_sddl.conf %{buildroot}/etc/pmd/api_sddl.conf
 install -D -m 444 conf/restconfig.txt %{buildroot}/etc/pmd/restconfig.txt
 install -D -m 444 conf/server.crt  %{buildroot}/etc/pmd/server.crt
-install -D -m 444 conf/server.key %{buildroot}/etc/pmd/server.key
+install -D -m 444 conf/server.crt  %{buildroot}/etc/pmd/server.pub
+install -D -m 400 conf/server.key %{buildroot}/etc/pmd/server.key
 
 # Pre-install
 %pre
@@ -152,6 +153,7 @@ fi
             echo "unix %{_mech_id} libgssapi_unix.so" >> "%{_mech_file}"
         fi
     fi
+    chown %{name} /var/lib/likewise/rpc
 
 # Pre-uninstall
 %preun
@@ -190,6 +192,7 @@ fi
     # First argument is 1 => Upgrade
 if [ $1 -eq 0 ] ; then
     if getent passwd %{name} >/dev/null; then
+        chown root /var/lib/likewise/rpc
         /sbin/userdel %{name}
     fi
     if getent group %{name} >/dev/null; then
@@ -256,7 +259,8 @@ rm -rf %{buildroot}/*
     /etc/pmd/restapispec.json
     /etc/pmd/restconfig.txt
     /etc/pmd/server.crt
-    /etc/pmd/server.key
+    /etc/pmd/server.pub
+    %attr(0700) /etc/pmd/server.key
     %attr(0766, %{name}, %{name}) %dir /var/log/%{name}
 
 %files libs

@@ -44,6 +44,7 @@ ar-lib
 /include/stamp*
 /server/pmd
 /tools/cli/pmd-cli
+/privsep/pmdprivsepd
 build/*
 
 # Object files

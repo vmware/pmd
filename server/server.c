@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
                   &gpServerEnv->pConfig);
     if(dwError > 0)
     {
-        fprintf(stderr, "missing config file: /etc/pmd/pmd.conf\n");
+        fprintf(stderr, "Error reading config: %s\n", PMD_CONFIG_FILE_NAME);
     }
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -209,4 +209,3 @@ error:
     dwError = 1;
     goto cleanup;
 }
-

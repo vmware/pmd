@@ -21,6 +21,11 @@ demo_version(
     );
 
 uint32_t
+demo_version_w(
+    wstring_t *ppwszVersion
+    );
+
+uint32_t
 demo_isprime(
     int nNumToCheck,
     int *pnIsPrime
@@ -38,6 +43,12 @@ demo_primes(
 uint32_t
 demo_rest_get_registration(
     PREST_MODULE *ppRestModule
+    );
+
+uint32_t
+demo_rest_version_json(
+    void *pInputJson,
+    void **ppOutputJson
     );
 
 uint32_t
@@ -83,3 +94,24 @@ demo_privsep_client_version(
     wstring_t *ppwszVersion
     );
 
+//rpc
+uint32_t
+rpc_open_privsep(
+    const char *pszModule,
+    PPMDHANDLE* phHandle
+    );
+
+uint32_t
+demo_open_privsep(
+    PPMDHANDLE *phHandle
+    );
+
+uint32_t
+has_admin_access(
+    rpc_binding_handle_t h
+    );
+
+uint32_t
+verify_privsep_daemon(
+    rpc_binding_handle_t h
+    );
