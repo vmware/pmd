@@ -15,8 +15,12 @@
 
 #include "includes.h"
 
-REST_MODULE _demo_rest_module[] = 
+REST_MODULE _demo_rest_module[] =
 {
+    {
+        "/v1/prime/version",
+        {demo_rest_version_json, NULL, NULL, NULL}
+    },
     {
         "/v1/prime/isprime",
         {demo_rest_isprime_json, NULL, NULL, NULL}
@@ -56,6 +60,43 @@ cleanup:
     return dwError;
 
 error:
+    goto cleanup;
+}
+
+uint32_t
+demo_rest_version_json(
+    void *pInputJson,
+    void **ppOutputJson
+    )
+{
+    uint32_t dwError = 0;
+    char *pszOutputJson = NULL;
+    char *pszVersion = NULL;
+
+    if(!ppOutputJson)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = demo_version(&pszVersion);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateStringPrintf(&pszOutputJson,
+                                      "{\"version\":\"%s\"}",
+                                      pszVersion);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppOutputJson = pszOutputJson;
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pszVersion);
+    return dwError;
+error:
+    if(ppOutputJson)
+    {
+        *ppOutputJson = NULL;
+    }
+    PMD_SAFE_FREE_MEMORY(pszOutputJson);
     goto cleanup;
 }
 
@@ -111,7 +152,7 @@ demo_rest_isprime_json(
 cleanup:
     return dwError;
 error:
-    goto cleanup; 
+    goto cleanup;
 }
 
 uint32_t
@@ -198,7 +239,10 @@ demo_rest_primes_json(
         }while(--nPrimeCount);
     }
 
-    dwError = PMDAllocateStringPrintf(&pszOutputJson, "{\"primes\":[%s]}", pszPrimes);
+    dwError = PMDAllocateStringPrintf(
+                  &pszOutputJson,
+                  "{\"primes\":[%s]}",
+                  pszPrimes);
     BAIL_ON_PMD_ERROR(dwError);
 
     *ppOutputJson = pszOutputJson;
@@ -208,7 +252,7 @@ cleanup:
     return dwError;
 error:
     PMD_SAFE_FREE_MEMORY(pszOutputJson);
-    goto cleanup; 
+    goto cleanup;
 }
 
 uint32_t
@@ -223,7 +267,7 @@ demo_rest_get_fav_json(
 cleanup:
     return dwError;
 error:
-    goto cleanup; 
+    goto cleanup;
 }
 
 uint32_t
@@ -238,7 +282,7 @@ demo_rest_set_fav_json(
 cleanup:
     return dwError;
 error:
-    goto cleanup; 
+    goto cleanup;
 }
 
 uint32_t
@@ -253,7 +297,7 @@ demo_rest_delete_fav_json(
 cleanup:
     return dwError;
 error:
-    goto cleanup; 
+    goto cleanup;
 }
 
 uint32_t
@@ -268,5 +312,5 @@ demo_rest_update_fav_json(
 cleanup:
     return dwError;
 error:
-    goto cleanup; 
+    goto cleanup;
 }

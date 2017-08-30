@@ -31,8 +31,6 @@ demo_privsep_rpc_version(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    fprintf(stdout, "checking connection integrity\n");
-
     dwError = check_connection_integrity(hBinding);
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -79,6 +77,9 @@ demo_privsep_rpc_isprime(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
+
     dwError = demo_isprime(nPrime, &nIsPrime);
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -115,6 +116,9 @@ demo_privsep_rpc_primes(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = demo_primes(nStart, nCount, &pnInts, &nPrimeCount);
     BAIL_ON_PMD_ERROR(dwError);

@@ -52,9 +52,30 @@ uint32_t has_admin_access(
     rpc_binding_handle_t h
     );
 
-uint32_t 
+uint32_t
 has_group_access(
     rpc_binding_handle_t hBinding,
     const char* domain_group,
     const char* local_group
+    );
+
+uint32_t
+verify_privsep_daemon(
+    rpc_binding_handle_t hBinding
+    );
+
+uint32_t
+rsa_public_encrypt(
+    const char *pszData,
+    const char *pszPubKeyFile,
+    unsigned char **ppszEncrypted,
+    int *pnEncryptedLength
+    );
+
+uint32_t
+rsa_private_decrypt(
+    unsigned char *pszEncrypted,
+    int nEncryptedLength,
+    const char *pszPrivateKeyFile,
+    unsigned char **ppszDecrypted
     );

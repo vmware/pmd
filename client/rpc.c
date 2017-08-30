@@ -177,7 +177,6 @@ get_client_rpc_binding(
                 "rpc_string_binding_compose()",
                 "get_client_rpc_binding", 1);
 
-
     rpc_binding_from_string_binding((unsigned char *)string_binding,
                                     binding_handle,
                                     &status);
@@ -269,11 +268,7 @@ rpc_open(
     char* pszEndpoint = PMD_RPC_TCP_END_POINT;
     int nIndex = 0;
 
-    struct _stKnownIfspec
-    {
-        const char* pszModule;
-        rpc_if_handle_t interface_spec;
-    }knownIfspecs[] =
+    KNOWN_IF_SPEC knownIfspecs[] =
     {
 #ifdef DEMO_ENABLED
         {"demo", demo_v1_0_c_ifspec},
@@ -348,4 +343,94 @@ error:
     }
     PMDFreeMemory(hHandle);
     goto cleanup;
+}
+
+uint32_t
+rpc_open_privsep(
+    const char *pszModule,
+    PPMDHANDLE* phHandle
+    )
+{
+    uint32_t dwError = 0;
+    int nIndex = 0;
+    PPMDHANDLE hHandle = NULL;
+
+    KNOWN_IF_SPEC knownIfspecs[] =
+    {
+#ifdef DEMO_ENABLED
+        {"demo_privsep", demo_privsep_v1_0_c_ifspec},
+#endif
+    };
+
+    int nNumKnownIfspecs =
+        sizeof(knownIfspecs)/sizeof(knownIfspecs[0]);
+
+    rpc_if_handle_t spec = NULL;
+
+    if(IsNullOrEmptyString(pszModule) || !phHandle)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    for(nIndex = 0; nIndex < nNumKnownIfspecs; ++nIndex)
+    {
+        if(!strcasecmp(knownIfspecs[nIndex].pszModule, pszModule))
+        {
+            spec = knownIfspecs[nIndex].interface_spec;
+            break;
+        }
+    }
+
+    if(!spec)
+    {
+        fprintf(stderr, "Module %s is not registered\n", pszModule);
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateMemory(
+                  sizeof(PMDHANDLE),
+                  (void**)&hHandle);
+    BAIL_ON_PMD_ERROR(dwError);
+    hHandle->nPrivSep = 1;
+
+    dwError = get_client_rpc_binding(
+              &hHandle->hRpc,
+              spec,
+              NULL,
+              NULL,
+              NULL,
+              NULL,
+              PROTOCOL_NCALRPC,
+              PMD_PRIVSEP_NCALRPC_END_POINT,
+              NULL);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *phHandle = hHandle;
+cleanup:
+    return dwError;
+error:
+    if(phHandle)
+    {
+        *phHandle = NULL;
+    }
+    rpc_free_handle(hHandle);
+    goto cleanup;
+}
+
+void
+rpc_free_handle(
+    PPMDHANDLE hPMD
+    )
+{
+    if(!hPMD)
+    {
+        return;
+    }
+    if(hPMD->hRpc)
+    {
+        PMDRpcFreeBinding(&hPMD->hRpc);
+    }
+    PMDFreeMemory(hPMD);
 }

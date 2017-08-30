@@ -520,6 +520,14 @@ pmd_check_group_membership(
         }
         rpc_binding_inq_transport_info(h, &info, &dwError);
         BAIL_ON_PMD_ERROR(dwError);
+
+        //dwError might not indicate failure. check for info
+        if(!info)
+        {
+            dwError = ERROR_PMD_RPC_PEER_NOT_READY;
+            BAIL_ON_PMD_ERROR(dwError);
+        }
+
         rpc_lrpc_transport_info_inq_peer_eid(info, &uid, &gid);
         dwError = memberships_from_uid(uid, &memberships, &num_memberships);
         BAIL_ON_PMD_ERROR(dwError);
@@ -625,6 +633,43 @@ has_admin_access(
     )
 {
     return has_group_access(hBinding, "Administrators", "root");
+}
+
+uint32_t
+verify_privsep_daemon(
+    rpc_binding_handle_t hBinding
+    )
+{
+    uint32_t dwError = 0;
+    unsigned32 prot_seq = 0;
+    rpc_transport_info_handle_t info;
+    uid_t uid = -1;
+    gid_t gid = -1;
+
+    rpc_binding_inq_prot_seq(hBinding, &prot_seq, &dwError);
+    BAIL_ON_PMD_ERROR(dwError);
+    if (prot_seq == rpc_c_protseq_id_ncalrpc)
+    {
+        rpc_binding_inq_transport_info(hBinding, &info, &dwError);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        //dwError might not indicate failure. check for info
+        if(!info)
+        {
+            dwError = ERROR_PMD_RPC_PEER_NOT_READY;
+            BAIL_ON_PMD_ERROR(dwError);
+        }
+
+        rpc_lrpc_transport_info_inq_peer_eid(info, &uid, &gid);
+        //ensure that the peer is started by root.
+        if(uid != 0 && gid != 0)
+        {
+            dwError = ERROR_PMD_PRIVSEP_INTEGRITY;
+            BAIL_ON_PMD_ERROR(dwError);
+        }
+    }
+error:
+    return dwError;
 }
 
 uint32_t

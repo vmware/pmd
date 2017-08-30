@@ -39,3 +39,5 @@
 
 #include <vmdirclient.h>
 #include <vmafdclient.h>
+#include <openssl/rsa.h>
+#include <openssl/pem.h>

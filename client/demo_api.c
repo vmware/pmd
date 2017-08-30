@@ -31,7 +31,14 @@ demo_client_version(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    DO_RPC(demo_rpc_version(hHandle->hRpc, &pwszVersion), dwError);
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(demo_privsep_rpc_version(hHandle->hRpc, &pwszVersion), dwError);
+    }
+    else
+    {
+        DO_RPC(demo_rpc_version(hHandle->hRpc, &pwszVersion), dwError);
+    }
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDAllocateStringAFromW(
@@ -46,38 +53,6 @@ cleanup:
     return dwError;
 
 error:
-    goto cleanup;
-}
-
-uint32_t
-demo_privsep_client_version(
-    PPMDHANDLE hHandle,
-    wstring_t *ppwszVersion
-    )
-{
-    uint32_t dwError = 0;
-    wstring_t pwszVersion = NULL;
-
-    if(!hHandle || !ppwszVersion)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    DO_RPC(demo_privsep_rpc_version(hHandle->hRpc, &pwszVersion), dwError);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    *ppwszVersion = pwszVersion;
-
-cleanup:
-    return dwError;
-
-error:
-    if(ppwszVersion)
-    {
-        *ppwszVersion = NULL;
-    }
-    PMDRpcClientFreeStringW(pwszVersion);
     goto cleanup;
 }
 
@@ -97,7 +72,14 @@ demo_client_isprime(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    DO_RPC(demo_rpc_isprime(hHandle->hRpc, nNumToCheck, &nIsPrime), dwError);
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(demo_privsep_rpc_isprime(hHandle->hRpc, nNumToCheck, &nIsPrime), dwError);
+    }
+    else
+    {
+        DO_RPC(demo_rpc_isprime(hHandle->hRpc, nNumToCheck, &nIsPrime), dwError);
+    }
     BAIL_ON_PMD_ERROR(dwError);
 
     *pnIsPrime = nIsPrime;
@@ -136,8 +118,16 @@ demo_client_primes(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    DO_RPC(demo_rpc_primes(hHandle->hRpc, nStart, nCount, &pIntArray),
-           dwError);
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(demo_privsep_rpc_primes(hHandle->hRpc, nStart, nCount, &pIntArray),
+               dwError);
+    }
+    else
+    {
+        DO_RPC(demo_rpc_primes(hHandle->hRpc, nStart, nCount, &pIntArray),
+               dwError);
+    }
     BAIL_ON_PMD_ERROR(dwError);
 
     if(!pIntArray)

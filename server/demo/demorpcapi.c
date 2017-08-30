@@ -15,40 +15,6 @@
 
 #include "includes.h"
 
-uint32_t
-open_privsep(
-    PPMDHANDLE *phPMD
-    )
-{
-    uint32_t dwError = 0;
-    PPMDHANDLE hPMD = NULL;
-
-    if(!phPMD)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = rpc_open(
-        "demo_privsep",
-        "pmdprivsepd",
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        &hPMD);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    *phPMD = hPMD;
-
-cleanup:
-    return dwError;
-
-error:
-    rpc_free_handle(hPMD);
-    goto cleanup;
-}
-
 unsigned32
 demo_rpc_version(
     handle_t hBinding,
@@ -56,8 +22,8 @@ demo_rpc_version(
     )
 {
     uint32_t dwError = 0;
+    char *pszVersion = NULL;
     wstring_t pwszVersion = NULL;
-    PPMDHANDLE hPMD = NULL;
 
     if(!hBinding || !ppwszVersion)
     {
@@ -65,23 +31,23 @@ demo_rpc_version(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = open_privsep(&hPMD);
+    dwError = demo_version(&pszVersion);
+    BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = demo_privsep_client_version(hPMD, &pwszVersion);
+    dwError = PMDRpcServerAllocateWFromA(pszVersion, &pwszVersion);
     BAIL_ON_PMD_ERROR(dwError);
 
     *ppwszVersion = pwszVersion;
 
 cleanup:
-    rpc_free_handle(hPMD);
+    PMD_SAFE_FREE_MEMORY(pszVersion);
     return dwError;
-
 error:
     if(ppwszVersion)
     {
         *ppwszVersion = NULL;
     }
-    PMD_SAFE_FREE_MEMORY(pwszVersion);
+    PMDRpcServerFreeMemory(pwszVersion);
     goto cleanup;
 }
 
@@ -93,7 +59,6 @@ demo_rpc_isprime(
     )
 {
     uint32_t dwError = 0;
-    int nIsPrime = 0;
 
     if(!hBinding || nPrime <= 0 || !pnIsPrime)
     {
@@ -101,19 +66,11 @@ demo_rpc_isprime(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = demo_isprime(nPrime, &nIsPrime);
+    dwError = demo_isprime(nPrime, pnIsPrime);
     BAIL_ON_PMD_ERROR(dwError);
 
-    *pnIsPrime = nIsPrime;
-cleanup:
-    return dwError;
-
 error:
-    if(pnIsPrime)
-    {
-        *pnIsPrime = 0;
-    }
-    goto cleanup;
+    return dwError;
 }
 
 unsigned32
@@ -131,6 +88,7 @@ demo_rpc_primes(
     int *pnIntsSource = NULL;
     int *pnIntsDest = NULL;
     int i = 0;
+    PPMDHANDLE hPMD = NULL;
 
     if(!hBinding || nStart <= 0 || nCount <= 0 || !ppInts)
     {
