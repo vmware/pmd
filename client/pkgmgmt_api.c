@@ -629,22 +629,6 @@ error:
 }
 
 void
-rpc_free_handle(
-    PPMDHANDLE hPMD
-    )
-{
-    if(!hPMD)
-    {
-        return;
-    }
-    if(hPMD->hRpc)
-    {
-        PMDRpcFreeBinding(&hPMD->hRpc);
-    }
-    PMDFreeMemory(hPMD);
-}
-
-void
 pkg_free_repos(
     PTDNF_REPO_DATA pRepos
     )
