@@ -51,8 +51,8 @@ CLEANFILES = \
     rpmostree_sstub.c
 
 
-SUBDIRS = restutils \
-          security \
+SUBDIRS = security \
+          restutils \
           extras
 
 if ENABLE_DEMO

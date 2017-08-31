@@ -47,4 +47,5 @@ typedef unsigned short* wstring_t;
     {ERROR_PMD_INVALID_DAEMON_USER, "ERROR_PMD_INVALID_DAEMON_USER", "Could not verify server integrity for this communication. Cannot proceed."}, \
     {ERROR_PMD_RPC_PEER_NOT_READY,  "ERROR_PMD_RPC_PEER_NOT_READY",  "rpc connection not established."}, \
     {ERROR_PMD_PRIVSEP_INTEGRITY,   "ERROR_PMD_PRIVSEP_INTEGRITY",   "Unable to verify privilege separation integrity. Cannot proceed."}, \
+    {ERROR_PMD_MISSING_PRIVSEP_PUBKEY,"ERROR_PMD_MISSING_PRIVSEP_PUBKEY","Missing public key for privilege separation encryption. Please check config."}, \
 };

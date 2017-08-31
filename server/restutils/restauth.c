@@ -65,6 +65,7 @@ uint32_t
 process_auth(
     PVMREST_HANDLE pRestHandle,
     PREST_REQUEST pRequest,
+    const char *pszPubKeyFile,
     PREST_RESPONSE* ppResponse
     )
 {
@@ -93,7 +94,7 @@ process_auth(
     }
     else if(strstr(pszAuth, AUTH_BASIC))
     {
-        dwError = verify_basic_auth(pRestHandle, pRequest, ppResponse);
+        dwError = verify_basic_auth(pRestHandle, pRequest, pszPubKeyFile, ppResponse);
         BAIL_ON_PMD_ERROR(dwError);
     }
     else

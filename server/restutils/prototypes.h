@@ -202,6 +202,7 @@ uint32_t
 process_auth(
     PVMREST_HANDLE pRestHandle,
     PREST_REQUEST pRequest,
+    const char *pszPubKeyFile,
     PREST_RESPONSE* ppResponse
     );
 
@@ -226,6 +227,11 @@ rest_method(
     PREST_REQUEST pRequest,
     PREST_RESPONSE* ppResponse,
     uint32_t paramsCount
+    );
+
+uint32_t
+rest_set_privsep_pubkey(
+    const char *pszPubKeyFile
     );
 //
 uint32_t
@@ -290,5 +296,6 @@ uint32_t
 verify_basic_auth(
     PVMREST_HANDLE pRestHandle,
     PREST_REQUEST pRequest,
+    const char *pszPubKeyFile,
     PREST_RESPONSE* ppResponse
     );

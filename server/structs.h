@@ -33,6 +33,7 @@ typedef struct _PMD_CONFIG_
     char* pszComposeServer;
     char *pszApiSecurityConf;
     PPMD_REST_CONFIG pRestConfig;
+    char *pszPrivsepPubKeyFile;
 }PMD_CONFIG, *PPMD_CONFIG;
 
 typedef struct _SERVER_ENV_

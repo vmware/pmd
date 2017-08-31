@@ -45,6 +45,7 @@
 #include <netmgmt/netmgr.h>
 #include <pmd.h>
 
+#include "../common/defines.h"
 #include "../common/includes.h"
 
 #include "defines.h"
@@ -52,8 +53,7 @@
 #include "prototypes.h"
 
 //security
-#include "../server/security/defines.h"
-#include "../server/security/structs.h"
-#include "../server/security/pmdsecurity.h"
+#include "../server/security/includes.h"
 
 #include "../idl/demo_privsep_h.h"
+#include "../idl/privsepd_h.h"

@@ -122,6 +122,22 @@ pmd_read_config(
         }
     }
 
+    dwError = config_get_section(pData, PMD_CONFIG_PRIVSEP_GROUP, &pSection);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pKeyValues = pSection->pKeyValues;
+    for(; pKeyValues; pKeyValues = pKeyValues->pNext)
+    {
+        if(!strcmp(PMD_CONFIG_KEY_PRIVSEP_PUBKEY, pKeyValues->pszKey))
+        {
+            dwError = PMDAllocateString(pKeyValues->pszValue,
+                                        &pConf->pszPrivsepPubKeyFile);
+            BAIL_ON_PMD_ERROR(dwError);
+
+            break;//need just the pub key
+        }
+    }
+
     dwError = pmd_get_rest_config(pData, &pConf->pRestConfig);
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -167,5 +183,6 @@ pmd_free_config(
     PMD_SAFE_FREE_MEMORY(pConf->pszComposeServer);
     PMD_SAFE_FREE_MEMORY(pConf->pszApiSecurityConf);
     pmd_free_rest_config(pConf->pRestConfig);
+    PMD_SAFE_FREE_MEMORY(pConf->pszPrivsepPubKeyFile);
     PMD_SAFE_FREE_MEMORY(pConf);
 }

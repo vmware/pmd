@@ -32,6 +32,7 @@
 #include <string.h>
 #include <shadow.h>
 
+#include <pmd.h>
 #include "defines.h"
 #include "structs.h"
 #include "pmdsecurity.h"

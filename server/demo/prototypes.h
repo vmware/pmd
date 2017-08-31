@@ -96,12 +96,6 @@ demo_privsep_client_version(
 
 //rpc
 uint32_t
-rpc_open_privsep(
-    const char *pszModule,
-    PPMDHANDLE* phHandle
-    );
-
-uint32_t
 demo_open_privsep(
     PPMDHANDLE *phHandle
     );
