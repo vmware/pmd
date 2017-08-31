@@ -117,9 +117,6 @@ install -D -m 444 pmdprivsepd.service %{buildroot}/lib/systemd/system/pmdprivsep
 install -D -m 444 conf/restapispec.json %{buildroot}/etc/pmd/restapispec.json
 install -D -m 444 conf/api_sddl.conf %{buildroot}/etc/pmd/api_sddl.conf
 install -D -m 444 conf/restconfig.txt %{buildroot}/etc/pmd/restconfig.txt
-install -D -m 444 conf/server.crt  %{buildroot}/etc/pmd/server.crt
-install -D -m 444 conf/server.crt  %{buildroot}/etc/pmd/server.pub
-install -D -m 400 conf/server.key %{buildroot}/etc/pmd/server.key
 
 # Pre-install
 %pre
@@ -155,6 +152,23 @@ fi
     fi
     chown %{name} /var/lib/likewise/rpc
 
+    if [ "$1" = 1 ]; then
+      openssl req \
+          -new \
+          -newkey rsa:2048 \
+          -days 365 \
+          -nodes \
+          -x509 \
+          -subj "/C=US/ST=WA/L=Bellevue/O=vmware/CN=photon-pmd-default" \
+          -keyout /etc/pmd/server.key \
+          -out /etc/pmd/server.crt
+      chmod 0400 /etc/pmd/server.key
+      chown %{name} /etc/pmd/server.key
+      openssl genrsa -out /etc/pmd/privsep_priv.key 2048
+      openssl rsa -in /etc/pmd/privsep_priv.key -pubout > /etc/pmd/privsep_pub.key
+      chmod 0400 /etc/pmd/privsep*.key
+      chown %{name} /etc/pmd/privsep_pub.key
+    fi
 # Pre-uninstall
 %preun
 
@@ -258,9 +272,6 @@ rm -rf %{buildroot}/*
     /etc/pmd/api_sddl.conf
     /etc/pmd/restapispec.json
     /etc/pmd/restconfig.txt
-    /etc/pmd/server.crt
-    /etc/pmd/server.pub
-    %attr(0700, %{name}, root) /etc/pmd/server.key
     %attr(0766, %{name}, %{name}) %dir /var/log/%{name}
 
 %files libs

@@ -9,7 +9,8 @@ libpmdsecurity_la_CPPFLAGS = \
 libpmdsecurity_la_SOURCES = \
     apisecurity.c \
     authz.c \
-    rsa.c
+    rsa.c \
+    utils.c
 
 libpmdsecurity_la_LDFLAGS = \
     -static \

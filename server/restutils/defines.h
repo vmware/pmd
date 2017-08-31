@@ -26,3 +26,5 @@ typedef enum
 {
     HTTP_FORBIDDEN = 403
 }HTTP_STATUS_CODE;
+
+#define RPC_PRIVSEPD_IF "privsepd"

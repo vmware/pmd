@@ -65,10 +65,6 @@ check_connection_integrity(
     }
 
 cleanup:
-    if(hInfo)
-    {
-        rpc_lrpc_transport_info_free(hInfo);
-    }
     return dwError;
 
 error:

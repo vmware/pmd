@@ -105,6 +105,7 @@ rsa_private_decrypt(
     unsigned char *pszDecrypted = NULL;
     RSA *pRsa = NULL;
     int nDecryptedSize = 0;
+    int nRsaDecryptSize = 0;
     FILE *fp = NULL;
 
     if(!pszEncrypted ||
@@ -140,13 +141,13 @@ rsa_private_decrypt(
     dwError = PMDAllocateMemory(nDecryptedSize + 1, (void **)&pszDecrypted);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = RSA_private_decrypt(
+    nRsaDecryptSize = RSA_private_decrypt(
                   nEncryptedLength,
                   pszEncrypted,
                   pszDecrypted,
                   pRsa,
                   RSA_PKCS1_PADDING);
-    if(dwError == -1)
+    if(nRsaDecryptSize == -1)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
@@ -166,5 +167,10 @@ cleanup:
     return dwError;
 
 error:
+    if(ppszDecrypted)
+    {
+        *ppszDecrypted = NULL;
+    }
+    PMD_SAFE_FREE_MEMORY(pszDecrypted);
     goto cleanup;
 }

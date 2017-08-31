@@ -36,6 +36,7 @@ typedef struct _PMDHANDLE_* PPMDHANDLE;
 #define PMD_CONFIG_FILE_NAME "/etc/pmd/pmd.conf"
 #define PMD_CONFIG_MAIN_GROUP "main"
 #define PMD_CONFIG_REST_GROUP "rest-server"
+#define PMD_CONFIG_PRIVSEP_GROUP "privsep"
 
 #define PMD_CONFIG_KEY_REST_ENABLED "enabled"
 #define PMD_CONFIG_KEY_REST_PORT    "port"
@@ -46,6 +47,9 @@ typedef struct _PMDHANDLE_* PPMDHANDLE;
 #define PMD_CONFIG_KEY_SERVERURL "serverurl"
 #define PMD_CONFIG_KEY_COMPOSESERVER "composeserver"
 #define PMD_CONFIG_KEY_API_SECURITY "apisecurity"
+
+#define PMD_CONFIG_KEY_PRIVSEP_PUBKEY "pubkey"
+#define PMD_CONFIG_KEY_PRIVSEP_PRIVKEY "privkey"
 
 #define REST_COMMA "%2C"
 

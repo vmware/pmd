@@ -312,13 +312,6 @@ rpc_open(
         pszEndpoint = PMD_NCALRPC_END_POINT;
     }
 
-    if(!IsNullOrEmptyString(pszServer) &&
-       !strcasecmp(pszServer, PMD_PRIVSEP_NCALRPC_END_POINT))
-    {
-        pszProt = PROTOCOL_NCALRPC;
-        pszEndpoint = PMD_PRIVSEP_NCALRPC_END_POINT;
-    }
-
     dwError = PMDAllocateMemory(
                   sizeof(PMDHANDLE),
                   (void**)&hHandle);
@@ -358,6 +351,7 @@ rpc_open_privsep(
     uint32_t dwError = 0;
     int nIndex = 0;
     PPMDHANDLE hHandle = NULL;
+    struct stat stStat = {0};
 
     struct _stKnownIfspec
     {
@@ -368,6 +362,7 @@ rpc_open_privsep(
 #ifdef DEMO_ENABLED
         {"demo_privsep", demo_privsep_v1_0_c_ifspec},
 #endif
+        {"privsepd", privsepd_v1_0_c_ifspec},
     };
 
     int nNumKnownIfspecs =
@@ -414,6 +409,21 @@ rpc_open_privsep(
               PMD_PRIVSEP_NCALRPC_END_POINT,
               NULL);
     BAIL_ON_PMD_ERROR(dwError);
+
+    //make sure that the privsep server is listening.
+    rpc_mgmt_is_server_listening(hHandle->hRpc, &dwError);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    //make sure that domain socket file is owned by root
+    dwError = stat(PMD_NCALRPC_BASE_DIR "/" PMD_PRIVSEP_NCALRPC_END_POINT,
+                   &stStat);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if(stStat.st_uid != 0 || stStat.st_gid != 0)
+    {
+        dwError = ERROR_PMD_PRIVSEP_INTEGRITY;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
 
     *phHandle = hHandle;
 cleanup:

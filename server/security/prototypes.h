@@ -52,16 +52,11 @@ uint32_t has_admin_access(
     rpc_binding_handle_t h
     );
 
-uint32_t 
+uint32_t
 has_group_access(
     rpc_binding_handle_t hBinding,
     const char* domain_group,
     const char* local_group
-    );
-
-uint32_t
-verify_privsep_daemon(
-    rpc_binding_handle_t hBinding
     );
 
 uint32_t
@@ -78,4 +73,32 @@ rsa_private_decrypt(
     int nEncryptedLength,
     const char *pszPrivateKeyFile,
     unsigned char **ppszDecrypted
+    );
+//privsep
+uint32_t
+rpc_open_privsep(
+    const char *pszModule,
+    PPMDHANDLE* phHandle
+    );
+
+uint32_t
+privsepd_client_basic_auth(
+    PPMDHANDLE hHandle,
+    const char *pszBasicAuth,
+    const char *pszContext,
+    unsigned32 *pnValid
+    );
+//utils
+uint32_t
+base64_encode(
+    const unsigned char* pszInput,
+    const size_t nInputLength,
+    char** ppszOutput
+    );
+
+uint32_t
+base64_decode(
+    const char* pszInput,
+    char** ppszOutput,
+    int *pnLength
     );

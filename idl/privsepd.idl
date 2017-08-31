@@ -13,29 +13,21 @@
  */
 
 
-#pragma once
-#include <lw/base.h>
-#include <lw/types.h>
+[
+    uuid (3ee131de-2fc1-41fa-b06b-0387ee2296c9),
+    version(1.0),
+    pointer_default(unique)
+]
 
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <ctype.h>
-#include <unistd.h>
-#include <errno.h>
-#include <pthread.h>
-#include <jansson.h>
-#include <vmrest.h>
-#include <gssapi/gssapi.h>
-#include <copenapi/copenapi.h>
+interface privsepd
+{
+#include "pmdrpctypes.h"
 
-#include "../../common/defines.h"
-#include "../../common/structs.h"
-#include "../../common/prototypes.h"
-#include "../../include/pmderror.h"
-#include "../../jsonutils/prototypes.h"
-#include "defines.h"
-#include "structs.h"
-#include "prototypes.h"
-
-#include "../security/includes.h"
+    unsigned32
+    privsepd_rpc_basic_auth(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszBasic,
+        [in] wstring_t pwszContext,
+        [out] unsigned32 *pnValid
+        );
+}
