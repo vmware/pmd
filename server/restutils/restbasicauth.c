@@ -47,6 +47,7 @@ uint32_t
 verify_basic_auth(
     PVMREST_HANDLE pRestHandle,
     PREST_REQUEST pRequest,
+    const char *pszPubKeyFile,
     PREST_RESPONSE* ppResponse
     )
 {
@@ -59,6 +60,11 @@ verify_basic_auth(
     char* pszPass = NULL;
     int nLength = 0;
     uint32_t nValid = 0;
+    unsigned char *pBytesEncrypted = NULL;
+    int nEncryptedLength = 0;
+    PPMDHANDLE hPMD = NULL;
+    char *pszBase64 = NULL;
+    char *pszContext = "context";
 
     dwError = VmRESTGetHttpHeader(pRequest, "Authorization", &pszAuth);
     BAIL_ON_PMD_ERROR(dwError);
@@ -88,8 +94,20 @@ verify_basic_auth(
     dwError = split_user_and_pass(pszUserPass, &pszUser, &pszPass);
     BAIL_ON_PMD_ERROR(dwError);
 
-    //validate local user/pass
-    dwError = pmd_check_password(pszUser, pszPass, &nValid);
+    dwError = rsa_public_encrypt(
+                  pszUserPass,
+                  pszPubKeyFile,
+                  &pBytesEncrypted,
+                  &nEncryptedLength);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = base64_encode(pBytesEncrypted, nEncryptedLength, &pszBase64);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = rpc_open_privsep(RPC_PRIVSEPD_IF, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = privsepd_client_basic_auth(hPMD, pszBase64, pszContext, &nValid);
     BAIL_ON_PMD_ERROR(dwError);
 
     if(!nValid)
@@ -100,6 +118,9 @@ verify_basic_auth(
     }
 
 cleanup:
+    rpc_free_handle(hPMD);
+    PMD_SAFE_FREE_MEMORY(pBytesEncrypted);
+    PMD_SAFE_FREE_MEMORY(pszBase64);
     PMD_SAFE_FREE_MEMORY(pszUserPass);
     PMD_SAFE_FREE_MEMORY(pszUser);
     PMD_SAFE_FREE_MEMORY(pszPass);

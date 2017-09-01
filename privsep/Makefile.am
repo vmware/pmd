@@ -8,10 +8,18 @@ pmdprivsepd_CPPFLAGS = \
     @VMAFD_INCLUDES@
 
 pmdprivsepd_SOURCES = \
+    rpcapi.c \
     security.c \
-    server.c
+    server.c \
+    privsepd_sstub.c
 
 SUBDIRS = demo
+
+privsepd_sstub.c:
+	cp $(top_srcdir)/idl/privsepd_sstub.c .
+
+CLEANFILES = \
+    privsepd_sstub.c
 
 pmdprivsepd_LDADD =  \
     @top_builddir@/common/libcommon.la \

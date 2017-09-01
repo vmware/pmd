@@ -717,3 +717,61 @@ error:
     PMD_SAFE_FREE_MEMORY(pszError);
     goto cleanup;
 }
+
+uint32_t
+split_user_and_pass(
+    const char* pszUserPass,
+    char** ppszUser,
+    char** ppszPass
+    )
+{
+    uint32_t dwError = 0;
+    char* pszUser = NULL;
+    char* pszPass = NULL;
+    char* pszSeparator = NULL;
+    char SEPARATOR = ':';
+    int nLength = 0;
+
+    if(IsNullOrEmptyString(pszUserPass) || !ppszUser || !ppszPass)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+    pszSeparator = strchr(pszUserPass, SEPARATOR);
+    if(!pszSeparator)
+    {
+        dwError = ERROR_PMD_USER_PASS_FORMAT;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    nLength = pszSeparator - pszUserPass;
+    dwError = PMDAllocateMemory(nLength + 1, (void **)&pszUser);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    strncpy(pszUser, pszUserPass, nLength);
+
+    nLength = strlen(pszUserPass) - (nLength + 1);
+    dwError = PMDAllocateMemory(nLength + 1, (void **)&pszPass);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    strncpy(pszPass, pszSeparator+1, nLength);
+
+    *ppszUser = pszUser;
+    *ppszPass = pszPass;
+
+cleanup:
+    return dwError;
+
+error:
+    if(ppszUser)
+    {
+        *ppszUser = NULL;
+    }
+    if(ppszPass)
+    {
+        *ppszPass = NULL;
+    }
+    PMD_SAFE_FREE_MEMORY(pszUser);
+    PMD_SAFE_FREE_MEMORY(pszPass);
+    goto cleanup;
+}
