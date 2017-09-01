@@ -73,7 +73,8 @@ start_ncalrpc_server(
     };
     rpc_if_handle_t interface_spec[] =
     {
-        demo_privsep_v1_0_s_ifspec
+        demo_privsep_v1_0_s_ifspec,
+        privsepd_v1_0_s_ifspec
     };
     int nInterfaces = sizeof(interface_spec)/sizeof(*interface_spec);
 
@@ -128,7 +129,10 @@ int main(int argc, char *argv[])
     dwError = start_ncalrpc_server(&hRpc);
     if (dwError)
     {
-        printf("start_ncalrpc_server: failed 0x%x : %d\n", dwError, dwError);
+        fprintf(stderr,
+                "start_ncalrpc_server: failed 0x%x : %d\n",
+                dwError,
+                dwError);
         BAIL_ON_PMD_ERROR(dwError);
     }
     print_endpoints(hRpc);
@@ -136,14 +140,13 @@ int main(int argc, char *argv[])
     /*
      * Begin listening for calls
      */
-    printf ("listening for calls....\n");
     DCETHREAD_TRY
     {
         rpc_server_listen(rpc_c_listen_max_calls_default, &dwError);
     }
     DCETHREAD_CATCH_ALL(THIS_CATCH)
     {
-        printf ("Server stoppped listening\n");
+        fprintf (stdout, "Server stoppped listening\n");
     }
     DCETHREAD_ENDTRY;
 

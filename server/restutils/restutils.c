@@ -16,6 +16,7 @@
 #include "includes.h"
 
 PREST_API_DEF gpApiDef = NULL;
+static const char *gpszPubKeyFile = NULL;
 
 uint32_t
 rest_register_api_spec(
@@ -69,6 +70,24 @@ error:
         *ppRestProcessor = NULL;
     }
     goto cleanup;
+}
+
+uint32_t
+rest_set_privsep_pubkey(
+    const char *pszPubKeyFile
+    )
+{
+    uint32_t dwError = 0;
+    if(IsNullOrEmptyString(pszPubKeyFile))
+    {
+        dwError = ERROR_PMD_MISSING_PRIVSEP_PUBKEY;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    gpszPubKeyFile = pszPubKeyFile;
+
+error:
+    return dwError;
 }
 
 uint32_t
@@ -463,7 +482,7 @@ rest_method(
     BAIL_ON_PMD_ERROR(dwError);
 
     fprintf(stdout, "REST auth request for %s\n", pszURI);
-    dwError = process_auth(pRestHandle, pRequest, ppResponse);
+    dwError = process_auth(pRestHandle, pRequest, gpszPubKeyFile, ppResponse);
     if(dwError)
     {
         fprintf(stderr, "REST auth fail for %s\n", pszURI);

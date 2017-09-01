@@ -29,7 +29,10 @@ CLEANFILES = \
     rpmostree_sstub.c \
     usermgmt_h.h \
     usermgmt_cstub.c \
-    usermgmt_sstub.c
+    usermgmt_sstub.c \
+    privsepd_h.h \
+    privsepd_cstub.c \
+    privsepd_sstub.c
 
 BUILT_SOURCES = demo_h.h \
                 demo_privsep_h.h \
@@ -38,7 +41,8 @@ BUILT_SOURCES = demo_h.h \
                 pmd_h.h \
                 netmgmt_h.h \
                 rpmostree_h.h \
-                usermgmt_h.h
+                usermgmt_h.h \
+                privsepd_h.h
 
 demo_h.h demo_cstub.c: $(idl_srcdir)/demo.idl
 	$(DCEIDL) $(IDLFLAGS) -keep c_source -header demo_h.h -I$(idl_srcdir) $<
@@ -56,3 +60,6 @@ rpmostree_h.h rpmostree_cstub.c: $(idl_srcdir)/rpmostree.idl
 	$(DCEIDL) $(IDLFLAGS) -keep c_source -header rpmostree_h.h -I$(idl_srcdir) $<
 usermgmt_h.h usermgmt_cstub.c: $(idl_srcdir)/usermgmt.idl
 	$(DCEIDL) $(IDLFLAGS) -keep c_source -header usermgmt_h.h -I$(idl_srcdir) $<
+
+privsepd_h.h privsepd_cstub.c: $(idl_srcdir)/privsepd.idl
+	$(DCEIDL) $(IDLFLAGS) -keep c_source -header privsepd_h.h -I$(idl_srcdir) $<

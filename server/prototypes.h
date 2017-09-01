@@ -516,27 +516,6 @@ PPMDGetHostName(
     char** ppszHostName
 );
 
-uint32_t
-base64_encode(
-    const unsigned char* pszInput,
-    const size_t nInputLength,
-    char** ppszOutput
-    );
-
-uint32_t
-base64_decode(
-    const char* pszInput,
-    char** ppszOutput,
-    int *pnLength
-    );
-
-uint32_t
-split_user_and_pass(
-    const char* pszUserPass,
-    char** ppszUser,
-    char** ppszPass
-    );
-
 //restserver.c
 uint32_t
 StartRestServer(

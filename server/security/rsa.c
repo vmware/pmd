@@ -28,6 +28,7 @@ rsa_public_encrypt(
     char *pszPubKey = NULL;
     RSA *pRsa = NULL;
     int nEncryptedLength = 0;
+    int nActualEncryptedLength = 0;
     FILE *fp = NULL;
 
     if(IsNullOrEmptyString(pszData) ||
@@ -63,17 +64,17 @@ rsa_public_encrypt(
     dwError = PMDAllocateMemory(nEncryptedLength, (void **)&pszEncrypted);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = RSA_public_encrypt(
+    nActualEncryptedLength = RSA_public_encrypt(
                   strlen(pszData),
                   (const unsigned char *)pszData,
                   pszEncrypted,
                   pRsa,
                   RSA_PKCS1_PADDING);
-    if(dwError == nEncryptedLength)
+    if(nActualEncryptedLength != nEncryptedLength)
     {
-        dwError = 0;
+        dwError = ERROR_PMD_PRIVSEP_ENCRYPT;
+        BAIL_ON_PMD_ERROR(dwError);
     }
-    BAIL_ON_PMD_ERROR(dwError);
 
     *pnEncryptedLength = nEncryptedLength;
     *ppszEncrypted = pszEncrypted;
@@ -114,6 +115,7 @@ rsa_private_decrypt(
     unsigned char *pszDecrypted = NULL;
     RSA *pRsa = NULL;
     int nDecryptedSize = 0;
+    int nRsaDecryptSize = 0;
     FILE *fp = NULL;
 
     if(!pszEncrypted ||
@@ -149,18 +151,17 @@ rsa_private_decrypt(
     dwError = PMDAllocateMemory(nDecryptedSize + 1, (void **)&pszDecrypted);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = RSA_private_decrypt(
+    nRsaDecryptSize = RSA_private_decrypt(
                   nEncryptedLength,
                   pszEncrypted,
                   pszDecrypted,
                   pRsa,
                   RSA_PKCS1_PADDING);
-    if(dwError == -1)
+    if(nRsaDecryptSize == -1)
     {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
+        dwError = ERROR_PMD_PRIVSEP_DECRYPT;
         BAIL_ON_PMD_ERROR(dwError);
     }
-    dwError = 0;
 
     *ppszDecrypted = pszDecrypted;
 
