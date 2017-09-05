@@ -124,7 +124,6 @@ pmd_free_server_env(
         return;
     }
     pthread_mutex_destroy(&gpServerEnv->mutexModuleEntries);
-    pthread_mutex_destroy(&gpServerEnv->mutexPkgMgmtApi);
     pmd_free_config(gpServerEnv->pConfig);
     coapi_free_api_def(gpServerEnv->pApiDef);
     PMD_SAFE_FREE_MEMORY(gpServerEnv->pRestProcessor);

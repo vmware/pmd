@@ -76,8 +76,17 @@ rsa_private_decrypt(
     );
 //privsep
 uint32_t
+rpc_open_privsep_internal(
+    const char *pszModule,
+    PPMDHANDLE* phHandle
+    );
+
+uint32_t
 rpc_open_privsep(
     const char *pszModule,
+    const char* pszUser,
+    const char* pszPass,
+    const char* pszDomain,
     PPMDHANDLE* phHandle
     );
 
@@ -101,4 +110,11 @@ base64_decode(
     const char* pszInput,
     char** ppszOutput,
     int *pnLength
+    );
+
+uint32_t
+base64_get_user_pass(
+    const char *pszBase64,
+    char **ppszUser,
+    char **ppszPass
     );

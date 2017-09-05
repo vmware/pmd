@@ -54,3 +54,5 @@ typedef struct _PMDHANDLE_* PPMDHANDLE;
 #define REST_COMMA "%2C"
 
 #define PMD_DEFAULT_HASH  "DEADBEEFDEADBEEF"
+
+#define PKG_PRIVSEP "pkg_privsep"

@@ -159,3 +159,48 @@ error:
     PMD_SAFE_FREE_MEMORY(pszOutput);
     goto cleanup;
 }
+
+uint32_t
+base64_get_user_pass(
+    const char *pszBase64,
+    char **ppszUser,
+    char **ppszPass
+    )
+{
+    uint32_t dwError = 0;
+    int nLength = 0;
+    char *pszUserPass = NULL;
+    char *pszUser = NULL;
+    char *pszPass = NULL;
+
+    if(IsNullOrEmptyString(pszBase64) || !ppszUser || !ppszPass)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = base64_decode(pszBase64, &pszUserPass, &nLength);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = split_user_and_pass(pszUserPass, &pszUser, &pszPass);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppszUser = pszUser;
+    *ppszPass = pszPass;
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pszUserPass);
+    return dwError;
+
+error:
+    if(ppszUser)
+    {
+        *ppszUser = NULL;
+    }
+    if(ppszPass)
+    {
+        *ppszPass = NULL;
+    }
+    PMD_SAFE_FREE_MEMORY(pszUser);
+    PMD_SAFE_FREE_MEMORY(pszPass);
+    goto cleanup;
+}

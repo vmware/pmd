@@ -376,6 +376,7 @@ pkg_show_version_cmd(
     )
 {
     uint32_t dwError = 0;
+    char *pszVersion = NULL;
 
     if(!pContext || !pContext->hTdnf || !pCmdArgs)
     {
@@ -383,9 +384,13 @@ pkg_show_version_cmd(
         BAIL_ON_CLI_ERROR(dwError);
     }
 
-    fprintf(stdout, "Not implemented. should return server version");
+    dwError = pkg_version(pContext->hTdnf, &pszVersion);
+    BAIL_ON_CLI_ERROR(dwError);
+
+    fprintf(stdout, "Version: %s\n", pszVersion);
 
 cleanup:
+    PMD_SAFE_FREE_MEMORY(pszVersion);
     return dwError;
 error:
     goto cleanup;

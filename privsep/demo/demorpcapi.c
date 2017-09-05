@@ -25,11 +25,29 @@ demo_privsep_rpc_version(
     char* pszVersion = NULL;
     wstring_t pwszVersion = NULL;
 
+    rpc_authz_cred_handle_t hPriv = { 0 };
+    unsigned char *authPrinc = NULL;
+    unsigned32 group0member = 1;
+    unsigned32 dwProtectLevel = 0;
     if(!hBinding || !ppwszVersion)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    rpc_binding_inq_auth_caller(
+        hBinding,
+        &hPriv,
+        &authPrinc,
+        &dwProtectLevel,
+        NULL, /* unsigned32 *authn_svc, */
+        NULL, /* unsigned32 *authz_svc, */
+        &dwError);
+    if(dwError == 382312464)
+    {
+        dwError = 0;
+    }
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = check_connection_integrity(hBinding);
     BAIL_ON_PMD_ERROR(dwError);

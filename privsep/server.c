@@ -76,7 +76,8 @@ start_ncalrpc_server(
 #ifdef DEMO_ENABLED
         demo_privsep_v1_0_s_ifspec,
 #endif
-        privsepd_v1_0_s_ifspec
+        privsepd_v1_0_s_ifspec,
+        pkg_privsep_v1_0_s_ifspec
     };
     int nInterfaces = sizeof(interface_spec)/sizeof(*interface_spec);
 
@@ -128,6 +129,14 @@ int main(int argc, char *argv[])
     rpc_binding_vector_p_t hRpc = NULL;
     setlocale(LC_ALL, "");
 
+    dwError = init_modules();
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateMemory(
+                  sizeof(PRIVSEP_SERVER_ENV),
+                  (void **)&gpServerEnv);
+    BAIL_ON_PMD_ERROR(dwError);
+
     dwError = start_ncalrpc_server(&hRpc);
     if (dwError)
     {
@@ -152,12 +161,13 @@ int main(int argc, char *argv[])
     }
     DCETHREAD_ENDTRY;
 
-    //dwError = pmd_handle_signals();
+    dwError = pmd_handle_signals();
     BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:
 
     TDNFUninit();
+    free_privsep_server_env(gpServerEnv);
 
     return dwError;
 

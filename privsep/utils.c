@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2017-2018 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -12,26 +12,16 @@
  * under the License.
  */
 
+#include "includes.h"
 
-#pragma once
-
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <math.h>
-#include <errno.h>
-
-#include <dce/rpc.h>
-
-#include "../../idl/demo_h.h"
-
-#include "../../common/defines.h"
-#include "../../common/structs.h"
-#include "../../common/prototypes.h"
-#include "../../include/pmderror.h"
-#include "../../server/defines.h"
-
-#include "../security.h"
-
-#include "defines.h"
-#include "prototypes.h"
+void
+free_privsep_server_env(
+    PPRIVSEP_SERVER_ENV pEnv
+    )
+{
+    gpServerEnv = NULL;
+    if(pEnv)
+    {
+        PMD_SAFE_FREE_MEMORY(pEnv);
+    }
+}

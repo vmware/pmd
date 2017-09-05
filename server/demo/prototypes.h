@@ -17,6 +17,7 @@
 //demoapi.c
 uint32_t
 demo_version(
+    PPMDHANDLE pHandle,
     char **ppszVersion
     );
 
@@ -27,12 +28,14 @@ demo_version_w(
 
 uint32_t
 demo_isprime(
+    PPMDHANDLE pHandle,
     int nNumToCheck,
     int *pnIsPrime
     );
 
 uint32_t
 demo_primes(
+    PPMDHANDLE pHandle,
     int nStart,
     int nCount,
     int **ppnPrimes,
