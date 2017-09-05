@@ -14,7 +14,8 @@
 
 
 #pragma once
-uint32_t
-check_connection_integrity(
-    rpc_binding_handle_t hBinding
+//utils.c
+void
+free_privsep_server_env(
+    PPRIVSEP_SERVER_ENV pEnv
     );

@@ -32,6 +32,7 @@ extern "C" {
 #define ERROR_PMD_REST_BASE                3600
 #define ERROR_PMD_REST_AUTH_REQUIRED       (ERROR_PMD_REST_BASE + 1)
 #define ERROR_PMD_REST_AUTH_BASIC_MIN      (ERROR_PMD_REST_BASE + 2)
+#define ERROR_INVALID_REST_AUTH            (ERROR_PMD_REST_BASE + 3)
 
 //System errors 3600 and up
 #define ERROR_PMD_SYSTEM_BASE          3600

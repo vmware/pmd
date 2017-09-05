@@ -38,23 +38,6 @@ print_endpoints(
     }
 }
 
-uint32_t
-init_modules(
-    )
-{
-    uint32_t dwError = 0;
-
-    //init tdnf global
-    dwError = TDNFInit();
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    return dwError;
-
-error:
-    goto cleanup;
-}
-
 unsigned32
 start_rpc_server(
     rpc_binding_vector_p_t *ppBinding
@@ -158,9 +141,6 @@ int main(int argc, char *argv[])
                                 &gpServerEnv->pSecurityContext);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = init_modules();
-    BAIL_ON_PMD_ERROR(dwError);
-
     dwError = StartRestServer();
     if (dwError)
     {
@@ -200,8 +180,6 @@ cleanup:
         StopRestServer();
     }
     pmd_free_server_env(gpServerEnv);
-
-    TDNFUninit();
 
     return dwError;
 

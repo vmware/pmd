@@ -16,6 +16,7 @@
 #pragma once
 
 #define MAX_HTTP_DATA_LEN 4094
+#define AUTHORIZATION "Authorization"
 #define AUTH_BASIC "Basic "
 #define AUTH_NEGOTIATE "Negotiate "
 #define AUTH_BEARER "Bearer "

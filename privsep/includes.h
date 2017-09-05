@@ -48,12 +48,17 @@
 #include "../common/defines.h"
 #include "../common/includes.h"
 
-#include "defines.h"
-#include "structs.h"
-#include "prototypes.h"
-
 //security
 #include "../server/security/includes.h"
+#include "../server/common/includes.h"
 
 #include "../idl/demo_privsep_h.h"
 #include "../idl/privsepd_h.h"
+#include "../idl/pkgmgmt_privsep_h.h"
+
+#include "defines.h"
+#include "structs.h"
+#include "prototypes.h"
+#include "security.h"
+#include "pkgmgmt.h"
+#include "global.h"

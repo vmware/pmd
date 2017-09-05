@@ -39,7 +39,6 @@ typedef struct _PMD_CONFIG_
 typedef struct _SERVER_ENV_
 {
     pthread_mutex_t mutexModuleEntries;
-    pthread_mutex_t mutexPkgMgmtApi;
     PPMD_CONFIG pConfig;
     PREST_API_DEF pApiDef;
     PREST_MODULE_ENTRY pModuleEntries;

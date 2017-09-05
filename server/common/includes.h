@@ -15,23 +15,27 @@
 
 #pragma once
 
+#include <lw/base.h>
+#include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <math.h>
-#include <errno.h>
+#include <termios.h>
 
 #include <dce/rpc.h>
+#include <dce/dcethread.h>
+#include <dce/dce_error.h>
 
-#include "../../idl/demo_h.h"
+#include <pmderror.h>
+ 
+#include "../idl/pmdrpctypes.h"
+#include "../idl/pkgmgmtrpctypes.h"
 
-#include "../../common/defines.h"
-#include "../../common/structs.h"
-#include "../../common/prototypes.h"
-#include "../../include/pmderror.h"
-#include "../../server/defines.h"
+#include <tdnf/tdnftypes.h>
+#include <pmd_pkgmgmt.h>
 
-#include "../security.h"
-
+#include "../../common/includes.h"
 #include "defines.h"
+#include "pkgmgmt_utils.h"
 #include "prototypes.h"

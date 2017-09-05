@@ -24,6 +24,21 @@ typedef unsigned short* wstring_t;
 
 #define IsNullOrEmptyString(str) (!(str) || !(*str))
 
+#define DO_RPC(rpc_pfn, sts) \
+  do {                       \
+    dcethread_exc *exc = NULL;      \
+    DCETHREAD_TRY            \
+    {                        \
+      (sts) = rpc_pfn;       \
+    }                        \
+    DCETHREAD_CATCH_ALL(exc) \
+    {                        \
+      sts = dcethread_exc_getstatus(exc); \
+    }                        \
+    DCETHREAD_ENDTRY         \
+  } while (0)
+
+#define PPMD_RPC_PROTECT_LEVEL_NONE        rpc_c_protect_level_none
 #define BAIL_ON_PMD_ERROR(dwError) \
     do {                                                           \
         if (dwError)                                               \

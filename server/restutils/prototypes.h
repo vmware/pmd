@@ -299,3 +299,14 @@ verify_basic_auth(
     const char *pszPubKeyFile,
     PREST_RESPONSE* ppResponse
     );
+
+uint32_t
+pre_process_auth(
+    PREST_AUTH_ARGS pAuthArgs,
+    PREST_AUTH *ppResult
+    );
+
+void
+free_rest_auth(
+    PREST_AUTH pResult
+    );

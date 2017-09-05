@@ -16,59 +16,25 @@
 #include "includes.h"
 
 uint32_t
-demo_open_privsep(
-    PPMDHANDLE *phPMD
-    )
-{
-    uint32_t dwError = 0;
-    PPMDHANDLE hPMD = NULL;
-    wstring_t pwszVersion = NULL;
-
-    if(!phPMD)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = rpc_open_privsep(
-        DEMO_PRIVSEP,
-        &hPMD);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    *phPMD = hPMD;
-
-cleanup:
-    return dwError;
-
-error:
-    rpc_free_handle(hPMD);
-    goto cleanup;
-}
-
-uint32_t
 demo_version(
+    PPMDHANDLE hPMD,
     char **ppszVersion
     )
 {
     uint32_t dwError = 0;
     char *pszVersion = NULL;
-    PPMDHANDLE hPMD = NULL;
 
-    if(!ppszVersion)
+    if(hPMD && !ppszVersion)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
-
-    dwError = demo_open_privsep(&hPMD);
-    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = demo_client_version(hPMD, &pszVersion);
     BAIL_ON_PMD_ERROR(dwError);
 
     *ppszVersion = pszVersion;
 cleanup:
-    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -82,32 +48,29 @@ error:
 
 uint32_t
 demo_isprime(
+    PPMDHANDLE hPMD,
     int nNumToCheck,
     int *pnIsPrime
     )
 {
     uint32_t dwError = 0;
-    PPMDHANDLE hPMD = NULL;
 
-    if(!pnIsPrime)
+    if(!hPMD || !pnIsPrime)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = demo_open_privsep(&hPMD);
-    BAIL_ON_PMD_ERROR(dwError);
-
     dwError = demo_client_isprime(hPMD, nNumToCheck, pnIsPrime);
     BAIL_ON_PMD_ERROR(dwError);
 
 error:
-    rpc_free_handle(hPMD);
     return dwError;
 }
 
 uint32_t
 demo_primes(
+    PPMDHANDLE hPMD,
     int nStart,
     int nCount,
     int **ppnPrimes,
@@ -115,16 +78,12 @@ demo_primes(
     )
 {
     uint32_t dwError = 0;
-    PPMDHANDLE hPMD = NULL;
 
-    if(nStart <= 0 || nCount == 0 || !ppnPrimes || !pnPrimeCount)
+    if(!hPMD || nStart <= 0 || nCount == 0 || !ppnPrimes || !pnPrimeCount)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
-
-    dwError = demo_open_privsep(&hPMD);
-    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = demo_client_primes(
                   hPMD,
@@ -135,7 +94,6 @@ demo_primes(
     BAIL_ON_PMD_ERROR(dwError);
 
 error:
-    rpc_free_handle(hPMD);
     return dwError;
 }
 

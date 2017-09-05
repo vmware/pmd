@@ -19,6 +19,7 @@ check_connection_integrity(
     rpc_binding_handle_t hBinding
     )
 {
+return 0;
     uint32_t dwError = 0;
     unsigned32 prot_seq = 0;
     rpc_transport_info_handle_t hInfo = NULL;

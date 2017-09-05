@@ -159,6 +159,7 @@ get_client_rpc_binding(
     error_status_t status;
     unsigned char* pszUPN = NULL;
     rpc_auth_identity_handle_t rpc_identity_h = NULL;
+    int nSetAuthInfo = 0;
 
     /*
      * create a string binding given the command line parameters and
@@ -188,6 +189,21 @@ get_client_rpc_binding(
     chk_dce_err(status, "rpc_string_free()", "get_client_rpc_binding", 1);
 
     if(strcmp(protocol, PROTOCOL_NCALRPC) != 0)
+    {
+        nSetAuthInfo = 1;
+    }
+    //When using the privsep endpoint, REST calls will pass
+    //in credentials. dcerpc calls have reached till this point
+    //because they passed authentication.
+    else if(!strcmp(endpoint, PMD_PRIVSEP_NCALRPC_END_POINT))
+    {
+        if(!IsNullOrEmptyString(username) &&  !IsNullOrEmptyString(password))
+        {
+            nSetAuthInfo = 1;
+        }
+    }
+
+    if(nSetAuthInfo)
     {
         if(IsNullOrEmptyString(username) ||
            IsNullOrEmptyString(password))
@@ -272,7 +288,6 @@ rpc_open(
     {
 #ifdef DEMO_ENABLED
         {"demo", demo_v1_0_c_ifspec},
-        {"demo_privsep", demo_privsep_v1_0_c_ifspec},
 #endif
         {"fwmgmt", fwmgmt_v1_0_c_ifspec},
         {"pkg", pkg_v1_0_c_ifspec},
@@ -341,6 +356,9 @@ error:
 uint32_t
 rpc_open_privsep(
     const char *pszModule,
+    const char* pszUser,
+    const char* pszPass,
+    const char* pszDomain,
     PPMDHANDLE* phHandle
     )
 {
@@ -355,6 +373,7 @@ rpc_open_privsep(
         {"demo_privsep", demo_privsep_v1_0_c_ifspec},
 #endif
         {"privsepd", privsepd_v1_0_c_ifspec},
+        {"pkg_privsep", pkg_privsep_v1_0_c_ifspec},
     };
 
     int nNumKnownIfspecs =
@@ -394,9 +413,9 @@ rpc_open_privsep(
               &hHandle->hRpc,
               spec,
               NULL,
-              NULL,
-              NULL,
-              NULL,
+              pszUser,
+              pszDomain,
+              pszPass,
               PROTOCOL_NCALRPC,
               PMD_PRIVSEP_NCALRPC_END_POINT,
               NULL);
@@ -427,6 +446,15 @@ error:
     }
     rpc_free_handle(hHandle);
     goto cleanup;
+}
+
+uint32_t
+rpc_open_privsep_internal(
+    const char *pszModule,
+    PPMDHANDLE* phHandle
+    )
+{
+    return rpc_open_privsep(pszModule, NULL, NULL, NULL, phHandle);
 }
 
 void

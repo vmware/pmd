@@ -32,7 +32,10 @@ CLEANFILES = \
     usermgmt_sstub.c \
     privsepd_h.h \
     privsepd_cstub.c \
-    privsepd_sstub.c
+    privsepd_sstub.c \
+    pkgmgmt_privsep_h.h \
+    pkgmgmt_privsep_cstub.c \
+    pkgmgmt_privsep_sstub.c
 
 BUILT_SOURCES = demo_h.h \
                 demo_privsep_h.h \
@@ -42,7 +45,8 @@ BUILT_SOURCES = demo_h.h \
                 netmgmt_h.h \
                 rpmostree_h.h \
                 usermgmt_h.h \
-                privsepd_h.h
+                privsepd_h.h \
+                pkgmgmt_privsep_h.h
 
 demo_h.h demo_cstub.c: $(idl_srcdir)/demo.idl
 	$(DCEIDL) $(IDLFLAGS) -keep c_source -header demo_h.h -I$(idl_srcdir) $<
@@ -63,3 +67,5 @@ usermgmt_h.h usermgmt_cstub.c: $(idl_srcdir)/usermgmt.idl
 
 privsepd_h.h privsepd_cstub.c: $(idl_srcdir)/privsepd.idl
 	$(DCEIDL) $(IDLFLAGS) -keep c_source -header privsepd_h.h -I$(idl_srcdir) $<
+pkgmgmt_privsep_h.h pkgmgmt_privsep_cstub.c: $(idl_srcdir)/pkgmgmt_privsep.idl
+	$(DCEIDL) $(IDLFLAGS) -keep c_source -header pkgmgmt_privsep_h.h -I$(idl_srcdir) $<

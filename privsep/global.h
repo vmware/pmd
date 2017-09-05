@@ -14,24 +14,4 @@
 
 
 #pragma once
-
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <math.h>
-#include <errno.h>
-
-#include <dce/rpc.h>
-
-#include "../../idl/demo_h.h"
-
-#include "../../common/defines.h"
-#include "../../common/structs.h"
-#include "../../common/prototypes.h"
-#include "../../include/pmderror.h"
-#include "../../server/defines.h"
-
-#include "../security.h"
-
-#include "defines.h"
-#include "prototypes.h"
+extern PPRIVSEP_SERVER_ENV gpServerEnv;

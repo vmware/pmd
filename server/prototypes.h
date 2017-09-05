@@ -370,6 +370,72 @@ pkg_rest_reinstall(
     void **ppOutputJson
     );
 
+//pkgmgmtapi.c
+unsigned32
+pkg_version_s(
+    PPMDHANDLE hPMD,
+    wstring_t *ppwszVersion
+    );
+//pkgmgmt privsep related
+uint32_t
+pkg_list_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    TDNF_SCOPE nScope,
+    PPMD_WSTRING_ARRAY pPkgNameSpecs,
+    PTDNF_RPC_PKGINFO_ARRAY* ppInfo
+    );
+
+uint32_t
+pkg_repolist_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    TDNF_REPOLISTFILTER nRepoListFilter,
+    PTDNF_RPC_REPODATA_ARRAY *ppRpcRepoDataArray
+    );
+
+uint32_t
+pkg_updateinfo_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    PTDNF_RPC_UPDATEINFO_SUMMARY_ARRAY *ppRpcSummary
+    );
+
+uint32_t
+pkg_updateinfo_summary_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    TDNF_AVAIL nAvail,
+    PTDNF_RPC_UPDATEINFO_SUMMARY_ARRAY *ppRpcSummary
+    );
+
+uint32_t
+pkg_resolve_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    TDNF_ALTERTYPE nAlterType,
+    PTDNF_RPC_SOLVED_PKG_INFO *ppRpcSolvedInfo
+    );
+
+uint32_t
+pkg_alter_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    TDNF_ALTERTYPE nAlterType
+    );
+
+uint32_t
+pkg_version_w(
+    PPMDHANDLE hHandle,
+    wstring_t *ppwszVersion
+    );
+
+uint32_t
+pkg_get_error_string_w(
+    PPMDHANDLE hHandle,
+    uint32_t dwErrorCode,
+    wstring_t *ppwszError
+    );
 //firewall_restapi.c
 uint32_t
 firewall_rest_get_registration(
@@ -389,112 +455,15 @@ pkg_rpc_get_cmd_args(
     PTDNF_CMD_ARGS *ppArgs
     );
 
-
-//pkgmgmtapi.c
-unsigned32
-pkg_open_handle_s(
-    PTDNF_CMD_ARGS pArgs,
-    PTDNF *ppTdnf
-    );
-
-unsigned32
-pkg_close_handle_s(
-    PTDNF pTdnf
-    );
-
 uint32_t
 pkg_get_scope_from_string(
     const char *pszScope,
     TDNF_SCOPE *pnScope
     );
 
-unsigned32
-pkg_count_s(
-    PTDNF pTdnf,
-    unsigned32* pdwCount
-    );
-
-unsigned32
-pkg_list_s(
-    PTDNF pTdnf,
-    unsigned32 nScope,
-    char **ppszPackageNameSpecs,
-    PTDNF_PKG_INFO *ppPkgInfo,
-    uint32_t *pdwCount
-    );
-
-unsigned32
-pkg_repolist_s(
-    PTDNF pTdnf,
-    TDNF_REPOLISTFILTER nFilter,
-    PTDNF_REPO_DATA *ppRepoData
-    );
-
-unsigned32
-pkg_info_s(
-    PTDNF pTdnf,
-    PTDNF_PKG_INFO *ppPkgInfo
-    );
-
-unsigned32
-pkg_updateinfo_s(
-    PTDNF pTdnf,
-    TDNF_AVAIL nAvail,
-    char **ppszPackageNameSpecs,
-    PTDNF_UPDATEINFO_SUMMARY* ppUpdateInfoSummary
-    );
-
-unsigned32
-pkg_version_s(
-    char** ppszVersion
-    );
-
-unsigned32
-pkg_resolve_s(
-    PTDNF pTdnf,
-    TDNF_ALTERTYPE nAlterType,
-    PTDNF_SOLVED_PKG_INFO *ppSolvedInfo
-    );
-
-unsigned32
-pkg_alter_s(
-    PTDNF pTdnf,
-    TDNF_ALTERTYPE nAlterType
-    );
-
-unsigned32
-pkg_get_error_string_s(
-    uint32_t dwErrorCode,
-    char **ppszError
-    );
-//rpc.c
-uint32_t
-PMDRpcServerConvertPkgInfoArray(
-    PTDNF_PKG_INFO pPkgInfo,
-    uint32_t dwCount,
-    PTDNF_RPC_PKGINFO_ARRAY *ppRpcPkgInfo
-    );
-
-uint32_t
-PMDRpcServerConvertPkgInfoList(
-    PTDNF_PKG_INFO pPkgInfo,
-    PTDNF_RPC_PKGINFO_ARRAY *ppRpcPkgInfo
-    );
-
-uint32_t
-PMDRpcServerCopyStringArray(
-    char **ppszStrings,
-    PPMD_WSTRING_ARRAY *ppArray
-    );
-
 void
-PMDRpcServerFreeSolvedInfo(
-    PTDNF_RPC_SOLVED_PKG_INFO pSolvedInfo
-    );
-
-void
-PMDRpcServerFreePkgInfoArray(
-    PTDNF_RPC_PKGINFO_ARRAY pPkgInfoArray
+TDNFFreeCmdArgs(
+    PTDNF_CMD_ARGS pCmdArgs
     );
 
 //config.c
@@ -525,13 +494,16 @@ void
 StopRestServer(
     );
 
-//signal.c
-uint32_t
-pmd_handle_signals(
-    );
-
 //server.c
 void
 pmd_free_server_env(
     PSERVER_ENV pEnv
+    );
+
+//rest_s.c
+uint32_t
+open_privsep_rest(
+    const char *pszModule,
+    PREST_AUTH pRestAuth,
+    PPMDHANDLE *phPMD
     );

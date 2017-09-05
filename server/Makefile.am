@@ -16,7 +16,6 @@ pmd_SOURCES = \
     global.c \
     netmgmtapi.c \
     netmgmtrestapi.c \
-    pkgmgmtapi.c \
     pkgmgmtrpcapi.c \
     pkgmgmtrestapi.c \
     pmdrestapi.c \
@@ -24,7 +23,6 @@ pmd_SOURCES = \
     rpc.c \
     rpmostreeapi.c \
     server.c \
-    signal.c \
     pkgmgmt_sstub.c \
     pmd_sstub.c \
     netmgmt_sstub.c \
@@ -51,7 +49,8 @@ CLEANFILES = \
     rpmostree_sstub.c
 
 
-SUBDIRS = security \
+SUBDIRS = common \
+          security \
           restutils \
           extras
 
@@ -65,6 +64,7 @@ pmd_LDADD =  \
     @top_builddir@/server/restutils/librestutils.la \
     @top_builddir@/server/extras/libpmdextras.la \
     @top_builddir@/server/security/libpmdsecurity.la \
+    @top_builddir@/server/common/libsrvcommon.la \
     @DCERPC_LIBS@ \
     @JANSSON_LIBS@ \
     @CREST_LIBS@ \
@@ -73,7 +73,6 @@ pmd_LDADD =  \
     @COPENAPI_LIBS@ \
     @LWBASE_LIBS@ \
     -lvmdirclient \
-    -ltdnf \
     -lnetmgr \
     -lpthread \
     -lcrypt \

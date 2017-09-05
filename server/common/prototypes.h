@@ -1,3 +1,4 @@
+
 /*
  * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
  *
@@ -12,26 +13,10 @@
  * under the License.
  */
 
-
 #pragma once
 
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <math.h>
-#include <errno.h>
+//signal.c
+uint32_t
+pmd_handle_signals(
+    );
 
-#include <dce/rpc.h>
-
-#include "../../idl/demo_h.h"
-
-#include "../../common/defines.h"
-#include "../../common/structs.h"
-#include "../../common/prototypes.h"
-#include "../../include/pmderror.h"
-#include "../../server/defines.h"
-
-#include "../security.h"
-
-#include "defines.h"
-#include "prototypes.h"

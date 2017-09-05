@@ -12,5 +12,10 @@
  * under the License.
  */
 
-
 #pragma once
+
+typedef struct _PRIVSEP_SERVER_ENV_
+{
+    pthread_mutex_t mutexModuleEntries;
+    pthread_mutex_t mutexPkgMgmtApi;
+}PRIVSEP_SERVER_ENV, *PPRIVSEP_SERVER_ENV;

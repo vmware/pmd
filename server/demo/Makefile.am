@@ -25,6 +25,7 @@ libdemosrv_la_LDFLAGS =  \
     @top_builddir@/common/libcommon.la \
     @top_builddir@/client/libpmdclient.la \
     @top_builddir@/server/security/libpmdsecurity.la \
+    @top_builddir@/server/common/libsrvcommon.la \
     @DCERPC_LDFLAGS@ \
     @DCERPC_LIBS@ \
     @JANSSON_LIBS@

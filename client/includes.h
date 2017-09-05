@@ -36,6 +36,7 @@
 #include "../idl/usermgmt_h.h"
 
 #include "../idl/privsepd_h.h"
+#include "../idl/pkgmgmt_privsep_h.h"
 
 #ifdef DEMO_ENABLED
 #include "../idl/demo_h.h"

@@ -68,3 +68,30 @@ typedef struct _JWT_ERROR_
     int nStatus;
     char *pszError;
 }JWT_ERROR, *PJWT_ERROR;
+
+typedef enum
+{
+    REST_AUTH_NONE,
+    REST_AUTH_BASIC,
+    REST_AUTH_KRB
+}REST_AUTH_METHOD;
+
+typedef struct _REST_AUTH_
+{
+    REST_AUTH_METHOD nAuthMethod;
+    char *pszAuthBase64;
+}REST_AUTH, *PREST_AUTH;
+
+typedef struct _REST_AUTH_ARGS_
+{
+    PVMREST_HANDLE pRestHandle;
+    PREST_REQUEST pRequest;
+    PREST_RESPONSE* ppResponse;
+    PREST_AUTH pRestAuth;
+}REST_AUTH_ARGS, *PREST_AUTH_ARGS;
+
+typedef struct _REST_FN_ARGS_
+{
+    char *pszInputJson;
+    PREST_AUTH_ARGS pAuthArgs;
+}REST_FN_ARGS, *PREST_FN_ARGS;
