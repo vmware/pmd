@@ -77,7 +77,8 @@ start_ncalrpc_server(
         demo_privsep_v1_0_s_ifspec,
 #endif
         privsepd_v1_0_s_ifspec,
-        pkg_privsep_v1_0_s_ifspec
+        pkg_privsep_v1_0_s_ifspec,
+        netmgmt_privsep_v1_0_s_ifspec
     };
     int nInterfaces = sizeof(interface_spec)/sizeof(*interface_spec);
 

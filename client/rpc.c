@@ -374,6 +374,7 @@ rpc_open_privsep(
 #endif
         {"privsepd", privsepd_v1_0_c_ifspec},
         {"pkg_privsep", pkg_privsep_v1_0_c_ifspec},
+        {"net_privsep", netmgmt_privsep_v1_0_c_ifspec},
     };
 
     int nNumKnownIfspecs =

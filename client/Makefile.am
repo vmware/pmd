@@ -22,7 +22,8 @@ libpmdclient_la_SOURCES = \
     usermgmt_rpc_misc.c \
     privsepd_api.c \
     privsepd_cstub.c \
-    pkgmgmt_privsep_cstub.c
+    pkgmgmt_privsep_cstub.c \
+    netmgmt_privsep_cstub.c
 
 if ENABLE_DEMO
 demo_cstub.c:
@@ -58,6 +59,9 @@ privsepd_cstub.c:
 pkgmgmt_privsep_cstub.c:
 	cp ../idl/pkgmgmt_privsep_cstub.c .
 
+netmgmt_privsep_cstub.c:
+	cp ../idl/netmgmt_privsep_cstub.c .
+
 CLEANFILES = \
     demo_cstub.c \
     demo_privsep_cstub.c \
@@ -68,7 +72,8 @@ CLEANFILES = \
     rpmostree_cstub.c \
     usermgmt_cstub.c \
     privsepd_cstub.c \
-    pkgmgmt_privsep_cstub.c
+    pkgmgmt_privsep_cstub.c \
+    netgmgmt_privsep_cstub.c
 
 libpmdclient_la_LIBADD =  \
     @top_builddir@/common/libcommon.la \

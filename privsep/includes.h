@@ -55,6 +55,7 @@
 #include "../idl/demo_privsep_h.h"
 #include "../idl/privsepd_h.h"
 #include "../idl/pkgmgmt_privsep_h.h"
+#include "../idl/netmgmt_privsep_h.h"
 
 #include "defines.h"
 #include "structs.h"

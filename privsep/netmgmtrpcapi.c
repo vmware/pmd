@@ -16,7 +16,7 @@
 #include "includes.h"
 
 unsigned32
-netmgr_rpc_get_version(
+netmgr_privsep_rpc_get_version(
     handle_t hBinding,
     wstring_t* ppwszVersion
     )
@@ -32,6 +32,9 @@ netmgr_rpc_get_version(
     }
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     pszVersion = PACKAGE_VERSION;
     if(IsNullOrEmptyString(pszVersion))
@@ -62,7 +65,7 @@ error:
  * Interface configuration APIs
  */
 unsigned32
-netmgr_rpc_set_mac_addr(
+netmgr_privsep_rpc_set_mac_addr(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     wstring_t pwszMacAddress
@@ -73,6 +76,9 @@ netmgr_rpc_set_mac_addr(
     char *pszMacAddr = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName || !pwszMacAddress)
     {
@@ -101,7 +107,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_get_mac_addr(
+netmgr_privsep_rpc_get_mac_addr(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     wstring_t *ppwszMacAddress
@@ -113,6 +119,9 @@ netmgr_rpc_get_mac_addr(
     wstring_t pwszMacAddress = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName || !ppwszMacAddress)
     {
@@ -150,7 +159,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_set_link_mode(
+netmgr_privsep_rpc_set_link_mode(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     NET_RPC_LINK_MODE linkMode
@@ -160,6 +169,9 @@ netmgr_rpc_set_link_mode(
     char *pszIfName = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName)
     {
@@ -181,7 +193,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_get_link_mode(
+netmgr_privsep_rpc_get_link_mode(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     NET_RPC_LINK_MODE *pLinkMode
@@ -192,6 +204,9 @@ netmgr_rpc_get_link_mode(
     NET_LINK_MODE linkMode;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName || !pLinkMode)
     {
@@ -222,7 +237,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_set_link_mtu(
+netmgr_privsep_rpc_set_link_mtu(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     unsigned32 mtu
@@ -232,6 +247,9 @@ netmgr_rpc_set_link_mtu(
     char *pszIfName = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName)
     {
@@ -253,7 +271,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_get_link_mtu(
+netmgr_privsep_rpc_get_link_mtu(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     unsigned32 *pMtu
@@ -263,6 +281,9 @@ netmgr_rpc_get_link_mtu(
     char *pszIfName = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName || !pMtu)
     {
@@ -293,7 +314,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_set_link_state(
+netmgr_privsep_rpc_set_link_state(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     NET_RPC_LINK_STATE linkState
@@ -303,6 +324,9 @@ netmgr_rpc_set_link_state(
     char *pszIfName = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName)
     {
@@ -324,7 +348,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_get_link_state(
+netmgr_privsep_rpc_get_link_state(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     NET_RPC_LINK_STATE *pLinkState
@@ -335,6 +359,9 @@ netmgr_rpc_get_link_state(
     NET_LINK_STATE linkState;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName || !pLinkState)
     {
@@ -365,7 +392,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_ifup(
+netmgr_privsep_rpc_ifup(
     handle_t hBinding,
     wstring_t pwszInterfaceName
 )
@@ -374,6 +401,9 @@ netmgr_rpc_ifup(
     char *pszIfName = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName)
     {
@@ -395,7 +425,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_ifdown(
+netmgr_privsep_rpc_ifdown(
     handle_t hBinding,
     wstring_t pwszInterfaceName
 )
@@ -404,6 +434,9 @@ netmgr_rpc_ifdown(
     char *pszIfName = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName)
     {
@@ -425,7 +458,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_get_link_info(
+netmgr_privsep_rpc_get_link_info(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     PNET_RPC_LINK_INFO_ARRAY *ppLinkInfoArray
@@ -437,6 +470,9 @@ netmgr_rpc_get_link_info(
     PNET_RPC_LINK_INFO_ARRAY pLinkInfoArray = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!ppLinkInfoArray)
     {
@@ -515,7 +551,7 @@ error:
  * IP Address configuration APIs
  */
 unsigned32
-netmgr_rpc_set_ipv4_addr_gateway(
+netmgr_privsep_rpc_set_ipv4_addr_gateway(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     NET_RPC_IPV4_ADDR_MODE mode,
@@ -529,6 +565,9 @@ netmgr_rpc_set_ipv4_addr_gateway(
     char *pszIPv4Gateway = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName)
     {
@@ -568,7 +607,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_get_ipv4_addr_gateway(
+netmgr_privsep_rpc_get_ipv4_addr_gateway(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     NET_RPC_IPV4_ADDR_MODE *pMode,
@@ -583,6 +622,9 @@ netmgr_rpc_get_ipv4_addr_gateway(
     wstring_t pwszIPv4AddrPrefix = NULL, pwszIPv4Gateway = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName || !pMode || !ppwszIPv4AddrPrefix ||
         !ppwszIPv4Gateway)
@@ -639,7 +681,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_add_static_ipv6_addr(
+netmgr_privsep_rpc_add_static_ipv6_addr(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     wstring_t pwszIPv6AddrPrefix
@@ -650,6 +692,9 @@ netmgr_rpc_add_static_ipv6_addr(
     char *pszIPv6AddrPrefix = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName || !pwszIPv6AddrPrefix)
     {
@@ -675,7 +720,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_delete_static_ipv6_addr(
+netmgr_privsep_rpc_delete_static_ipv6_addr(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     wstring_t pwszIPv6AddrPrefix
@@ -686,6 +731,9 @@ netmgr_rpc_delete_static_ipv6_addr(
     char *pszIPv6AddrPrefix = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName || !pwszIPv6AddrPrefix)
     {
@@ -711,7 +759,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_set_ipv6_addr_mode(
+netmgr_privsep_rpc_set_ipv6_addr_mode(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     unsigned32 enableDhcp,
@@ -722,6 +770,9 @@ netmgr_rpc_set_ipv6_addr_mode(
     char *pszIfName = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName)
     {
@@ -743,7 +794,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_get_ipv6_addr_mode(
+netmgr_privsep_rpc_get_ipv6_addr_mode(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     unsigned32 *pDhcpEnabled,
@@ -754,6 +805,9 @@ netmgr_rpc_get_ipv6_addr_mode(
     char *pszIfName = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName)
     {
@@ -792,7 +846,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_set_ipv6_gateway(
+netmgr_privsep_rpc_set_ipv6_gateway(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     wstring_t pwszIPv6Gateway
@@ -802,6 +856,9 @@ netmgr_rpc_set_ipv6_gateway(
     char *pszIfName = NULL, *pszIPv6Gateway = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName)
     {
@@ -830,7 +887,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_get_ipv6_gateway(
+netmgr_privsep_rpc_get_ipv6_gateway(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     wstring_t *ppwszIPv6Gateway
@@ -841,6 +898,9 @@ netmgr_rpc_get_ipv6_gateway(
     wstring_t pwszIPv6Gateway = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName || !ppwszIPv6Gateway)
     {
@@ -875,7 +935,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_get_ip_addr(
+netmgr_privsep_rpc_get_ip_addr(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     unsigned32 addrTypes,
@@ -889,6 +949,9 @@ netmgr_rpc_get_ip_addr(
     NET_RPC_IP_ADDR_ARRAY *pIpAddrArray = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!ppIpAddrArray)
     {
@@ -970,7 +1033,7 @@ error:
  * Route configuration APIs
  */
 unsigned32
-netmgr_rpc_add_static_ip_route(
+netmgr_privsep_rpc_add_static_ip_route(
     handle_t hBinding,
     NET_RPC_IP_ROUTE *pIpRoute
 )
@@ -979,6 +1042,9 @@ netmgr_rpc_add_static_ip_route(
     NET_IP_ROUTE ipRoute = {0};
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pIpRoute)
     {
@@ -1024,7 +1090,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_delete_static_ip_route(
+netmgr_privsep_rpc_delete_static_ip_route(
     handle_t hBinding,
     NET_RPC_IP_ROUTE *pIpRoute
 )
@@ -1033,6 +1099,9 @@ netmgr_rpc_delete_static_ip_route(
     NET_IP_ROUTE ipRoute = {0};
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pIpRoute)
     {
@@ -1081,7 +1150,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_get_static_ip_routes(
+netmgr_privsep_rpc_get_static_ip_routes(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     NET_RPC_IP_ROUTE_ARRAY **ppIpRouteArray
@@ -1094,6 +1163,9 @@ netmgr_rpc_get_static_ip_routes(
     NET_RPC_IP_ROUTE_ARRAY *pIpRouteArray = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!ppIpRouteArray)
     {
@@ -1193,7 +1265,7 @@ error:
  * DNS configuration APIs
  */
 unsigned32
-netmgr_rpc_set_dns_servers(
+netmgr_privsep_rpc_set_dns_servers(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     NET_RPC_DNS_MODE dwMode,
@@ -1205,6 +1277,9 @@ netmgr_rpc_set_dns_servers(
     char **ppszDnsServers = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszDnsServers)
     {
@@ -1255,7 +1330,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_get_dns_servers(
+netmgr_privsep_rpc_get_dns_servers(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     NET_RPC_DNS_MODE *pdwMode,
@@ -1270,6 +1345,9 @@ netmgr_rpc_get_dns_servers(
     PPMD_WSTRING_ARRAY pwszDnsServers = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pdwMode || !ppwszDnsServers)
     {
@@ -1338,7 +1416,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_set_dns_domains(
+netmgr_privsep_rpc_set_dns_domains(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     PPMD_WSTRING_ARRAY pwszDnsDomains
@@ -1349,6 +1427,9 @@ netmgr_rpc_set_dns_domains(
     char **ppszDnsDomains = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszDnsDomains)
     {
@@ -1398,7 +1479,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_get_dns_domains(
+netmgr_privsep_rpc_get_dns_domains(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     PPMD_WSTRING_ARRAY *ppwszDnsDomains
@@ -1411,6 +1492,9 @@ netmgr_rpc_get_dns_domains(
     PPMD_WSTRING_ARRAY pwszDnsDomains = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!ppwszDnsDomains)
     {
@@ -1479,7 +1563,7 @@ error:
  * DHCP options, DUID, IAID configuration APIs
  */
 unsigned32
-netmgr_rpc_set_iaid(
+netmgr_privsep_rpc_set_iaid(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     unsigned32 dwIaid
@@ -1489,6 +1573,9 @@ netmgr_rpc_set_iaid(
     char *pszIfName = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName)
     {
@@ -1510,7 +1597,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_get_iaid(
+netmgr_privsep_rpc_get_iaid(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     unsigned32 *pdwIaid
@@ -1520,6 +1607,9 @@ netmgr_rpc_get_iaid(
     char *pszIfName = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName || !pdwIaid)
     {
@@ -1547,7 +1637,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_set_duid(
+netmgr_privsep_rpc_set_duid(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     wstring_t pwszDuid
@@ -1558,6 +1648,9 @@ netmgr_rpc_set_duid(
     char *pszDuid = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (pwszInterfaceName)
     {
@@ -1583,7 +1676,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_get_duid(
+netmgr_privsep_rpc_get_duid(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     wstring_t *ppwszDuid
@@ -1595,6 +1688,9 @@ netmgr_rpc_get_duid(
     wstring_t pwszDuid = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!ppwszDuid)
     {
@@ -1631,7 +1727,7 @@ error:
 }
 
 uint32_t
-netmgr_rpc_set_ntp_servers(
+netmgr_privsep_rpc_set_ntp_servers(
     handle_t hBinding,
     PPMD_WSTRING_ARRAY pwszNtpServers
     )
@@ -1640,6 +1736,9 @@ netmgr_rpc_set_ntp_servers(
     char **ppszNtpServers = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszNtpServers)
     {
@@ -1676,7 +1775,7 @@ error:
 }
 
 uint32_t
-netmgr_rpc_add_ntp_servers(
+netmgr_privsep_rpc_add_ntp_servers(
     handle_t hBinding,
     PPMD_WSTRING_ARRAY pwszNtpServers
     )
@@ -1685,6 +1784,9 @@ netmgr_rpc_add_ntp_servers(
     char **ppszNtpServers = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszNtpServers)
     {
@@ -1721,7 +1823,7 @@ error:
 }
 
 uint32_t
-netmgr_rpc_delete_ntp_servers(
+netmgr_privsep_rpc_delete_ntp_servers(
     handle_t hBinding,
     PPMD_WSTRING_ARRAY pwszNtpServers
     )
@@ -1730,6 +1832,9 @@ netmgr_rpc_delete_ntp_servers(
     char **ppszNtpServers = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszNtpServers)
     {
@@ -1766,7 +1871,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_get_ntp_servers(
+netmgr_privsep_rpc_get_ntp_servers(
     handle_t hBinding,
     PPMD_WSTRING_ARRAY *ppwszNtpServers
     )
@@ -1777,6 +1882,9 @@ netmgr_rpc_get_ntp_servers(
     PPMD_WSTRING_ARRAY pwszNtpServers = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!ppwszNtpServers)
     {
@@ -1838,7 +1946,7 @@ error:
  * Misc APIs
  */
 unsigned32
-netmgr_rpc_set_hostname(
+netmgr_privsep_rpc_set_hostname(
     handle_t hBinding,
     wstring_t pwszHostname
     )
@@ -1847,6 +1955,9 @@ netmgr_rpc_set_hostname(
     char *pszHostname = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszHostname)
     {
@@ -1868,7 +1979,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_get_hostname(
+netmgr_privsep_rpc_get_hostname(
     handle_t hBinding,
     wstring_t *ppwszHostname
     )
@@ -1878,6 +1989,9 @@ netmgr_rpc_get_hostname(
     wstring_t pwszHostname = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!ppwszHostname)
     {
@@ -1908,7 +2022,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_wait_for_link_up(
+netmgr_privsep_rpc_wait_for_link_up(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     unsigned32 dwTimeout
@@ -1918,6 +2032,9 @@ netmgr_rpc_wait_for_link_up(
     char *pszIfName = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName)
     {
@@ -1939,7 +2056,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_wait_for_ip(
+netmgr_privsep_rpc_wait_for_ip(
     handle_t hBinding,
     wstring_t pwszInterfaceName,
     unsigned32 dwTimeout,
@@ -1950,6 +2067,9 @@ netmgr_rpc_wait_for_ip(
     char *pszIfName = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszInterfaceName)
     {
@@ -1973,7 +2093,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_get_error_info(
+netmgr_privsep_rpc_get_error_info(
     handle_t hBinding,
     unsigned32 nmErrCode,
     wstring_t *ppwszErrInfo
@@ -1984,6 +2104,9 @@ netmgr_rpc_get_error_info(
     wstring_t pwszErrInfo = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!ppwszErrInfo)
     {
@@ -2014,7 +2137,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_set_network_param(
+netmgr_privsep_rpc_set_network_param(
     handle_t hBinding,
     wstring_t pwszObjectName,
     wstring_t pwszParamName,
@@ -2025,6 +2148,9 @@ netmgr_rpc_set_network_param(
     char *pszObjectName = NULL, *pszParamName = NULL, *pszParamValue = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszObjectName || !pwszParamName)
     {
@@ -2057,7 +2183,7 @@ error:
 }
 
 unsigned32
-netmgr_rpc_get_network_param(
+netmgr_privsep_rpc_get_network_param(
     handle_t hBinding,
     wstring_t pwszObjectName,
     wstring_t pwszParamName,
@@ -2069,6 +2195,9 @@ netmgr_rpc_get_network_param(
     wstring_t pwszParamValue = NULL;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     if (!pwszObjectName || !pwszParamName || !ppwszParamValue)
     {

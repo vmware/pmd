@@ -56,3 +56,4 @@ typedef struct _PMDHANDLE_* PPMDHANDLE;
 #define PMD_DEFAULT_HASH  "DEADBEEFDEADBEEF"
 
 #define PKG_PRIVSEP "pkg_privsep"
+#define NET_PRIVSEP "net_privsep"

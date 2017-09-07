@@ -14,7 +14,7 @@ pmd_SOURCES = \
     api.c \
     config.c \
     global.c \
-    netmgmtapi.c \
+    netmgmtrpcapi.c \
     netmgmtrestapi.c \
     pkgmgmtrpcapi.c \
     pkgmgmtrestapi.c \

@@ -284,6 +284,324 @@ net_rest_get_version(
     void **ppOutputJson
     );
 
+//netmgmt privsep
+uint32_t
+netmgr_client_get_hostname_w(
+    PPMDHANDLE hHandle,
+    wstring_t *ppwszHostname
+);
+
+uint32_t
+netmgr_client_set_mac_addr_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    wstring_t pwszMacAddress
+);
+
+uint32_t
+netmgr_client_get_mac_addr_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    wstring_t *ppwszMacAddress
+);
+
+uint32_t
+netmgr_client_set_link_mode_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    NET_RPC_LINK_MODE rpcLinkMode
+    );
+
+uint32_t
+netmgr_client_get_link_mode_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    NET_RPC_LINK_MODE *pLinkMode
+);
+
+uint32_t
+netmgr_client_get_network_param_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszObjectName,
+    const wstring_t pwszParamName,
+    wstring_t *ppwszParamValue
+    );
+
+uint32_t
+netmgr_client_set_network_param_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszObjectName,
+    const wstring_t pwszParamName,
+    const wstring_t pwszParamValue
+    );
+
+uint32_t
+netmgr_client_set_link_mtu_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    uint32_t mtu
+    );
+
+uint32_t
+netmgr_client_get_link_mtu_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    uint32_t *pnMTU
+    );
+
+uint32_t
+netmgr_client_set_link_state_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    NET_LINK_STATE linkState
+    );
+
+uint32_t
+netmgr_client_get_link_state_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    NET_RPC_LINK_STATE *prpcLinkState
+    );
+
+uint32_t
+netmgr_client_ifup_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname
+    );
+
+uint32_t
+netmgr_client_ifdown_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname
+    );
+
+uint32_t
+netmgr_client_get_link_info_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    PNET_RPC_LINK_INFO_ARRAY *ppLinkInfoArray
+    );
+
+uint32_t
+netmgr_client_set_ipv4_addr_gateway_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    NET_IPV4_ADDR_MODE mode,
+    wstring_t pwszIPv4AddrPrefix,
+    wstring_t pwszIPv4Gateway
+    );
+
+uint32_t
+netmgr_client_get_ipv4_addr_gateway_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    NET_RPC_IPV4_ADDR_MODE *pMode,
+    wstring_t *ppwszIPv4AddrPrefix,
+    wstring_t *ppwszIPv4Gateway
+    );
+
+uint32_t
+netmgr_client_add_static_ipv6_addr_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    const wstring_t pwszIPv6AddrPrefix
+    );
+
+uint32_t
+netmgr_client_delete_static_ipv6_addr_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    wstring_t pwszIPv6AddrPrefix
+    );
+
+uint32_t
+netmgr_client_set_ipv6_addr_mode_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    uint32_t enableDhcp,
+    uint32_t enableAutoconf
+    );
+
+uint32_t
+netmgr_client_get_ipv6_addr_mode_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    uint32_t *pDhcpEnabled,
+    uint32_t *pAutoconfEnabled
+    );
+
+uint32_t
+netmgr_client_set_ipv6_gateway_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    const wstring_t pwszIPv6Gateway
+    );
+
+uint32_t
+netmgr_client_get_ipv6_gateway_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    wstring_t *ppwszIPv6Gateway
+    );
+
+uint32_t
+netmgr_client_get_ip_addr_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    uint32_t addrTypes,
+    NET_RPC_IP_ADDR_ARRAY **ppIpAddrArray
+    );
+
+uint32_t
+netmgr_client_add_static_ip_route_w(
+    PPMDHANDLE hHandle,
+    NET_RPC_IP_ROUTE *pIpRoute
+    );
+
+uint32_t
+netmgr_client_delete_static_ip_route_w(
+    PPMDHANDLE hHandle,
+    NET_RPC_IP_ROUTE *pIpRoute
+    );
+
+uint32_t
+netmgr_client_get_static_ip_routes_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    PNET_RPC_IP_ROUTE_ARRAY *ppIpRouteArray
+    );
+
+uint32_t
+netmgr_client_set_dns_servers_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    NET_DNS_MODE mode,
+    PPMD_WSTRING_ARRAY pwszDnsServers
+    );
+
+uint32_t
+netmgr_client_get_dns_servers_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    NET_RPC_DNS_MODE *pMode,
+    PPMD_WSTRING_ARRAY *ppwszDnsServers
+    );
+
+uint32_t
+netmgr_client_set_dns_domains_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    PPMD_WSTRING_ARRAY pwszDnsDomains
+    );
+
+uint32_t
+netmgr_client_get_dns_domains_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    PPMD_WSTRING_ARRAY *ppwszDnsDomains
+    );
+
+uint32_t
+netmgr_client_get_iaid_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    uint32_t *pdwIaid
+    );
+
+uint32_t
+netmgr_client_set_iaid_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    uint32_t dwIaid
+    );
+
+uint32_t
+netmgr_client_get_duid_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    wstring_t *ppwszDuid
+    );
+
+uint32_t
+netmgr_client_set_duid_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    wstring_t pwszDuid
+    );
+
+uint32_t
+netmgr_client_set_ntp_servers_w(
+    PPMDHANDLE hHandle,
+    PPMD_WSTRING_ARRAY pwszNtpServers
+    );
+
+uint32_t
+netmgr_client_add_ntp_servers_w(
+    PPMDHANDLE hHandle,
+    PPMD_WSTRING_ARRAY pwszNtpServers
+    );
+
+uint32_t
+netmgr_client_delete_ntp_servers_w(
+    PPMDHANDLE hHandle,
+    PPMD_WSTRING_ARRAY pwszNtpServers
+    );
+
+uint32_t
+netmgr_client_get_ntp_servers_w(
+    PPMDHANDLE hHandle,
+    PPMD_WSTRING_ARRAY *ppwszNtpServers
+    );
+
+uint32_t
+netmgr_client_set_hostname_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszHostname
+    );
+
+uint32_t
+netmgr_client_get_hostname_w(
+    PPMDHANDLE hHandle,
+    wstring_t *ppwszHostname
+    );
+
+uint32_t
+netmgr_client_wait_for_link_up_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    uint32_t dwTimeout
+    );
+
+uint32_t
+netmgr_client_wait_for_ip_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    uint32_t dwTimeout,
+    NET_ADDR_TYPE dwAddrTypes
+    );
+
+uint32_t
+netmgr_client_get_error_info_w(
+    PPMDHANDLE hHandle,
+    uint32_t nmErrCode,
+    wstring_t *ppwszErrInfo
+    );
+
+uint32_t
+netmgr_client_set_network_param_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszObjectName,
+    const wstring_t pwszParamName,
+    const wstring_t pwszParamValue
+    );
+
+uint32_t
+netmgr_client_get_network_param_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszObjectName,
+    const wstring_t pwszParamName,
+    wstring_t *ppwszParamValue
+    );
 //pmdrestapi.c
 uint32_t
 pmd_rest_get_registration(
