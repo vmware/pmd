@@ -64,7 +64,6 @@ start_rpc_server(
         pkg_v1_0_s_ifspec,
         pmd_v1_0_s_ifspec,
         netmgmt_v1_0_s_ifspec,
-        rpmostree_v1_0_s_ifspec,
         usermgmt_v1_0_s_ifspec
     };
     int nInterfaces = sizeof(interface_spec)/sizeof(*interface_spec);

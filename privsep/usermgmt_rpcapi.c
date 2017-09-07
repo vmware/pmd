@@ -16,7 +16,7 @@
 #include "includes.h"
 
 unsigned32
-usermgmt_rpc_version(
+usermgmt_privsep_rpc_version(
     handle_t hBinding,
     wstring_t* ppwszVersion
     )
@@ -30,6 +30,9 @@ usermgmt_rpc_version(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = pmd_usermgmt_get_version(&pszVersion);
     BAIL_ON_PMD_ERROR(dwError);
@@ -59,7 +62,7 @@ error:
 }
 
 unsigned32
-usermgmt_rpc_get_userid(
+usermgmt_privsep_rpc_get_userid(
     handle_t hBinding,
     wstring_t pwszName,
     unsigned32 *pnUID
@@ -75,7 +78,8 @@ usermgmt_rpc_get_userid(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDAllocateStringAFromW(pwszName, &pszName);
     BAIL_ON_PMD_ERROR(dwError);
@@ -98,7 +102,7 @@ error:
 }
 
 unsigned32
-usermgmt_rpc_get_groupid(
+usermgmt_privsep_rpc_get_groupid(
     handle_t hBinding,
     wstring_t pwszName,
     unsigned32 *pnGID
@@ -114,7 +118,8 @@ usermgmt_rpc_get_groupid(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDAllocateStringAFromW(pwszName, &pszName);
     BAIL_ON_PMD_ERROR(dwError);
@@ -137,7 +142,7 @@ error:
 }
 
 unsigned32
-usermgmt_rpc_get_users(
+usermgmt_privsep_rpc_get_users(
     handle_t hBinding,
     PPMD_RPC_USER_ARRAY *ppUserArray
     )
@@ -156,7 +161,8 @@ usermgmt_rpc_get_users(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = pmd_usermgmt_get_users(&pUsers);
     BAIL_ON_PMD_ERROR(dwError);
@@ -229,7 +235,7 @@ error:
 }
 
 unsigned32
-usermgmt_rpc_get_groups(
+usermgmt_privsep_rpc_get_groups(
     handle_t hBinding,
     PPMD_RPC_GROUP_ARRAY *ppGroupArray
     )
@@ -248,7 +254,8 @@ usermgmt_rpc_get_groups(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = pmd_usermgmt_get_groups(&pGroups);
     BAIL_ON_PMD_ERROR(dwError);
@@ -303,7 +310,7 @@ error:
 }
 
 unsigned32
-usermgmt_rpc_add_user(
+usermgmt_privsep_rpc_add_user(
     handle_t hBinding,
     wstring_t pwszName
     )
@@ -316,7 +323,8 @@ usermgmt_rpc_add_user(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDAllocateStringAFromW(pwszName, &pszName);
     BAIL_ON_PMD_ERROR(dwError);
@@ -333,7 +341,7 @@ error:
 }
 
 unsigned32
-usermgmt_rpc_delete_user(
+usermgmt_privsep_rpc_delete_user(
     handle_t hBinding,
     wstring_t pwszName
     )
@@ -346,7 +354,8 @@ usermgmt_rpc_delete_user(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDAllocateStringAFromW(pwszName, &pszName);
     BAIL_ON_PMD_ERROR(dwError);
@@ -363,7 +372,7 @@ error:
 }
 
 unsigned32
-usermgmt_rpc_add_group(
+usermgmt_privsep_rpc_add_group(
     handle_t hBinding,
     wstring_t pwszName
     )
@@ -376,7 +385,8 @@ usermgmt_rpc_add_group(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDAllocateStringAFromW(pwszName, &pszName);
     BAIL_ON_PMD_ERROR(dwError);
@@ -393,7 +403,7 @@ error:
 }
 
 unsigned32
-usermgmt_rpc_delete_group(
+usermgmt_privsep_rpc_delete_group(
     handle_t hBinding,
     wstring_t pwszName
     )
@@ -406,7 +416,8 @@ usermgmt_rpc_delete_group(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDAllocateStringAFromW(pwszName, &pszName);
     BAIL_ON_PMD_ERROR(dwError);

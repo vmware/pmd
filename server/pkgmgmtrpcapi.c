@@ -260,7 +260,6 @@ pkg_rpc_version(
     )
 {
     uint32_t dwError = 0;
-    char* pszVersion = NULL;
     wstring_t pwszVersion = NULL;
     PPMDHANDLE hPMD = NULL;
 
@@ -274,12 +273,12 @@ pkg_rpc_version(
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = pkg_version_w(hPMD, &pwszVersion);
+    BAIL_ON_PMD_ERROR(dwError);
 
     *ppwszVersion = pwszVersion;
 
 cleanup:
     rpc_free_handle(hPMD);
-    PMD_SAFE_FREE_MEMORY(pszVersion);
     return dwError;
 
 error:

@@ -14,20 +14,27 @@ pmd_SOURCES = \
     api.c \
     config.c \
     global.c \
-    netmgmtapi.c \
+    fwmgmt_rpcapi.c \
+    fwmgmt_restapi.c \
+    fwmgmt_sstub.c \
+    netmgmtrpcapi.c \
     netmgmtrestapi.c \
     pkgmgmtrpcapi.c \
     pkgmgmtrestapi.c \
+    usermgmt_restapi.c \
+    usermgmt_rpcapi.c \
+    usermgmt_sstub.c \
     pmdrestapi.c \
     restserver.c \
     rpc.c \
-    rpmostreeapi.c \
     server.c \
     pkgmgmt_sstub.c \
     pmd_sstub.c \
     netmgmt_sstub.c \
-    rpmostree_sstub.c \
     utils.c
+
+fwmgmt_sstub.c:
+	cp ../idl/fwmgmt_sstub.c .
 
 pkgmgmt_sstub.c:
 	cp ../idl/pkgmgmt_sstub.c .
@@ -38,16 +45,15 @@ pmd_sstub.c:
 netmgmt_sstub.c:
 	cp ../idl/netmgmt_sstub.c .
 
-
-rpmostree_sstub.c:
-	cp ../idl/rpmostree_sstub.c .
+usermgmt_sstub.c:
+	cp ../idl/usermgmt_sstub.c .
 
 CLEANFILES = \
+    fwmgmt_sstub.c \
     pkgmgmt_sstub.c \
     pmd_sstub.c \
     netmgmt_sstub.c \
-    rpmostree_sstub.c
-
+    usermgmt_sstub.c
 
 SUBDIRS = common \
           security \

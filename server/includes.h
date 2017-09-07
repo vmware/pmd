@@ -55,7 +55,6 @@
 #include "../idl/fwmgmt_h.h"
 #include "../idl/pmd_h.h"
 #include "../idl/netmgmt_h.h"
-#include "../idl/rpmostree_h.h"
 #include "../idl/usermgmt_h.h"
 
 #include "../common/includes.h"
@@ -81,3 +80,7 @@
 #include "../idl/demo_h.h"
 #endif
 #include "common/prototypes.h"
+
+#include "../idl/fwmgmt_h.h"
+#include <pmd_fwmgmt.h>
+#include <pmd_usermgmt.h>

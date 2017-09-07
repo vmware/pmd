@@ -14,38 +14,52 @@
 
 
 [
-    uuid (e8e49806-5a88-11e6-8a22-000c297d36e2),
+    uuid (98ab4335-5e20-4d94-b846-44052581d455),
     version(1.0),
     pointer_default(unique)
 ]
 
-interface rpmostree
+interface fwmgmt_privsep
 {
 #include <lw/types.h>
 #include "pmdrpctypes.h"
-#include "rpmostreerpctypes.h"
+#include "fwmgmtrpctypes.h"
 
     unsigned32
-    rpmostree_rpc_version(
+    fwmgmt_privsep_rpc_version(
         [in] handle_t hBinding,
         [out] wstring_t* ppwszVersion
         );
 
     unsigned32
-    rpmostree_rpc_server_info(
+    fwmgmt_privsep_rpc_get_rules(
         [in] handle_t hBinding,
-        [out] PPMD_RPMOSTREE_SERVER_INFO* ppInfo
+        [in] unsigned32 nIPV6,
+        [out] PPMD_RPC_FIREWALL_RULE_ARRAY *ppRuleArray
         );
 
     unsigned32
-    rpmostree_rpc_client_info(
+    fwmgmt_privsep_rpc_add_rule(
         [in] handle_t hBinding,
-        [out] PPMD_RPMOSTREE_CLIENT_INFO* ppInfo
+        [in] unsigned32 nIPV6,
+        [in] unsigned32 nPersist,
+        [in] wstring_t pwszChain,
+        [in] wstring_t pwszRuleSpec
         );
 
     unsigned32
-    rpmostree_rpc_client_syncto(
+    fwmgmt_privsep_rpc_delete_rule(
         [in] handle_t hBinding,
-        [in] wstring_t pwszHash
+        [in] unsigned32 nIPV6,
+        [in] unsigned32 nPersist,
+        [in] wstring_t pwszChain,
+        [in] wstring_t pwszRuleSpec
+        );
+
+    unsigned32
+    fwmgmt_privsep_rpc_restore(
+        [in] handle_t hBinding,
+        [in] unsigned32 nIPV6,
+        [in] PPMD_RPC_FIREWALL_TABLE_ARRAY pTables
         );
 }

@@ -40,25 +40,6 @@ pmd_server_type(
     uint32_t *pdwServerType
     );
 
-//rpmostree interface
-uint32_t
-rpmostree_server_info(
-    PPMDHANDLE hHandle,
-    PPMD_RPMOSTREE_SERVER_INFO_A *ppInfo
-    );
-
-uint32_t
-rpmostree_client_info(
-    PPMDHANDLE hHandle,
-    PPMD_RPMOSTREE_CLIENT_INFO_A *ppInfo
-    );
-
-uint32_t
-rpmostree_client_syncto(
-    PPMDHANDLE hHandle,
-    const char *pszHash
-    );
-
 //demo
 uint32_t
 demo_client_version(
@@ -91,16 +72,6 @@ uint32_t
 PMDGetErrorString(
     uint32_t dwErrorCode,
     char **ppszErrorString
-    );
-
-void
-rpmostree_free_server_info(
-    PPMD_RPMOSTREE_SERVER_INFO_A pInfoA
-    );
-
-void
-rpmostree_free_client_info(
-    PPMD_RPMOSTREE_CLIENT_INFO_A pInfoA
     );
 
 #ifdef __cplusplus

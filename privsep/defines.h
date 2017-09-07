@@ -16,3 +16,9 @@
 #pragma once
 
 #define PKG_CONFIG_FILE_NAME "/etc/tdnf/tdnf.conf"
+
+#define FIREWALL_API_VERSION "0.1"
+#define MAX_SCRIPT_LINE_LENGTH 1024
+#define IPTABLES_CMD "iptables"
+#define IP6TABLES_CMD "ip6tables"
+#define IPTABLES_SCRIPT_PATH "/etc/systemd/scripts/iptables"

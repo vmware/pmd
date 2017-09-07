@@ -293,7 +293,6 @@ rpc_open(
         {"pkg", pkg_v1_0_c_ifspec},
         {"pmd", pmd_v1_0_c_ifspec},
         {"net", netmgmt_v1_0_c_ifspec},
-        {"rpmostree", rpmostree_v1_0_c_ifspec},
         {"usermgmt", usermgmt_v1_0_c_ifspec},
     };
 
@@ -374,6 +373,9 @@ rpc_open_privsep(
 #endif
         {"privsepd", privsepd_v1_0_c_ifspec},
         {"pkg_privsep", pkg_privsep_v1_0_c_ifspec},
+        {"net_privsep", netmgmt_privsep_v1_0_c_ifspec},
+        {"fwmgmt_privsep", fwmgmt_privsep_v1_0_c_ifspec},
+        {"usermgmt_privsep", usermgmt_privsep_v1_0_c_ifspec},
     };
 
     int nNumKnownIfspecs =

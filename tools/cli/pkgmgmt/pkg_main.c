@@ -47,8 +47,6 @@ pkg_main(
         {"upgrade",            TDNFCliUpgradeCommand},
         {"upgrade-to",         TDNFCliUpgradeCommand},
         {"updateinfo",         TDNFCliUpdateInfoCommand},
-        {"serverinfo",         pkg_serverinfo_cmd},
-        {"rpmostreesyncto",    pkg_ostree_sync_cmd},
         {"version",            pkg_show_version_cmd},
     };
     int nCommandCount = sizeof(arCmdMap)/sizeof(TDNF_CLI_CMD_MAP);
@@ -269,104 +267,6 @@ pkg_invoke_updateinfo_summary(
                nAvail,
                pInfoArgs->ppszPackageNameSpecs,
                ppSummary);
-}
-
-uint32_t
-pkg_serverinfo_cmd(
-    PTDNF_CLI_CONTEXT pContext,
-    PTDNF_CMD_ARGS pCmdArgs
-    )
-{
-    uint32_t dwError = 0;
-    uint32_t dwType = 0;
-    PPMD_RPMOSTREE_SERVER_INFO_A pRpmOSTreeServerInfo = NULL;
-    PPMD_RPMOSTREE_CLIENT_INFO_A pRpmOSTreeClientInfo = NULL;
-    PPMD_PKG_CLI_CONTEXT pLocalContext = NULL;
-
-    if(!pContext || !pContext->hTdnf || !pCmdArgs)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_CLI_ERROR(dwError);
-    }
-    pLocalContext = pContext->pUserData;
-
-    dwError = pmd_server_type(pLocalContext->hPMD, &dwType);
-    BAIL_ON_CLI_ERROR(dwError);
-
-    if(dwType == 1)
-    {
-        dwError = rpmostree_server_info(
-                      pLocalContext->hPMD,
-                      &pRpmOSTreeServerInfo);
-        BAIL_ON_CLI_ERROR(dwError);
-    }
-    else if(dwType == 2)
-    {
-        dwError = rpmostree_client_info(
-                      pLocalContext->hPMD,
-                      &pRpmOSTreeClientInfo);
-        BAIL_ON_CLI_ERROR(dwError);
-    }
-
-    printf("Server Type = %d\n", dwType);
-    if(pRpmOSTreeServerInfo)
-    {
-        printf("Server Url = %s\n", pRpmOSTreeServerInfo->pszServerUrl);
-        printf("Current hash = %s\n", pRpmOSTreeServerInfo->pszCurrentHash);
-    }
-    else if(pRpmOSTreeClientInfo)
-    {
-        printf("Compose Server = %s\n", pRpmOSTreeClientInfo->pszComposeServer);
-        printf("Current hash = %s\n", pRpmOSTreeClientInfo->pszCurrentHash);
-    }
-
-cleanup:
-    if(pRpmOSTreeServerInfo)
-    {
-        PMD_SAFE_FREE_MEMORY(pRpmOSTreeServerInfo->pszServerUrl);
-        PMD_SAFE_FREE_MEMORY(pRpmOSTreeServerInfo->pszCurrentHash);
-        PMD_SAFE_FREE_MEMORY(pRpmOSTreeServerInfo);
-    }
-    if(pRpmOSTreeClientInfo)
-    {
-        PMD_SAFE_FREE_MEMORY(pRpmOSTreeClientInfo->pszComposeServer);
-        PMD_SAFE_FREE_MEMORY(pRpmOSTreeClientInfo->pszCurrentHash);
-        PMD_SAFE_FREE_MEMORY(pRpmOSTreeClientInfo);
-    }
-    return dwError;
-
-error:
-    goto cleanup;
-}
-
-uint32_t
-pkg_ostree_sync_cmd(
-    PTDNF_CLI_CONTEXT pContext,
-    PTDNF_CMD_ARGS pCmdArgs
-    )
-{
-    uint32_t dwError = 0;
-    const char* pszSyncTo = NULL;
-
-    if(!pContext || !pContext->hTdnf || !pCmdArgs)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_CLI_ERROR(dwError);
-    }
-
-    pszSyncTo = pCmdArgs->ppszCmds[1];
-    if(IsNullOrEmptyString(pszSyncTo))
-    {
-        dwError = ERROR_PMD_CLI_SYNCTO_REQUIRED;
-        BAIL_ON_CLI_ERROR(dwError);
-    }
-
-    dwError = rpmostree_client_syncto(pContext->hTdnf, pszSyncTo);
-    BAIL_ON_CLI_ERROR(dwError);
-cleanup:
-    return dwError;
-error:
-    goto cleanup;
 }
 
 uint32_t

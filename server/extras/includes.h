@@ -28,8 +28,6 @@
 #include "../../idl/fwmgmt_h.h"
 #include "pmd_fwmgmt.h"
 
-#include "defines.h"
-#include "structs.h"
 #include "prototypes.h"
 #include "../../jsonutils/prototypes.h"
 

@@ -44,6 +44,8 @@
 #include <tdnf/tdnf.h>
 #include <netmgmt/netmgr.h>
 #include <pmd.h>
+#include <pmd_fwmgmt.h>
+#include <pmd_usermgmt.h>
 
 #include "../common/defines.h"
 #include "../common/includes.h"
@@ -55,6 +57,9 @@
 #include "../idl/demo_privsep_h.h"
 #include "../idl/privsepd_h.h"
 #include "../idl/pkgmgmt_privsep_h.h"
+#include "../idl/netmgmt_privsep_h.h"
+#include "../idl/fwmgmt_privsep_h.h"
+#include "../idl/usermgmt_privsep_h.h"
 
 #include "defines.h"
 #include "structs.h"
