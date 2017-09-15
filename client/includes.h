@@ -60,3 +60,4 @@
 
 #include <netmgmt/netmgr.h>
 #include "pmd_netmgr.h"
+#include <gssapi_creds_plugin.h>

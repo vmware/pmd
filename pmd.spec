@@ -142,7 +142,7 @@ fi
 
     # Add libgssapi_unix.so to GSSAPI plugin directory
     if [ ! -h %{_libdir}/gss/libgssapi_unix.so ]; then
-        /bin/ln -sf /opt/vmware/lib64/libgssapi_unix.so %{_libdir}/gss/libgssapi_unix.so
+        /bin/ln -sf /usr/lib/libgssapi_unix.so %{_libdir}/gss/libgssapi_unix.so
     fi
     # Add gssapi_unix plugin configuration to GSS mech file
     if [ -f "%{_mech_file}" ]; then

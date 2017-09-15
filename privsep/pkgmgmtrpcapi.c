@@ -32,8 +32,6 @@ pkg_privsep_rpc_open_handle(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
-
     dwError = check_connection_integrity(hBinding);
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -75,8 +73,6 @@ pkg_privsep_rpc_count(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
-
     dwError = check_connection_integrity(hBinding);
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -112,8 +108,6 @@ pkg_privsep_rpc_list(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
-
-    CHECK_RPC_ACCESS(hBinding, dwError);
 
     dwError = check_connection_integrity(hBinding);
     BAIL_ON_PMD_ERROR(dwError);
@@ -179,8 +173,6 @@ pkg_privsep_rpc_repolist(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
-
-    CHECK_RPC_ACCESS(hBinding, dwError);
 
     dwError = check_connection_integrity(hBinding);
     BAIL_ON_PMD_ERROR(dwError);
@@ -272,8 +264,6 @@ pkg_privsep_rpc_updateinfo_summary(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
-
-    CHECK_RPC_ACCESS(hBinding, dwError);
 
     dwError = check_connection_integrity(hBinding);
     BAIL_ON_PMD_ERROR(dwError);
@@ -386,8 +376,6 @@ pkg_privsep_rpc_resolve(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
-
-    CHECK_RPC_ACCESS(hBinding, dwError);
 
     dwError = check_connection_integrity(hBinding);
     BAIL_ON_PMD_ERROR(dwError);
@@ -502,8 +490,6 @@ pkg_privsep_rpc_alter(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
-
-    CHECK_RPC_ACCESS(hBinding, dwError);
 
     dwError = check_connection_integrity(hBinding);
     BAIL_ON_PMD_ERROR(dwError);
