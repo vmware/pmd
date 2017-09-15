@@ -91,7 +91,10 @@ verify_basic_auth(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = base64_decode(pszUserPassBase64, &pszUserPass, &nLength);
+    dwError = base64_decode(
+                  pszUserPassBase64,
+                  (unsigned char **)&pszUserPass,
+                  &nLength);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = split_user_and_pass(pszUserPass, &pszUser, &pszPass);
