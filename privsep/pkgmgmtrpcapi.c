@@ -32,8 +32,6 @@ pkg_privsep_rpc_open_handle(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
-
     dwError = check_connection_integrity(hBinding);
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -74,8 +72,6 @@ pkg_privsep_rpc_count(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
-
-    CHECK_RPC_ACCESS(hBinding, dwError);
 
     dwError = check_connection_integrity(hBinding);
     BAIL_ON_PMD_ERROR(dwError);
@@ -332,6 +328,7 @@ pkg_privsep_rpc_version(
     uint32_t dwError = 0;
     char* pszVersion = NULL;
     wstring_t pwszVersion = NULL;
+FILE *_log = fopen("/tmp/blah", "a+");
 
     if(!hBinding || !ppwszVersion)
     {
@@ -339,6 +336,7 @@ pkg_privsep_rpc_version(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
+fprintf(_log, "version \n");
     dwError = check_connection_integrity(hBinding);
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -357,6 +355,8 @@ pkg_privsep_rpc_version(
     *ppwszVersion = pwszVersion;
 
 cleanup:
+fprintf(_log, "error: %d\n", dwError);
+    fclose(_log);
     PMD_SAFE_FREE_MEMORY(pszVersion);
     return dwError;
 
