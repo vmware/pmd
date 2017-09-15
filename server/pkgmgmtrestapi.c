@@ -248,13 +248,13 @@ pkg_rest_get_version(
     PKEYVALUE pKeyValue = NULL;
     PPMDHANDLE hPMD = NULL;
     PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
+FILE *_log = fopen("/tmp/blah", "a+");
 
     if(!pArgs || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
-
     dwError = pkg_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -270,6 +270,8 @@ pkg_rest_get_version(
     *ppOutputJson = pszOutputJson;
 
 cleanup:
+fprintf(_log, "rest: %d\n", dwError);
+fclose(_log);
     if(pKeyValue)
     {
         free_keyvalue(pKeyValue);

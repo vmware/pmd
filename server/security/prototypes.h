@@ -97,24 +97,3 @@ privsepd_client_basic_auth(
     const char *pszContext,
     unsigned32 *pnValid
     );
-//utils
-uint32_t
-base64_encode(
-    const unsigned char* pszInput,
-    const size_t nInputLength,
-    char** ppszOutput
-    );
-
-uint32_t
-base64_decode(
-    const char* pszInput,
-    char** ppszOutput,
-    int *pnLength
-    );
-
-uint32_t
-base64_get_user_pass(
-    const char *pszBase64,
-    char **ppszUser,
-    char **ppszPass
-    );

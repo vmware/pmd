@@ -63,7 +63,8 @@ pmdprivsepd_LDADD =  \
     -lnetmgr \
     -lpthread \
     -lcrypt \
-    -lcrypto
+    -lcrypto \
+    -ldl
 
 pmdprivsepd_LDFLAGS = \
     @VMAFD_LDFLAGS@ \
