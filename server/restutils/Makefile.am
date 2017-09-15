@@ -9,8 +9,6 @@ librestutils_la_CPPFLAGS = \
     
 librestutils_la_SOURCES = \
     restauth.c \
-    restbasicauth.c \
-    restnegauth.c \
     restutils.c
 
 librestutils_la_LDFLAGS =  \

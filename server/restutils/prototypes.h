@@ -235,27 +235,6 @@ rest_set_privsep_pubkey(
     );
 //
 uint32_t
-base64_encode(
-    const unsigned char* pszInput,
-    const size_t nInputLength,
-    char** ppszOutput
-    );
-
-uint32_t
-base64_decode(
-    const char* pszInput,
-    char** ppszOutput,
-    int *pnLength
-    );
-
-uint32_t
-split_user_and_pass(
-    const char* pszUserPass,
-    char** ppszUser,
-    char** ppszPass
-    );
-
-uint32_t
 pmd_check_password(
     const char* user_name,
     const char* password,

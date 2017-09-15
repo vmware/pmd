@@ -254,7 +254,6 @@ pkg_rest_get_version(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
-
     dwError = pkg_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 

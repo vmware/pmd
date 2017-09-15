@@ -255,6 +255,9 @@ usermgmt_rpc_delete_user(
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
+    dwError = rpc_open_privsep_internal(USERMGMT_PRIVSEP, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
     dwError = usermgmt_delete_user_w(hPMD, pwszName);
     BAIL_ON_PMD_ERROR(dwError);
 

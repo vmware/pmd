@@ -15,6 +15,38 @@
 
 #include "includes.h"
 
+/*
+HTTP/1.1 401 Authorization Required
+WWW-Authenticate: Basic realm="Photon Management Daemon"
+Content-Type: text/html
+Content-Length: 20
+*/
+
+uint32_t
+request_basic_auth(
+    PVMREST_HANDLE pRestHandle,
+    PREST_REQUEST pRequest,
+    PREST_RESPONSE* ppResponse
+    )
+{
+    uint32_t dwError = 0;
+    uint32_t temp = 0;
+
+    dwError = VmRESTSetHttpStatusVersion(ppResponse, "HTTP/1.1");
+    dwError = VmRESTSetHttpStatusCode(ppResponse, "401");
+    dwError = VmRESTSetHttpReasonPhrase(ppResponse, "Unauthorized");
+    dwError = VmRESTSetHttpHeader(ppResponse, "Connection", "close");
+    dwError = VmRESTSetHttpHeader(ppResponse, "Content-Length", "0");
+    dwError = VmRESTSetHttpHeader(
+                  ppResponse,
+                  "WWW-Authenticate",
+                  "Basic realm=\"Photon Management Daemon\"");
+    dwError = VmRESTSetHttpPayload(pRestHandle, ppResponse,"", 0, &temp );
+    dwError = EACCES;
+    return dwError;
+}
+
+//this path is not in rest basic auth anymore
 uint32_t
 populate_error(
     PVMREST_HANDLE pRestHandle,
@@ -134,60 +166,6 @@ error:
         *ppResult = NULL;
     }
     free_rest_auth(pResult);
-    goto cleanup;
-}
-
-uint32_t
-process_auth(
-    PVMREST_HANDLE pRestHandle,
-    PREST_REQUEST pRequest,
-    const char *pszPubKeyFile,
-    PREST_RESPONSE* ppResponse
-    )
-{
-    uint32_t dwError = 0;
-    char* pszAuth = NULL;
-
-    if(!pRestHandle || !pRequest || !ppResponse)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = VmRESTGetHttpHeader(pRequest, "Authorization", &pszAuth);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if(!pszAuth)
-    {
-        dwError = ERROR_PMD_REST_AUTH_REQUIRED;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if(strstr(pszAuth, AUTH_NEGOTIATE))
-    {
-        dwError = verify_krb_auth(pRestHandle, pRequest, ppResponse);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-    else if(strstr(pszAuth, AUTH_BASIC))
-    {
-        dwError = verify_basic_auth(pRestHandle, pRequest, pszPubKeyFile, ppResponse);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-    else
-    {
-        dwError = ERROR_PMD_REST_AUTH_BASIC_MIN;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-cleanup:
-    return dwError;
-
-error:
-    if(dwError == ERROR_PMD_REST_AUTH_REQUIRED ||
-       dwError == ERROR_PMD_REST_AUTH_BASIC_MIN)
-    {
-        request_basic_auth(pRestHandle, pRequest, ppResponse);
-    }
     goto cleanup;
 }
 
