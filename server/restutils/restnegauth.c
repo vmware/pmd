@@ -225,7 +225,7 @@ verify_krb_auth(
 
     pszData = pszNegotiate + strlen("Negotiate ");
 
-    dwError = base64_decode(pszData, &pszDecode, &nLength);
+    dwError = base64_decode(pszData, (unsigned char **)&pszDecode, &nLength);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = server_acquire_creds("HTTP", &gss_spnego_mech_oid_desc, &server_creds);

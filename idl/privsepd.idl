@@ -24,10 +24,11 @@ interface privsepd
 #include "pmdrpctypes.h"
 
     unsigned32
-    privsepd_rpc_basic_auth(
+    privsepd_rpc_unix_auth(
         [in] handle_t hBinding,
-        [in] wstring_t pwszBasic,
-        [in] wstring_t pwszContext,
-        [out] unsigned32 *pnValid
-        );
+        [in] wstring_t pwszUser,
+        [out] wstring_t *ppszUnixSalt,
+        [out] wstring_t *ppszB64SValue,
+        [out] wstring_t *ppszB64VValue
+    );
 }

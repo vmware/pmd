@@ -12,28 +12,39 @@
  * under the License.
  */
 
-
 #include "includes.h"
+#include <gssapi_creds_plugin.h>
+#include <dlfcn.h>
 
 unsigned32
-privsepd_rpc_basic_auth(
+privsepd_rpc_unix_auth(
     handle_t hBinding,
-    wstring_t pwszBasicAuth,
-    wstring_t pwszContext,
-    unsigned32 *pnValid
+    wstring_t pwszUser,
+    wstring_t *ppwszSalt,
+    wstring_t *ppwszB64SValue,
+    wstring_t *ppwszB64VValue
     )
 {
     uint32_t dwError = 0;
-    char *pszBasicAuth = NULL;
-    char *pszContext = NULL;
-    char* pszUserPass = NULL;
-    char* pszUser = NULL;
-    char* pszPass = NULL;
-    char* pszEncrypted = NULL;
-    int nEncryptedLength = 0;
-    uint32_t nValid = 0;
+    char *pszUser = NULL;
+    char *pszSalt = NULL;
+    unsigned char *bytes_s = NULL;
+    int len_s = 0;
+    unsigned char *bytes_v = NULL;
+    int len_v = 0;
+    wstring_t pwszSalt = NULL;
+    wstring_t pwszB64SValue = NULL;
+    wstring_t pwszB64VValue = NULL;
+    char *pszB64SValue = NULL;
+    char *pszB64VValue = NULL;
+    void *hCreds = NULL;
+    PFN_GET_HASHED_CREDS pfnGetHashedCreds = NULL;
 
-    if(!hBinding || !pwszBasicAuth || !pwszContext)
+    if(!hBinding ||
+       !pwszUser ||
+       !ppwszSalt ||
+       !ppwszB64SValue ||
+       !ppwszB64VValue)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
@@ -42,44 +53,72 @@ privsepd_rpc_basic_auth(
     dwError = check_connection_integrity(hBinding);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = PMDAllocateStringAFromW(pwszBasicAuth, &pszBasicAuth);
+    dwError = PMDAllocateStringAFromW(pwszUser, &pszUser);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = PMDAllocateStringAFromW(pwszContext, &pszContext);
+    hCreds = dlopen(GSSAPI_UNIX_CREDS_DEFAULT_SO, RTLD_NOW);
+    if(!hCreds)
+    {
+        dwError = ENOENT;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    pfnGetHashedCreds = (PFN_GET_HASHED_CREDS)
+                        dlsym(hCreds, "get_salt_and_v_value");
+    if(!pfnGetHashedCreds)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = pfnGetHashedCreds(
+                  PLUGIN_TYPE_UNIX,
+                  pszUser,
+                  &pszSalt,
+                  &bytes_s,
+                  &len_s,
+                  &bytes_v,
+                  &len_v);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = base64_decode(pszBasicAuth, &pszEncrypted, &nEncryptedLength);
+    dwError = PMDAllocateStringWFromA(pszSalt, &pwszSalt);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = rsa_private_decrypt(
-                  (unsigned char *)pszEncrypted,
-                  nEncryptedLength,
-                  "/etc/pmd/privsep_priv.key",
-                  (unsigned char **)&pszUserPass);
+    dwError = base64_encode(bytes_s, len_s, &pszB64SValue);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = split_user_and_pass(pszUserPass, &pszUser, &pszPass);
+    dwError = base64_decode(pszB64SValue, &bytes_s, &len_s);
     BAIL_ON_PMD_ERROR(dwError);
 
-    //validate local user/pass
-    dwError = pmd_check_password(pszUser, pszPass, &nValid);
+    dwError = PMDAllocateStringWFromA(pszB64SValue, &pwszB64SValue);
     BAIL_ON_PMD_ERROR(dwError);
 
-    *pnValid = nValid;
+    dwError = base64_encode(bytes_v, len_v, &pszB64VValue);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateStringWFromA(pszB64VValue, &pwszB64VValue);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszSalt = pwszSalt;
+    *ppwszB64SValue = pwszB64SValue;
+    *ppwszB64VValue = pwszB64VValue;
 
 cleanup:
-    PMD_SAFE_FREE_MEMORY(pszBasicAuth);
-    PMD_SAFE_FREE_MEMORY(pszContext);
-    PMD_SAFE_FREE_MEMORY(pszEncrypted);
-    PMD_SAFE_FREE_MEMORY(pszUserPass);
+    if(hCreds)
+    {
+        dlclose(hCreds);
+    }
+    PMD_SAFE_FREE_MEMORY(bytes_s);
+    PMD_SAFE_FREE_MEMORY(bytes_v);
     PMD_SAFE_FREE_MEMORY(pszUser);
-    PMD_SAFE_FREE_MEMORY(pszPass);
+    PMD_SAFE_FREE_MEMORY(pszSalt);
+    PMD_SAFE_FREE_MEMORY(pszB64SValue);
+    PMD_SAFE_FREE_MEMORY(pszB64VValue);
     return dwError;
 
 error:
-    if(pnValid)
-    {
-        *pnValid = 0;
-    }
+    PMD_SAFE_FREE_MEMORY(pwszSalt);
+    PMD_SAFE_FREE_MEMORY(pwszB64SValue);
+    PMD_SAFE_FREE_MEMORY(pwszB64VValue);
     goto cleanup;
 }
