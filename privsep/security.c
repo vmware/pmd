@@ -27,8 +27,7 @@ check_connection_integrity(
     idl_char *pszKey = NULL;
     unsigned16 nKeyLen = 0;
     unsigned16 i = 0;
-    const char *pszAllowedUser = "pmd";
-    struct passwd *pPasswd = NULL;
+    int nIsDaemonUser = 0;
 
     if(!hBinding)
     {
@@ -36,11 +35,14 @@ check_connection_integrity(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    pPasswd = getpwnam(pszAllowedUser);
-    if(!pPasswd)
+    //REST basic authentication from the pmd server will
+    //forward the auth details via unix gssapi.
+    //we have user details for this. validate if we have
+    //admin access.
+    dwError = has_admin_access(hBinding);
+    if(dwError == ERROR_PMD_IS_DAEMON_USER_GROUP)
     {
-        dwError = ERROR_PMD_NO_DAEMON_USER;
-        BAIL_ON_PMD_ERROR(dwError);
+        dwError = 0;
     }
 
     rpc_binding_inq_prot_seq(hBinding, &prot_seq, &dwError);
@@ -58,7 +60,10 @@ check_connection_integrity(
 
     rpc_lrpc_transport_info_inq_peer_eid(hInfo, &uid, &gid);
 
-    if(uid != pPasswd->pw_uid && gid != pPasswd->pw_gid)
+    dwError = is_daemon_user(uid, gid, &nIsDaemonUser);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if(!nIsDaemonUser)
     {
         dwError = ERROR_PMD_INVALID_DAEMON_USER;
         BAIL_ON_PMD_ERROR(dwError);

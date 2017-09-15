@@ -23,6 +23,10 @@
 #include <stdint.h>
 #include <termios.h>
 
+#include <openssl/evp.h>
+#include <openssl/bio.h>
+#include <openssl/buffer.h>
+
 #include <pmderror.h>
  
 #include <dce/rpc.h>
