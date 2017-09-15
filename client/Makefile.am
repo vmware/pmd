@@ -6,6 +6,7 @@ libpmdclient_la_CPPFLAGS = \
     @LW_INCLUDES@
 
 libpmdclient_la_SOURCES = \
+    gssapi_creds_plugin.c \
     fwmgmt_api.c \
     fwmgmt_cstub.c \
     pkgmgmt_api.c \

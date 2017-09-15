@@ -32,9 +32,6 @@
 #include <dce/dcethread.h>
 #include <dce/lrpc.h>
 #include <netdb.h>
-#include <openssl/evp.h>
-#include <openssl/bio.h>
-#include <openssl/buffer.h>
 #include <gssapi/gssapi.h>
 #include <gssapi/gssapi_generic.h>
 

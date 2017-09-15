@@ -74,6 +74,14 @@ rsa_private_decrypt(
     const char *pszPrivateKeyFile,
     unsigned char **ppszDecrypted
     );
+
+uint32_t
+is_daemon_user(
+    uid_t uid,
+    gid_t gid,
+    int *pnIsDaemonUser
+    );
+
 //privsep
 uint32_t
 rpc_open_privsep_internal(
@@ -96,25 +104,4 @@ privsepd_client_basic_auth(
     const char *pszBasicAuth,
     const char *pszContext,
     unsigned32 *pnValid
-    );
-//utils
-uint32_t
-base64_encode(
-    const unsigned char* pszInput,
-    const size_t nInputLength,
-    char** ppszOutput
-    );
-
-uint32_t
-base64_decode(
-    const char* pszInput,
-    char** ppszOutput,
-    int *pnLength
-    );
-
-uint32_t
-base64_get_user_pass(
-    const char *pszBase64,
-    char **ppszUser,
-    char **ppszPass
     );

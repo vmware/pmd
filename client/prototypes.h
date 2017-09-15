@@ -151,3 +151,14 @@ usermgmt_convert_groups(
     PPMD_RPC_GROUP_ARRAY pRpcGroups,
     PPMD_GROUP *ppGroups
     );
+
+int
+privsepd_client_get_hashed_creds(
+    int nPluginType,
+    const char *pszUser,
+    char **ppszSalt,
+    unsigned char **pbytes_s,
+    int *plen_s,
+    unsigned char **pbytes_v,
+    int *plen_v
+    );
