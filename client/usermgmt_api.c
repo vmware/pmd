@@ -403,7 +403,7 @@ usermgmt_add_user_w(
 {
     uint32_t dwError = 0;
 
-    if(!hHandle || pwszName)
+    if(!hHandle || !pwszName)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
@@ -465,7 +465,7 @@ usermgmt_delete_user_w(
 {
     uint32_t dwError = 0;
 
-    if(!hHandle || pwszName)
+    if(!hHandle || !pwszName)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
@@ -528,7 +528,7 @@ usermgmt_add_group_w(
 {
     uint32_t dwError = 0;
 
-    if(!hHandle || pwszName)
+    if(!hHandle || !pwszName)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
@@ -591,7 +591,7 @@ usermgmt_delete_group_w(
 {
     uint32_t dwError = 0;
 
-    if(!hHandle || pwszName)
+    if(!hHandle || !pwszName)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
