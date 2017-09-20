@@ -14,38 +14,21 @@
 
 
 [
-    uuid (e8e49806-5a88-11e6-8a22-000c297d36e2),
+    uuid (3ee131de-2fc1-41fa-b06b-0387ee2296c9),
     version(1.0),
     pointer_default(unique)
 ]
 
-interface rpmostree
+interface privsepd
 {
-#include <lw/types.h>
 #include "pmdrpctypes.h"
-#include "rpmostreerpctypes.h"
 
     unsigned32
-    rpmostree_rpc_version(
+    privsepd_rpc_unix_auth(
         [in] handle_t hBinding,
-        [out] wstring_t* ppwszVersion
-        );
-
-    unsigned32
-    rpmostree_rpc_server_info(
-        [in] handle_t hBinding,
-        [out] PPMD_RPMOSTREE_SERVER_INFO* ppInfo
-        );
-
-    unsigned32
-    rpmostree_rpc_client_info(
-        [in] handle_t hBinding,
-        [out] PPMD_RPMOSTREE_CLIENT_INFO* ppInfo
-        );
-
-    unsigned32
-    rpmostree_rpc_client_syncto(
-        [in] handle_t hBinding,
-        [in] wstring_t pwszHash
-        );
+        [in] wstring_t pwszUser,
+        [out] wstring_t *ppszUnixSalt,
+        [out] wstring_t *ppszB64SValue,
+        [out] wstring_t *ppszB64VValue
+    );
 }

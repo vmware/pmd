@@ -240,10 +240,13 @@ AC_CONFIG_FILES([Makefile
                  idl/Makefile
                  jsonutils/Makefile
                  server/Makefile
+                 server/common/Makefile
                  server/demo/Makefile
                  server/extras/Makefile
                  server/restutils/Makefile
                  server/security/Makefile
+                 privsep/Makefile
+                 privsep/demo/Makefile
                  client/Makefile
                  python/Makefile
                  python/setup.py

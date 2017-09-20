@@ -22,8 +22,9 @@ demo_rpc_version(
     )
 {
     uint32_t dwError = 0;
-    char* pszVersion = NULL;
+    char *pszVersion = NULL;
     wstring_t pwszVersion = NULL;
+    PPMDHANDLE hPMD = NULL;
 
     if(!hBinding || !ppwszVersion)
     {
@@ -31,14 +32,11 @@ demo_rpc_version(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = demo_version(&pszVersion);
+    dwError = rpc_open_privsep_internal(DEMO_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
-    if(IsNullOrEmptyString(pszVersion))
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
+    dwError = demo_version(hPMD, &pszVersion);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDRpcServerAllocateWFromA(pszVersion, &pwszVersion);
     BAIL_ON_PMD_ERROR(dwError);
@@ -47,14 +45,14 @@ demo_rpc_version(
 
 cleanup:
     PMD_SAFE_FREE_MEMORY(pszVersion);
+    rpc_free_handle(hPMD);
     return dwError;
-
 error:
     if(ppwszVersion)
     {
         *ppwszVersion = NULL;
     }
-    PMD_SAFE_FREE_MEMORY(pwszVersion);
+    PMDRpcServerFreeMemory(pwszVersion);
     goto cleanup;
 }
 
@@ -66,7 +64,7 @@ demo_rpc_isprime(
     )
 {
     uint32_t dwError = 0;
-    int nIsPrime = 0;
+    PPMDHANDLE hPMD = NULL;
 
     if(!hBinding || nPrime <= 0 || !pnIsPrime)
     {
@@ -74,19 +72,15 @@ demo_rpc_isprime(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = demo_isprime(nPrime, &nIsPrime);
+    dwError = rpc_open_privsep_internal(DEMO_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
-    *pnIsPrime = nIsPrime;
-cleanup:
-    return dwError;
+    dwError = demo_isprime(hPMD, nPrime, pnIsPrime);
+    BAIL_ON_PMD_ERROR(dwError);
 
 error:
-    if(pnIsPrime)
-    {
-        *pnIsPrime = 0;
-    }
-    goto cleanup;
+    rpc_free_handle(hPMD);
+    return dwError;
 }
 
 unsigned32
@@ -104,6 +98,7 @@ demo_rpc_primes(
     int *pnIntsSource = NULL;
     int *pnIntsDest = NULL;
     int i = 0;
+    PPMDHANDLE hPMD = NULL;
 
     if(!hBinding || nStart <= 0 || nCount <= 0 || !ppInts)
     {
@@ -111,7 +106,10 @@ demo_rpc_primes(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = demo_primes(nStart, nCount, &pnInts, &nPrimeCount);
+    dwError = rpc_open_privsep_internal(DEMO_PRIVSEP, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = demo_primes(hPMD, nStart, nCount, &pnInts, &nPrimeCount);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDRpcServerAllocateMemory(sizeof(PINT_ARRAY),
@@ -133,6 +131,7 @@ demo_rpc_primes(
     *ppInts = pIntArray;
 cleanup:
     PMD_SAFE_FREE_MEMORY(pnInts);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:

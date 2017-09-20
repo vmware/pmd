@@ -70,8 +70,57 @@ error:
 }
 
 uint32_t
+fwmgmt_open_privsep_rest(
+    PREST_AUTH pRestAuth,
+    PPMDHANDLE *phPMD
+    )
+{
+    uint32_t dwError = 0;
+    PPMDHANDLE hPMD = NULL;
+    char *pszUser = NULL;
+    char *pszPass = NULL;
+
+    if(!pRestAuth || !phPMD)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(pRestAuth->nAuthMethod != REST_AUTH_BASIC)
+    {
+        dwError = ERROR_INVALID_REST_AUTH;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = base64_get_user_pass(
+                  pRestAuth->pszAuthBase64,
+                  &pszUser,
+                  &pszPass);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = rpc_open_privsep(
+                  FWMGMT_PRIVSEP,
+                  pszUser,
+                  pszPass,
+                  NULL,
+                  &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *phPMD = hPMD;
+
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pszUser);
+    PMD_SAFE_FREE_MEMORY(pszPass);
+    return dwError;
+
+error:
+    rpc_free_handle(hPMD);
+    goto cleanup;
+}
+
+uint32_t
 firewall_rest_get_version(
-    void *pInputJson,
+    void *pInput,
     void **ppszOutputJson
     )
 {
@@ -79,14 +128,22 @@ firewall_rest_get_version(
     char *pszVersion = NULL;
     char *pszOutputJson = NULL;
     PKEYVALUE pKeyValue = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppszOutputJson)
+    if(!pArgs || !pArgs->pAuthArgs || !ppszOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = make_keyvalue("version", FIREWALL_API_VERSION, &pKeyValue);
+    dwError = fwmgmt_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = make_keyvalue("version", NULL, &pKeyValue);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = fwmgmt_get_version(hPMD, &pKeyValue->pszValue);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = get_json_string(pKeyValue, &pszOutputJson);
@@ -99,6 +156,7 @@ cleanup:
     {
         free_keyvalue(pKeyValue);
     }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -162,7 +220,7 @@ error:
 
 uint32_t
 firewall_rest_get_rules(
-    void *pszInputJson,
+    void *pInput,
     void **ppszOutputJson
     )
 {
@@ -170,14 +228,19 @@ firewall_rest_get_rules(
     char *pszOutputJson = NULL;
     PPMD_FIREWALL_RULE pRules = NULL;
     int nIPV6 = 0;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppszOutputJson)
+    if(!pArgs || !ppszOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = pmd_firewall_get_rules(nIPV6, &pRules);
+    dwError = fwmgmt_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = fwmgmt_get_rules(hPMD, nIPV6, &pRules);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = get_firewall_json_string(pRules, &pszOutputJson);
@@ -187,6 +250,7 @@ firewall_rest_get_rules(
 
 cleanup:
     fwmgmt_free_rules(pRules);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -200,12 +264,12 @@ error:
 
 uint32_t
 firewall_rest_put_rules(
-    void *pInputJson,
+    void *pInput,
     void **ppszOutputJson
     )
 {
     uint32_t dwError = 0;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
     char *pszOutputJson = NULL;
     PPMD_FIREWALL_RULE pRules = NULL;
     PKEYVALUE pKeyValue = NULL;
@@ -216,12 +280,16 @@ firewall_rest_put_rules(
     char *pszRule = NULL;
     char *pszPersist = NULL;
     json_t *pJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppszOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppszOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -238,7 +306,10 @@ firewall_rest_put_rules(
     dwError = json_get_opt_string_value(pJson, "persist", &pszPersist);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = pmd_firewall_add_rules(nIPV6, nPersist, pszChain, pszRule);
+    dwError = fwmgmt_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = fwmgmt_add_rule(hPMD, nIPV6, nPersist, pszChain, pszRule);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = make_keyvalue("result", "success", &pKeyValue);
@@ -255,6 +326,7 @@ cleanup:
     PMD_SAFE_FREE_MEMORY(pszRule);
     PMD_SAFE_FREE_MEMORY(pszPersist);
     free_keyvalue(pKeyValue);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -268,12 +340,12 @@ error:
 
 uint32_t
 firewall_rest_delete_rules(
-    void *pInputJson,
+    void *pInput,
     void **ppszOutputJson
     )
 {
     uint32_t dwError = 0;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
     char *pszOutputJson = NULL;
     PPMD_FIREWALL_RULE pRules = NULL;
     PKEYVALUE pKeyValue = NULL;
@@ -284,12 +356,16 @@ firewall_rest_delete_rules(
     char *pszRule = NULL;
     char *pszPersist = NULL;
     json_t *pJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppszOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppszOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -306,7 +382,10 @@ firewall_rest_delete_rules(
     dwError = json_get_opt_string_value(pJson, "persist", &pszPersist);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = pmd_firewall_delete_rules(nIPV6, nPersist, pszChain, pszRule);
+    dwError = fwmgmt_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = fwmgmt_delete_rule(hPMD, nIPV6, nPersist, pszChain, pszRule);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = make_keyvalue("result", "success", &pKeyValue);
@@ -323,6 +402,7 @@ cleanup:
     PMD_SAFE_FREE_MEMORY(pszRule);
     PMD_SAFE_FREE_MEMORY(pszPersist);
     free_keyvalue(pKeyValue);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -336,7 +416,7 @@ error:
 
 uint32_t
 firewall_rest_get_rules6(
-    void *pszInputJson,
+    void *pInput,
     void **ppszOutputJson
     )
 {
@@ -344,14 +424,19 @@ firewall_rest_get_rules6(
     char *pszOutputJson = NULL;
     PPMD_FIREWALL_RULE pRules = NULL;
     int nIPV6 = 1;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppszOutputJson)
+    if(!pArgs || !ppszOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = pmd_firewall_get_rules(nIPV6, &pRules);
+    dwError = fwmgmt_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = fwmgmt_get_rules(hPMD, nIPV6, &pRules);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = get_firewall_json_string(pRules, &pszOutputJson);
@@ -361,6 +446,7 @@ firewall_rest_get_rules6(
 
 cleanup:
     fwmgmt_free_rules(pRules);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:

@@ -237,24 +237,6 @@ net_rest_delete_ntp_servers(
     );
 
 uint32_t
-net_rest_get_firewall_rule(
-    void *pInputJson,
-    void **ppOutputJson
-    );
-
-uint32_t
-net_rest_put_firewall_rule(
-    void *pInputJson,
-    void **ppOutputJson
-    );
-
-uint32_t
-net_rest_delete_firewall_rule(
-    void *pInputJson,
-    void **ppOutputJson
-    );
-
-uint32_t
 net_rest_get_hostname(
     void *pInputJson,
     void **ppOutputJson
@@ -284,6 +266,362 @@ net_rest_get_version(
     void **ppOutputJson
     );
 
+//fwmgmt_privsep
+uint32_t
+fwmgmt_get_version_w(
+    PPMDHANDLE hHandle,
+    wstring_t *ppwszVersion
+    );
+
+uint32_t
+fwmgmt_get_rules_w(
+    PPMDHANDLE hHandle,
+    int nIPV6,
+    PPMD_RPC_FIREWALL_RULE_ARRAY *ppRuleArray
+    );
+
+uint32_t
+fwmgmt_add_rule_w(
+    PPMDHANDLE hHandle,
+    int nIPV6,
+    int nPersist,
+    const wstring_t pwszChain,
+    const wstring_t pwszRuleSpec
+    );
+
+uint32_t
+fwmgmt_delete_rule_w(
+    PPMDHANDLE hHandle,
+    int nIPV6,
+    int nPersist,
+    const wstring_t pwszChain,
+    const wstring_t pwszRuleSpec
+    );
+
+uint32_t
+fwmgmt_restore_w(
+    PPMDHANDLE hHandle,
+    int nIPV6,
+    PPMD_RPC_FIREWALL_TABLE_ARRAY pRpcTables
+    );
+//netmgmt privsep
+uint32_t
+netmgr_client_get_hostname_w(
+    PPMDHANDLE hHandle,
+    wstring_t *ppwszHostname
+);
+
+uint32_t
+netmgr_client_set_mac_addr_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    wstring_t pwszMacAddress
+);
+
+uint32_t
+netmgr_client_get_mac_addr_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    wstring_t *ppwszMacAddress
+);
+
+uint32_t
+netmgr_client_set_link_mode_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    NET_RPC_LINK_MODE rpcLinkMode
+    );
+
+uint32_t
+netmgr_client_get_link_mode_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    NET_RPC_LINK_MODE *pLinkMode
+);
+
+uint32_t
+netmgr_client_get_network_param_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszObjectName,
+    const wstring_t pwszParamName,
+    wstring_t *ppwszParamValue
+    );
+
+uint32_t
+netmgr_client_set_network_param_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszObjectName,
+    const wstring_t pwszParamName,
+    const wstring_t pwszParamValue
+    );
+
+uint32_t
+netmgr_client_set_link_mtu_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    uint32_t mtu
+    );
+
+uint32_t
+netmgr_client_get_link_mtu_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    uint32_t *pnMTU
+    );
+
+uint32_t
+netmgr_client_set_link_state_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    NET_LINK_STATE linkState
+    );
+
+uint32_t
+netmgr_client_get_link_state_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    NET_RPC_LINK_STATE *prpcLinkState
+    );
+
+uint32_t
+netmgr_client_ifup_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname
+    );
+
+uint32_t
+netmgr_client_ifdown_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname
+    );
+
+uint32_t
+netmgr_client_get_link_info_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    PNET_RPC_LINK_INFO_ARRAY *ppLinkInfoArray
+    );
+
+uint32_t
+netmgr_client_set_ipv4_addr_gateway_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    NET_IPV4_ADDR_MODE mode,
+    wstring_t pwszIPv4AddrPrefix,
+    wstring_t pwszIPv4Gateway
+    );
+
+uint32_t
+netmgr_client_get_ipv4_addr_gateway_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    NET_RPC_IPV4_ADDR_MODE *pMode,
+    wstring_t *ppwszIPv4AddrPrefix,
+    wstring_t *ppwszIPv4Gateway
+    );
+
+uint32_t
+netmgr_client_add_static_ipv6_addr_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    const wstring_t pwszIPv6AddrPrefix
+    );
+
+uint32_t
+netmgr_client_delete_static_ipv6_addr_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    wstring_t pwszIPv6AddrPrefix
+    );
+
+uint32_t
+netmgr_client_set_ipv6_addr_mode_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    uint32_t enableDhcp,
+    uint32_t enableAutoconf
+    );
+
+uint32_t
+netmgr_client_get_ipv6_addr_mode_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    uint32_t *pDhcpEnabled,
+    uint32_t *pAutoconfEnabled
+    );
+
+uint32_t
+netmgr_client_set_ipv6_gateway_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    const wstring_t pwszIPv6Gateway
+    );
+
+uint32_t
+netmgr_client_get_ipv6_gateway_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    wstring_t *ppwszIPv6Gateway
+    );
+
+uint32_t
+netmgr_client_get_ip_addr_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    uint32_t addrTypes,
+    NET_RPC_IP_ADDR_ARRAY **ppIpAddrArray
+    );
+
+uint32_t
+netmgr_client_add_static_ip_route_w(
+    PPMDHANDLE hHandle,
+    NET_RPC_IP_ROUTE *pIpRoute
+    );
+
+uint32_t
+netmgr_client_delete_static_ip_route_w(
+    PPMDHANDLE hHandle,
+    NET_RPC_IP_ROUTE *pIpRoute
+    );
+
+uint32_t
+netmgr_client_get_static_ip_routes_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    PNET_RPC_IP_ROUTE_ARRAY *ppIpRouteArray
+    );
+
+uint32_t
+netmgr_client_set_dns_servers_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    NET_DNS_MODE mode,
+    PPMD_WSTRING_ARRAY pwszDnsServers
+    );
+
+uint32_t
+netmgr_client_get_dns_servers_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    NET_RPC_DNS_MODE *pMode,
+    PPMD_WSTRING_ARRAY *ppwszDnsServers
+    );
+
+uint32_t
+netmgr_client_set_dns_domains_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    PPMD_WSTRING_ARRAY pwszDnsDomains
+    );
+
+uint32_t
+netmgr_client_get_dns_domains_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    PPMD_WSTRING_ARRAY *ppwszDnsDomains
+    );
+
+uint32_t
+netmgr_client_get_iaid_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    uint32_t *pdwIaid
+    );
+
+uint32_t
+netmgr_client_set_iaid_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    uint32_t dwIaid
+    );
+
+uint32_t
+netmgr_client_get_duid_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    wstring_t *ppwszDuid
+    );
+
+uint32_t
+netmgr_client_set_duid_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    wstring_t pwszDuid
+    );
+
+uint32_t
+netmgr_client_set_ntp_servers_w(
+    PPMDHANDLE hHandle,
+    PPMD_WSTRING_ARRAY pwszNtpServers
+    );
+
+uint32_t
+netmgr_client_add_ntp_servers_w(
+    PPMDHANDLE hHandle,
+    PPMD_WSTRING_ARRAY pwszNtpServers
+    );
+
+uint32_t
+netmgr_client_delete_ntp_servers_w(
+    PPMDHANDLE hHandle,
+    PPMD_WSTRING_ARRAY pwszNtpServers
+    );
+
+uint32_t
+netmgr_client_get_ntp_servers_w(
+    PPMDHANDLE hHandle,
+    PPMD_WSTRING_ARRAY *ppwszNtpServers
+    );
+
+uint32_t
+netmgr_client_set_hostname_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszHostname
+    );
+
+uint32_t
+netmgr_client_get_hostname_w(
+    PPMDHANDLE hHandle,
+    wstring_t *ppwszHostname
+    );
+
+uint32_t
+netmgr_client_wait_for_link_up_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    uint32_t dwTimeout
+    );
+
+uint32_t
+netmgr_client_wait_for_ip_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    uint32_t dwTimeout,
+    NET_ADDR_TYPE dwAddrTypes
+    );
+
+uint32_t
+netmgr_client_get_error_info_w(
+    PPMDHANDLE hHandle,
+    uint32_t nmErrCode,
+    wstring_t *ppwszErrInfo
+    );
+
+uint32_t
+netmgr_client_set_network_param_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszObjectName,
+    const wstring_t pwszParamName,
+    const wstring_t pwszParamValue
+    );
+
+uint32_t
+netmgr_client_get_network_param_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszObjectName,
+    const wstring_t pwszParamName,
+    wstring_t *ppwszParamValue
+    );
 //pmdrestapi.c
 uint32_t
 pmd_rest_get_registration(
@@ -370,6 +708,72 @@ pkg_rest_reinstall(
     void **ppOutputJson
     );
 
+//pkgmgmtapi.c
+unsigned32
+pkg_version_s(
+    PPMDHANDLE hPMD,
+    wstring_t *ppwszVersion
+    );
+//pkgmgmt privsep related
+uint32_t
+pkg_list_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    TDNF_SCOPE nScope,
+    PPMD_WSTRING_ARRAY pPkgNameSpecs,
+    PTDNF_RPC_PKGINFO_ARRAY* ppInfo
+    );
+
+uint32_t
+pkg_repolist_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    TDNF_REPOLISTFILTER nRepoListFilter,
+    PTDNF_RPC_REPODATA_ARRAY *ppRpcRepoDataArray
+    );
+
+uint32_t
+pkg_updateinfo_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    PTDNF_RPC_UPDATEINFO_SUMMARY_ARRAY *ppRpcSummary
+    );
+
+uint32_t
+pkg_updateinfo_summary_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    TDNF_AVAIL nAvail,
+    PTDNF_RPC_UPDATEINFO_SUMMARY_ARRAY *ppRpcSummary
+    );
+
+uint32_t
+pkg_resolve_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    TDNF_ALTERTYPE nAlterType,
+    PTDNF_RPC_SOLVED_PKG_INFO *ppRpcSolvedInfo
+    );
+
+uint32_t
+pkg_alter_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    TDNF_ALTERTYPE nAlterType
+    );
+
+uint32_t
+pkg_version_w(
+    PPMDHANDLE hHandle,
+    wstring_t *ppwszVersion
+    );
+
+uint32_t
+pkg_get_error_string_w(
+    PPMDHANDLE hHandle,
+    uint32_t dwErrorCode,
+    wstring_t *ppwszError
+    );
 //firewall_restapi.c
 uint32_t
 firewall_rest_get_registration(
@@ -389,112 +793,15 @@ pkg_rpc_get_cmd_args(
     PTDNF_CMD_ARGS *ppArgs
     );
 
-
-//pkgmgmtapi.c
-unsigned32
-pkg_open_handle_s(
-    PTDNF_CMD_ARGS pArgs,
-    PTDNF *ppTdnf
-    );
-
-unsigned32
-pkg_close_handle_s(
-    PTDNF pTdnf
-    );
-
 uint32_t
 pkg_get_scope_from_string(
     const char *pszScope,
     TDNF_SCOPE *pnScope
     );
 
-unsigned32
-pkg_count_s(
-    PTDNF pTdnf,
-    unsigned32* pdwCount
-    );
-
-unsigned32
-pkg_list_s(
-    PTDNF pTdnf,
-    unsigned32 nScope,
-    char **ppszPackageNameSpecs,
-    PTDNF_PKG_INFO *ppPkgInfo,
-    uint32_t *pdwCount
-    );
-
-unsigned32
-pkg_repolist_s(
-    PTDNF pTdnf,
-    TDNF_REPOLISTFILTER nFilter,
-    PTDNF_REPO_DATA *ppRepoData
-    );
-
-unsigned32
-pkg_info_s(
-    PTDNF pTdnf,
-    PTDNF_PKG_INFO *ppPkgInfo
-    );
-
-unsigned32
-pkg_updateinfo_s(
-    PTDNF pTdnf,
-    TDNF_AVAIL nAvail,
-    char **ppszPackageNameSpecs,
-    PTDNF_UPDATEINFO_SUMMARY* ppUpdateInfoSummary
-    );
-
-unsigned32
-pkg_version_s(
-    char** ppszVersion
-    );
-
-unsigned32
-pkg_resolve_s(
-    PTDNF pTdnf,
-    TDNF_ALTERTYPE nAlterType,
-    PTDNF_SOLVED_PKG_INFO *ppSolvedInfo
-    );
-
-unsigned32
-pkg_alter_s(
-    PTDNF pTdnf,
-    TDNF_ALTERTYPE nAlterType
-    );
-
-unsigned32
-pkg_get_error_string_s(
-    uint32_t dwErrorCode,
-    char **ppszError
-    );
-//rpc.c
-uint32_t
-PMDRpcServerConvertPkgInfoArray(
-    PTDNF_PKG_INFO pPkgInfo,
-    uint32_t dwCount,
-    PTDNF_RPC_PKGINFO_ARRAY *ppRpcPkgInfo
-    );
-
-uint32_t
-PMDRpcServerConvertPkgInfoList(
-    PTDNF_PKG_INFO pPkgInfo,
-    PTDNF_RPC_PKGINFO_ARRAY *ppRpcPkgInfo
-    );
-
-uint32_t
-PMDRpcServerCopyStringArray(
-    char **ppszStrings,
-    PPMD_WSTRING_ARRAY *ppArray
-    );
-
 void
-PMDRpcServerFreeSolvedInfo(
-    PTDNF_RPC_SOLVED_PKG_INFO pSolvedInfo
-    );
-
-void
-PMDRpcServerFreePkgInfoArray(
-    PTDNF_RPC_PKGINFO_ARRAY pPkgInfoArray
+TDNFFreeCmdArgs(
+    PTDNF_CMD_ARGS pCmdArgs
     );
 
 //config.c
@@ -516,27 +823,6 @@ PPMDGetHostName(
     char** ppszHostName
 );
 
-uint32_t
-base64_encode(
-    const unsigned char* pszInput,
-    const size_t nInputLength,
-    char** ppszOutput
-    );
-
-uint32_t
-base64_decode(
-    const char* pszInput,
-    char** ppszOutput,
-    int *pnLength
-    );
-
-uint32_t
-split_user_and_pass(
-    const char* pszUserPass,
-    char** ppszUser,
-    char** ppszPass
-    );
-
 //restserver.c
 uint32_t
 StartRestServer(
@@ -546,13 +832,152 @@ void
 StopRestServer(
     );
 
-//signal.c
-uint32_t
-pmd_handle_signals(
-    );
-
 //server.c
 void
 pmd_free_server_env(
     PSERVER_ENV pEnv
+    );
+
+//rest_s.c
+uint32_t
+open_privsep_rest(
+    const char *pszModule,
+    PREST_AUTH pRestAuth,
+    PPMDHANDLE *phPMD
+    );
+
+//fwmgmt_restapi.c
+uint32_t
+firewall_rest_get_version(
+    void *pInputJson,
+    void **ppOutputJson
+    );
+
+uint32_t
+firewall_rest_get_rules(
+    void *pInputJson,
+    void **ppOutputJson
+    );
+
+uint32_t
+firewall_rest_get_rules6(
+    void *pInputJson,
+    void **ppOutputJson
+    );
+
+uint32_t
+firewall_rest_put_rules(
+    void *pInputJson,
+    void **ppOutputJson
+    );
+
+uint32_t
+firewall_rest_delete_rules(
+    void *pInputJson,
+    void **ppOutputJson
+    );
+
+//usermgmt_restapi.c
+uint32_t
+usrmgmt_rest_get_users(
+    void *pInputJson,
+    void **ppOutputJson
+    );
+
+uint32_t
+usrmgmt_rest_get_userid(
+    void *pInputJson,
+    void **ppOutputJson
+    );
+
+uint32_t
+usrmgmt_rest_put_user(
+    void *pInputJson,
+    void **ppOutputJson
+    );
+
+uint32_t
+usrmgmt_rest_delete_user(
+    void *pInputJson,
+    void **ppOutputJson
+    );
+//groups
+uint32_t
+usrmgmt_rest_get_groups(
+    void *pInputJson,
+    void **ppOutputJson
+    );
+
+uint32_t
+usrmgmt_rest_get_groupid(
+    void *pInputJson,
+    void **ppszOutputJson
+    );
+
+uint32_t
+usrmgmt_rest_put_group(
+    void *pInputJson,
+    void **ppOutputJson
+    );
+
+uint32_t
+usrmgmt_rest_delete_group(
+    void *pInputJson,
+    void **ppOutputJson
+    );
+//usermgmt_api.c
+uint32_t
+usermgmt_get_version_w(
+    PPMDHANDLE hHandle,
+    wstring_t *ppwszVersion
+    );
+
+uint32_t
+usermgmt_get_userid_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszName,
+    uint32_t *pnUID
+    );
+
+uint32_t
+usermgmt_get_groupid_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszName,
+    uint32_t *pnGID
+    );
+
+uint32_t
+usermgmt_get_users_w(
+    PPMDHANDLE hHandle,
+    PPMD_RPC_USER_ARRAY *ppRpcUsers
+    );
+
+uint32_t
+usermgmt_get_groups_w(
+    PPMDHANDLE hHandle,
+    PPMD_RPC_GROUP_ARRAY *ppRpcGroups
+    );
+
+uint32_t
+usermgmt_add_user_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszName
+    );
+
+uint32_t
+usermgmt_delete_user_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszName
+    );
+
+uint32_t
+usermgmt_add_group_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszName
+    );
+
+uint32_t
+usermgmt_delete_group_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszName
     );

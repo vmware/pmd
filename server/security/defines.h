@@ -16,6 +16,7 @@
 #pragma once
 
 #define MAX_API_SECURITY_LINE_LENGTH 150000
+#define RPC_BINDING_HAS_NO_AUTH      382312464
 
 #define BAIL_ON_NT_STATUS(ntStatus) \
     do {                                                           \

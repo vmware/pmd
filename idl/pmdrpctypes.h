@@ -24,10 +24,12 @@ extern "C" {
 #include <lw/types.h>
 #endif
 
-#define PMD_NCALRPC_END_POINT     "PhotonManagementDaemon"
-#define PMD_END_POINT             "pmdserver"
-#define PMD_SEPERATOR             "/"
-#define PMD_RPC_TCP_END_POINT     "2016"
+#define PMD_NCALRPC_BASE_DIR          "/var/lib/likewise/rpc"
+#define PMD_NCALRPC_END_POINT         "PhotonManagementDaemon"
+#define PMD_PRIVSEP_NCALRPC_END_POINT "pmdprivsepd"
+#define PMD_END_POINT                 "pmdserver"
+#define PMD_SEPARATOR                 "/"
+#define PMD_RPC_TCP_END_POINT         "2016"
 
 #ifdef _DCE_IDL_
 
@@ -56,6 +58,19 @@ unsigned32 dwCount;
 wstring_t *ppwszStrings;
 }PMD_WSTRING_ARRAY, *PPMD_WSTRING_ARRAY;
 #endif /* PMD_WSTRING_ARRAY_DEFINED */
+
+#ifndef PMD_INT_ARRAY_DEFINED
+#define PMD_INT_ARRAY_DEFINED 1
+typedef struct _INT_ARRAY
+{
+unsigned32 dwCount;
+#ifdef _DCE_IDL_
+[size_is(dwCount)]
+#endif
+signed32 *pnInts;
+}INT_ARRAY, *PINT_ARRAY;
+#endif /* PMD_INT_ARRAY_DEFINED */
+
 
 #ifdef _DCE_IDL_
 cpp_quote("#endif")

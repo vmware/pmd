@@ -16,6 +16,7 @@
 #include "includes.h"
 
 PREST_API_DEF gpApiDef = NULL;
+static const char *gpszPubKeyFile = NULL;
 
 uint32_t
 rest_register_api_spec(
@@ -72,6 +73,24 @@ error:
         *ppRestProcessor = NULL;
     }
     goto cleanup;
+}
+
+uint32_t
+rest_set_privsep_pubkey(
+    const char *pszPubKeyFile
+    )
+{
+    uint32_t dwError = 0;
+    if(IsNullOrEmptyString(pszPubKeyFile))
+    {
+        dwError = ERROR_PMD_MISSING_PRIVSEP_PUBKEY;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    gpszPubKeyFile = pszPubKeyFile;
+
+error:
+    return dwError;
 }
 
 uint32_t
@@ -458,6 +477,13 @@ rest_method(
     PREST_API_METHOD pMethod = NULL;
     int nDataLength = 0;
     char *pszURI = NULL;
+    REST_FN_ARGS stArgs = {0};
+    REST_AUTH_ARGS stAuthArgs =
+    {
+        pRestHandle,
+        pRequest,
+        ppResponse
+    };
 
     dwError = get_uri_from_request(pRequest, &pszURI);
     BAIL_ON_PMD_ERROR(dwError);
@@ -465,33 +491,16 @@ rest_method(
     dwError = find_module_entry_spec(pRequest, pszURI, &pMethod);
     BAIL_ON_PMD_ERROR(dwError);
 
-    fprintf(stdout, "REST auth request for %s\n", pszURI);
-    dwError = process_auth(pRestHandle, pRequest, ppResponse);
-    if(dwError)
-    {
-        fprintf(stderr, "REST auth fail for %s\n", pszURI);
-    }
-    BAIL_ON_PMD_ERROR(dwError);
-
     dwError = rest_get_json_string(pMethod, pRequest, paramsCount, &pszJsonIn);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = pMethod->pFnImpl(pszJsonIn, (void **)&pszJsonOut);
+    dwError = pre_process_auth(&stAuthArgs, &stAuthArgs.pRestAuth);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = VmRESTSetHttpHeader(
-                  ppResponse,
-                  "Access-Control-Allow-Methods",
-                  "POST, GET, OPTIONS, PUT"
-                  );
-    BAIL_ON_PMD_ERROR(dwError);
+    stArgs.pAuthArgs = &stAuthArgs;
+    stArgs.pszInputJson = pszJsonIn;
 
-
-    dwError = VmRESTSetHttpHeader(
-                  ppResponse,
-                  "Access-Control-Allow-Origin",
-                  "*"
-                  );
+    dwError = pMethod->pFnImpl(&stArgs, (void **)&pszJsonOut);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = VmRESTSetSuccessResponse(pRequest, ppResponse);
@@ -521,7 +530,7 @@ rest_method(
         dwError = VmRESTSetDataLength(ppResponse, NULL);
         BAIL_ON_PMD_ERROR(dwError);
 
-        do        
+        do
         {
             nChunkLength = nDataLength > MAX_HTTP_DATA_LEN ?
                                          MAX_HTTP_DATA_LEN : nDataLength;

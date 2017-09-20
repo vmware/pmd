@@ -16,7 +16,7 @@
 #include "includes.h"
 
 unsigned32
-fwmgmt_rpc_version(
+fwmgmt_privsep_rpc_version(
     handle_t hBinding,
     wstring_t* ppwszVersion
     )
@@ -30,6 +30,9 @@ fwmgmt_rpc_version(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = pmd_firewall_get_version(&pszVersion);
     BAIL_ON_PMD_ERROR(dwError);
@@ -59,7 +62,7 @@ error:
 }
 
 unsigned32
-fwmgmt_rpc_get_rules(
+fwmgmt_privsep_rpc_get_rules(
     handle_t hBinding,
     unsigned32 nIPV6,
     PPMD_RPC_FIREWALL_RULE_ARRAY *ppRpcRuleArray
@@ -72,14 +75,14 @@ fwmgmt_rpc_get_rules(
     PPMD_RPC_FIREWALL_RULE pRpcRules = NULL;
     uint32_t dwCount = 0;
     int i = 0;
-
     if(!hBinding || !ppRpcRuleArray)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = pmd_firewall_get_rules(nIPV6, &pFirewallRule);
     BAIL_ON_PMD_ERROR(dwError);
@@ -127,7 +130,7 @@ error:
 }
 
 unsigned32
-fwmgmt_rpc_add_rule(
+fwmgmt_privsep_rpc_add_rule(
     handle_t hBinding,
     unsigned32 nIPV6,
     unsigned32 nPersist,
@@ -145,7 +148,8 @@ fwmgmt_rpc_add_rule(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDAllocateStringAFromW(pwszChain, &pszChain);
     BAIL_ON_PMD_ERROR(dwError);
@@ -166,7 +170,7 @@ error:
 }
 
 unsigned32
-fwmgmt_rpc_delete_rule(
+fwmgmt_privsep_rpc_delete_rule(
     handle_t hBinding,
     unsigned32 nIPV6,
     unsigned32 nPersist,
@@ -184,7 +188,8 @@ fwmgmt_rpc_delete_rule(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDAllocateStringAFromW(pwszChain, &pszChain);
     BAIL_ON_PMD_ERROR(dwError);
@@ -321,7 +326,7 @@ error:
 }
 
 unsigned32
-fwmgmt_rpc_restore(
+fwmgmt_privsep_rpc_restore(
     handle_t hBinding,
     unsigned32 nIPV6,
     PPMD_RPC_FIREWALL_TABLE_ARRAY pRpcTables
@@ -336,7 +341,8 @@ fwmgmt_rpc_restore(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = make_tables(pRpcTables, &pTables);
     BAIL_ON_PMD_ERROR(dwError);

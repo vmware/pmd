@@ -14,22 +14,27 @@ pmd_SOURCES = \
     api.c \
     config.c \
     global.c \
-    netmgmtapi.c \
+    fwmgmt_rpcapi.c \
+    fwmgmt_restapi.c \
+    fwmgmt_sstub.c \
+    netmgmtrpcapi.c \
     netmgmtrestapi.c \
-    pkgmgmtapi.c \
     pkgmgmtrpcapi.c \
     pkgmgmtrestapi.c \
+    usermgmt_restapi.c \
+    usermgmt_rpcapi.c \
+    usermgmt_sstub.c \
     pmdrestapi.c \
     restserver.c \
     rpc.c \
-    rpmostreeapi.c \
     server.c \
-    signal.c \
     pkgmgmt_sstub.c \
     pmd_sstub.c \
     netmgmt_sstub.c \
-    rpmostree_sstub.c \
     utils.c
+
+fwmgmt_sstub.c:
+	cp ../idl/fwmgmt_sstub.c .
 
 pkgmgmt_sstub.c:
 	cp ../idl/pkgmgmt_sstub.c .
@@ -40,19 +45,19 @@ pmd_sstub.c:
 netmgmt_sstub.c:
 	cp ../idl/netmgmt_sstub.c .
 
-
-rpmostree_sstub.c:
-	cp ../idl/rpmostree_sstub.c .
+usermgmt_sstub.c:
+	cp ../idl/usermgmt_sstub.c .
 
 CLEANFILES = \
+    fwmgmt_sstub.c \
     pkgmgmt_sstub.c \
     pmd_sstub.c \
     netmgmt_sstub.c \
-    rpmostree_sstub.c
+    usermgmt_sstub.c
 
-
-SUBDIRS = restutils \
+SUBDIRS = common \
           security \
+          restutils \
           extras
 
 if ENABLE_DEMO
@@ -65,6 +70,7 @@ pmd_LDADD =  \
     @top_builddir@/server/restutils/librestutils.la \
     @top_builddir@/server/extras/libpmdextras.la \
     @top_builddir@/server/security/libpmdsecurity.la \
+    @top_builddir@/server/common/libsrvcommon.la \
     @DCERPC_LIBS@ \
     @JANSSON_LIBS@ \
     @CREST_LIBS@ \
@@ -73,7 +79,6 @@ pmd_LDADD =  \
     @COPENAPI_LIBS@ \
     @LWBASE_LIBS@ \
     -lvmdirclient \
-    -ltdnf \
     -lnetmgr \
     -lpthread \
     -lcrypt \

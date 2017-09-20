@@ -34,12 +34,12 @@ typedef struct _PMD_CONFIG_
     char* pszComposeServer;
     char *pszApiSecurityConf;
     PPMD_REST_CONFIG pRestConfig;
+    char *pszPrivsepPubKeyFile;
 }PMD_CONFIG, *PPMD_CONFIG;
 
 typedef struct _SERVER_ENV_
 {
     pthread_mutex_t mutexModuleEntries;
-    pthread_mutex_t mutexPkgMgmtApi;
     PPMD_CONFIG pConfig;
     PREST_API_DEF pApiDef;
     PREST_MODULE_ENTRY pModuleEntries;
