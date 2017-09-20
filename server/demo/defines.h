@@ -16,3 +16,4 @@
 #pragma once
 
 #define DEMO_VERSION "0.0.1"
+#define DEMO_PRIVSEP "demo_privsep"

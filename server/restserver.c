@@ -65,6 +65,9 @@ StartRestServer(
                   &pRestProcessor);
     BAIL_ON_PMD_ERROR(dwError);
 
+    dwError = rest_set_privsep_pubkey(gpServerEnv->pConfig->pszPrivsepPubKeyFile);
+    BAIL_ON_PMD_ERROR(dwError);
+
     pthread_mutex_lock (&gpServerEnv->mutexModuleEntries);
 
     gpServerEnv->pApiDef = pApiDef;

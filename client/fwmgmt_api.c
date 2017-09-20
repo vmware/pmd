@@ -16,6 +16,46 @@
 #include "includes.h"
 
 uint32_t
+fwmgmt_get_version_w(
+    PPMDHANDLE hHandle,
+    wstring_t *ppwszVersion
+    )
+{
+    uint32_t dwError = 0;
+    wstring_t pwszVersion = NULL;
+
+    if(!hHandle || !ppwszVersion)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(fwmgmt_privsep_rpc_version(hHandle->hRpc, &pwszVersion),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(fwmgmt_rpc_version(hHandle->hRpc, &pwszVersion), dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszVersion = pwszVersion;
+
+cleanup:
+    return dwError;
+
+error:
+    if(ppwszVersion)
+    {
+        *ppwszVersion = NULL;
+    }
+    PMDRpcClientFreeStringW(pwszVersion);
+    goto cleanup;
+}
+
+uint32_t
 fwmgmt_get_version(
     PPMDHANDLE hHandle,
     char **ppszVersion
@@ -31,7 +71,7 @@ fwmgmt_get_version(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    DO_RPC(fwmgmt_rpc_version(hHandle->hRpc, &pwszVersion), dwError);
+    dwError = fwmgmt_get_version_w(hHandle, &pwszVersion);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDAllocateStringAFromW(
@@ -55,6 +95,46 @@ error:
 }
 
 uint32_t
+fwmgmt_get_rules_w(
+    PPMDHANDLE hHandle,
+    int nIPV6,
+    PPMD_RPC_FIREWALL_RULE_ARRAY *ppRuleArray
+    )
+{
+    uint32_t dwError = 0;
+    PPMD_RPC_FIREWALL_RULE_ARRAY pRuleArray = NULL;
+
+    if(!hHandle || !ppRuleArray)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(fwmgmt_privsep_rpc_get_rules(hHandle->hRpc, nIPV6, &pRuleArray),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(fwmgmt_rpc_get_rules(hHandle->hRpc, nIPV6, &pRuleArray),
+                   dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppRuleArray = pRuleArray;
+cleanup:
+    return dwError;
+
+error:
+    if(ppRuleArray)
+    {
+        *ppRuleArray = NULL;
+    }
+    goto cleanup;
+}
+
+uint32_t
 fwmgmt_get_rules(
     PPMDHANDLE hHandle,
     int nIPV6,
@@ -74,7 +154,10 @@ fwmgmt_get_rules(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    DO_RPC(fwmgmt_rpc_get_rules(hHandle->hRpc, nIPV6, &pRuleArray), dwError);
+    dwError = fwmgmt_get_rules_w(
+                  hHandle,
+                  nIPV6,
+                  &pRuleArray);
     BAIL_ON_PMD_ERROR(dwError);
 
     if(!pRuleArray || !pRuleArray->dwCount)
@@ -122,6 +205,52 @@ error:
 }
 
 uint32_t
+fwmgmt_add_rule_w(
+    PPMDHANDLE hHandle,
+    int nIPV6,
+    int nPersist,
+    const wstring_t pwszChain,
+    const wstring_t pwszRuleSpec
+    )
+{
+    uint32_t dwError = 0;
+
+    if(!hHandle || !pwszChain || !pwszRuleSpec)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(
+            fwmgmt_privsep_rpc_add_rule(
+                hHandle->hRpc,
+                nIPV6,
+                nPersist,
+                pwszChain,
+                pwszRuleSpec), dwError);
+    }
+    else
+    {
+        DO_RPC(
+            fwmgmt_rpc_add_rule(
+                hHandle->hRpc,
+                nIPV6,
+                nPersist,
+                pwszChain,
+                pwszRuleSpec), dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+uint32_t
 fwmgmt_add_rule(
     PPMDHANDLE hHandle,
     int nIPV6,
@@ -148,18 +277,63 @@ fwmgmt_add_rule(
     dwError = PMDAllocateStringWFromA(pszRuleSpec, &pwszRuleSpec);
     BAIL_ON_PMD_ERROR(dwError);
 
-    DO_RPC(
-        fwmgmt_rpc_add_rule(
-            hHandle->hRpc,
-            nIPV6,
-            nPersist,
-            pwszChain,
-            pwszRuleSpec), dwError);
+    dwError = fwmgmt_add_rule_w(
+                  hHandle,
+                  nIPV6,
+                  nPersist,
+                  pwszChain,
+                  pwszRuleSpec);
     BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:
     PMD_SAFE_FREE_MEMORY(pwszChain);
     PMD_SAFE_FREE_MEMORY(pwszRuleSpec);
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+uint32_t
+fwmgmt_delete_rule_w(
+    PPMDHANDLE hHandle,
+    int nIPV6,
+    int nPersist,
+    const wstring_t pwszChain,
+    const wstring_t pwszRuleSpec
+    )
+{
+    uint32_t dwError = 0;
+
+    if(!hHandle || !pwszChain || !pwszRuleSpec)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(
+            fwmgmt_privsep_rpc_delete_rule(
+                hHandle->hRpc,
+                nIPV6,
+                nPersist,
+                pwszChain,
+                pwszRuleSpec), dwError);
+    }
+    else
+    {
+        DO_RPC(
+            fwmgmt_rpc_delete_rule(
+                hHandle->hRpc,
+                nIPV6,
+                nPersist,
+                pwszChain,
+                pwszRuleSpec), dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
     return dwError;
 
 error:
@@ -193,13 +367,12 @@ fwmgmt_delete_rule(
     dwError = PMDAllocateStringWFromA(pszRuleSpec, &pwszRuleSpec);
     BAIL_ON_PMD_ERROR(dwError);
 
-    DO_RPC(
-        fwmgmt_rpc_delete_rule(
-            hHandle->hRpc,
-            nIPV6,
-            nPersist,
-            pwszChain,
-            pwszRuleSpec), dwError);
+    dwError = fwmgmt_delete_rule_w(
+                  hHandle,
+                  nIPV6,
+                  nPersist,
+                  pwszChain,
+                  pwszRuleSpec);
     BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:
@@ -358,6 +531,39 @@ error:
 }
 
 uint32_t
+fwmgmt_restore_w(
+    PPMDHANDLE hHandle,
+    int nIPV6,
+    PPMD_RPC_FIREWALL_TABLE_ARRAY pRpcTables
+    )
+{
+    uint32_t dwError = 0;
+
+    if(!hHandle || !pRpcTables)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(fwmgmt_privsep_rpc_restore(hHandle->hRpc, nIPV6, pRpcTables),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(fwmgmt_rpc_restore(hHandle->hRpc, nIPV6, pRpcTables), dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+uint32_t
 fwmgmt_restore(
     PPMDHANDLE hHandle,
     int nIPV6,
@@ -376,7 +582,7 @@ fwmgmt_restore(
     dwError = make_rpc_tables(pTable, &pRpcTables);
     BAIL_ON_PMD_ERROR(dwError);
 
-    DO_RPC(fwmgmt_rpc_restore(hHandle->hRpc, nIPV6, pRpcTables), dwError);
+    dwError = fwmgmt_restore_w(hHandle, nIPV6, pRpcTables);
     BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:

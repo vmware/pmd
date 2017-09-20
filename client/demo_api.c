@@ -31,7 +31,14 @@ demo_client_version(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    DO_RPC(demo_rpc_version(hHandle->hRpc, &pwszVersion), dwError);
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(demo_privsep_rpc_version(hHandle->hRpc, &pwszVersion), dwError);
+    }
+    else
+    {
+        DO_RPC(demo_rpc_version(hHandle->hRpc, &pwszVersion), dwError);
+    }
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDAllocateStringAFromW(
@@ -65,7 +72,14 @@ demo_client_isprime(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    DO_RPC(demo_rpc_isprime(hHandle->hRpc, nNumToCheck, &nIsPrime), dwError);
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(demo_privsep_rpc_isprime(hHandle->hRpc, nNumToCheck, &nIsPrime), dwError);
+    }
+    else
+    {
+        DO_RPC(demo_rpc_isprime(hHandle->hRpc, nNumToCheck, &nIsPrime), dwError);
+    }
     BAIL_ON_PMD_ERROR(dwError);
 
     *pnIsPrime = nIsPrime;
@@ -104,8 +118,16 @@ demo_client_primes(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    DO_RPC(demo_rpc_primes(hHandle->hRpc, nStart, nCount, &pIntArray),
-           dwError);
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(demo_privsep_rpc_primes(hHandle->hRpc, nStart, nCount, &pIntArray),
+               dwError);
+    }
+    else
+    {
+        DO_RPC(demo_rpc_primes(hHandle->hRpc, nStart, nCount, &pIntArray),
+               dwError);
+    }
     BAIL_ON_PMD_ERROR(dwError);
 
     if(!pIntArray)

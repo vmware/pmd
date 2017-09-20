@@ -14,6 +14,7 @@
 
 
 #include "includes.h"
+#include <pmd_netmgr.h>
 
 REST_MODULE _net_rest_module[] =
 {
@@ -105,15 +106,6 @@ REST_MODULE _net_rest_module[] =
         }
     },
     {
-        "/v1/net/firewall/rule",
-        {
-            net_rest_get_firewall_rule,
-            net_rest_put_firewall_rule,
-            NULL,
-            net_rest_delete_firewall_rule
-        }
-    },
-    {
         "/v1/net/version",
         {net_rest_get_version, NULL, NULL, NULL}
     },
@@ -151,6 +143,55 @@ cleanup:
     return dwError;
 
 error:
+    goto cleanup;
+}
+
+uint32_t
+net_open_privsep_rest(
+    PREST_AUTH pRestAuth,
+    PPMDHANDLE *phPMD
+    )
+{
+    uint32_t dwError = 0;
+    PPMDHANDLE hPMD = NULL;
+    char *pszUser = NULL;
+    char *pszPass = NULL;
+
+    if(!pRestAuth || !phPMD)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(pRestAuth->nAuthMethod != REST_AUTH_BASIC)
+    {
+        dwError = ERROR_INVALID_REST_AUTH;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = base64_get_user_pass(
+                  pRestAuth->pszAuthBase64,
+                  &pszUser,
+                  &pszPass);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = rpc_open_privsep(
+                  NET_PRIVSEP,
+                  pszUser,
+                  pszPass,
+                  NULL,
+                  &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *phPMD = hPMD;
+
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pszUser);
+    PMD_SAFE_FREE_MEMORY(pszPass);
+    return dwError;
+
+error:
+    rpc_free_handle(hPMD);
     goto cleanup;
 }
 
@@ -227,7 +268,7 @@ error:
 
 uint32_t
 net_rest_put_dns_servers(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -239,13 +280,17 @@ net_rest_put_dns_servers(
     char *pszIfName = NULL, *pszMode = NULL;
     char *pszOutputJson = NULL;
     char **ppszDnsServers = NULL;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -262,10 +307,15 @@ net_rest_put_dns_servers(
                                     &ppszDnsServers);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = nm_set_dns_servers(pszIfName,
-                                 mode,
-                                 (size_t)nCount,
-                                 (const char **)ppszDnsServers);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_set_dns_servers(
+                  hPMD,
+                  pszIfName,
+                  mode,
+                  (size_t)nCount,
+                  ppszDnsServers);
     BAIL_ON_PMD_ERROR(dwError);
 
     pRoot = json_object();
@@ -279,6 +329,7 @@ cleanup:
         json_decref(pRoot);
     }
     PMD_SAFE_FREE_MEMORY(pszMode);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -291,7 +342,7 @@ error:
 
 uint32_t
 net_rest_get_dns_servers(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -305,17 +356,24 @@ net_rest_get_dns_servers(
     json_t *pRoot = NULL;
     json_t *pServerArray = NULL;
     char *pszMode = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppOutputJson)
+    if(!pArgs || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = nm_get_dns_servers(pszIfName,
-                                 &mode,
-                                 (size_t *)&nCount,
-                                 &ppszDnsServers);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_dns_servers(
+                  hPMD,
+                  pszIfName,
+                  &mode,
+                  (size_t *)&nCount,
+                  &ppszDnsServers);
     BAIL_ON_PMD_ERROR(dwError);
 
     pRoot = json_object();
@@ -352,6 +410,7 @@ cleanup:
     }
     PMD_SAFE_FREE_MEMORY(ppszDnsServers);
     PMD_SAFE_FREE_MEMORY(pszMode);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -365,7 +424,7 @@ error:
 
 uint32_t
 net_rest_get_dns_domains(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -379,13 +438,17 @@ net_rest_get_dns_domains(
     char *pszMode = NULL;
     size_t nCount = 0;
     size_t i = 0;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppOutputJson)
+    if(!pArgs || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     if(!IsNullOrEmptyString(pszInputJson))
     {
@@ -396,7 +459,14 @@ net_rest_get_dns_domains(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = nm_get_dns_domains(pszIfName, &nCount, &ppszDnsDomains);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_dns_domains(
+                  hPMD,
+                  pszIfName,
+                  &nCount,
+                  &ppszDnsDomains);
     BAIL_ON_PMD_ERROR(dwError);
 
     pRoot = json_object();
@@ -427,6 +497,7 @@ cleanup:
         PMD_SAFE_FREE_MEMORY(ppszDnsDomains[i]);
     }
     PMD_SAFE_FREE_MEMORY(ppszDnsDomains);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -440,7 +511,7 @@ error:
 
 uint32_t
 net_rest_put_dns_domains(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -452,13 +523,17 @@ net_rest_put_dns_domains(
     json_t *pDomainsArray = NULL;
     size_t nCount = 0;
     size_t i = 0;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     if(!IsNullOrEmptyString(pszInputJson))
     {
@@ -475,9 +550,14 @@ net_rest_put_dns_domains(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = nm_set_dns_domains(pszIfName,
-                                 nCount,
-                                 (const char**)ppszDnsDomains);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_set_dns_domains(
+                  hPMD,
+                  pszIfName,
+                  nCount,
+                  ppszDnsDomains);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -492,6 +572,7 @@ cleanup:
     }
     PMD_SAFE_FREE_MEMORY(pszIfName);
     PMDFreeStringArrayWithCount(ppszDnsDomains, nCount);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -505,7 +586,7 @@ error:
 
 uint32_t
 net_rest_get_dhcp_duid(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -514,13 +595,17 @@ net_rest_get_dhcp_duid(
     char *pszIfName = NULL;
     char *pszDuid= NULL;
     json_t *pJson = NULL;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     if(!IsNullOrEmptyString(pszInputJson))
     {
@@ -535,7 +620,10 @@ net_rest_get_dhcp_duid(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = nm_get_duid(pszIfName, &pszDuid);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_duid(hPMD, pszIfName, &pszDuid);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_string_from_key_value("duid", pszDuid, &pszOutputJson);
@@ -545,6 +633,7 @@ net_rest_get_dhcp_duid(
 
 cleanup:
     PMD_SAFE_FREE_MEMORY(pszDuid);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -558,7 +647,7 @@ error:
 
 uint32_t
 net_rest_put_dhcp_duid(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -567,13 +656,17 @@ net_rest_put_dhcp_duid(
     char *pszIfName = NULL;
     char *pszDuid= NULL;
     json_t *pJson = NULL;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     if(!IsNullOrEmptyString(pszInputJson))
     {
@@ -591,7 +684,10 @@ net_rest_put_dhcp_duid(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = nm_set_duid(pszIfName, pszDuid);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_set_duid(hPMD, pszIfName, pszDuid);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -606,6 +702,7 @@ cleanup:
     }
     PMD_SAFE_FREE_MEMORY(pszIfName);
     PMD_SAFE_FREE_MEMORY(pszDuid);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -619,7 +716,7 @@ error:
 
 uint32_t
 net_rest_get_dhcp_iaid(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -629,13 +726,17 @@ net_rest_get_dhcp_iaid(
     char *pszIaid= NULL;
     json_t *pJson = NULL;
     uint32_t nIaid = 0;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     if(!IsNullOrEmptyString(pszInputJson))
     {
@@ -646,7 +747,10 @@ net_rest_get_dhcp_iaid(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = nm_get_iaid(pszIfName, &nIaid);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_iaid(hPMD, pszIfName, &nIaid);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDAllocateStringPrintf(&pszIaid, "%d", nIaid);
@@ -659,6 +763,7 @@ net_rest_get_dhcp_iaid(
 
 cleanup:
     PMD_SAFE_FREE_MEMORY(pszIaid);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -672,7 +777,7 @@ error:
 
 uint32_t
 net_rest_put_dhcp_iaid(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -682,13 +787,17 @@ net_rest_put_dhcp_iaid(
     char *pszIaid= NULL;
     json_t *pJson = NULL;
     int nIaid = 0;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     if(!IsNullOrEmptyString(pszInputJson))
     {
@@ -709,7 +818,10 @@ net_rest_put_dhcp_iaid(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = nm_set_iaid(pszIfName, nIaid);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_set_iaid(hPMD, pszIfName, nIaid);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -720,6 +832,7 @@ net_rest_put_dhcp_iaid(
 cleanup:
     PMD_SAFE_FREE_MEMORY(pszIfName);
     PMD_SAFE_FREE_MEMORY(pszIaid);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -733,7 +846,7 @@ error:
 
 uint32_t
 net_rest_ifdown(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -741,13 +854,17 @@ net_rest_ifdown(
     char *pszOutputJson = NULL;
     char *pszIfName = NULL;
     json_t *pJson = NULL;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     if(!IsNullOrEmptyString(pszInputJson))
     {
@@ -758,7 +875,10 @@ net_rest_ifdown(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = nm_ifdown(pszIfName);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_ifdown(hPMD, pszIfName);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -772,6 +892,7 @@ cleanup:
         json_decref(pJson);
     }
     PMD_SAFE_FREE_MEMORY(pszIfName);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -785,7 +906,7 @@ error:
 
 uint32_t
 net_rest_ifup(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -793,13 +914,17 @@ net_rest_ifup(
     char *pszOutputJson = NULL;
     char *pszIfName = NULL;
     json_t *pJson = NULL;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     if(!IsNullOrEmptyString(pszInputJson))
     {
@@ -810,7 +935,10 @@ net_rest_ifup(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = nm_ifup(pszIfName);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_ifup(hPMD, pszIfName);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -824,6 +952,7 @@ cleanup:
         json_decref(pJson);
     }
     PMD_SAFE_FREE_MEMORY(pszIfName);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -892,7 +1021,7 @@ error:
 
 uint32_t
 net_rest_get_ip_addr(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -904,13 +1033,17 @@ net_rest_get_ip_addr(
     uint32_t nAddrTypes = 0;
     size_t dwCount = 0;
     PNET_IP_ADDR *ppIpAddr = NULL;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     if(!IsNullOrEmptyString(pszInputJson))
     {
@@ -929,7 +1062,15 @@ net_rest_get_ip_addr(
         nAddrTypes = atoi(pszAddrType);
     }
 
-    dwError = nm_get_ip_addr(pszIfName, nAddrTypes, &dwCount, &ppIpAddr);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_ip_addr(
+                  hPMD,
+                  pszIfName,
+                  nAddrTypes,
+                  &dwCount,
+                  &ppIpAddr);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = get_addr_array_json_string(dwCount, ppIpAddr, &pszOutputJson);
@@ -944,6 +1085,7 @@ cleanup:
     }
     PMD_SAFE_FREE_MEMORY(pszIfName);
     PMD_SAFE_FREE_MEMORY(pszAddrType);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -1016,7 +1158,7 @@ error:
 
 uint32_t
 net_rest_get_static_ip_route(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -1026,13 +1168,17 @@ net_rest_get_static_ip_route(
     json_t *pJson = NULL;
     PNET_IP_ROUTE *ppIpRoutes = NULL;
     size_t dwCount = 0;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     if(!IsNullOrEmptyString(pszInputJson))
     {
@@ -1043,7 +1189,14 @@ net_rest_get_static_ip_route(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = nm_get_static_ip_routes(pszIfName, &dwCount, &ppIpRoutes);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_static_ip_routes(
+                  hPMD,
+                  pszIfName,
+                  &dwCount,
+                  &ppIpRoutes);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = get_route_array_json_string(dwCount, ppIpRoutes, &pszOutputJson);
@@ -1057,6 +1210,7 @@ cleanup:
         json_decref(pJson);
     }
     PMD_SAFE_FREE_MEMORY(pszIfName);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -1070,7 +1224,7 @@ error:
 
 uint32_t
 net_rest_put_static_ip_route(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -1079,14 +1233,19 @@ net_rest_put_static_ip_route(
     char *pszIfName = NULL;
     NET_IP_ROUTE stIpRoute = {0};
     size_t dwCount = 0;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppOutputJson)
+    if(!pArgs || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = nm_add_static_ip_route(&stIpRoute);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_add_static_ip_route(hPMD, &stIpRoute);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -1095,6 +1254,7 @@ net_rest_put_static_ip_route(
     *ppOutputJson = pszOutputJson;
 
 cleanup:
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -1108,7 +1268,7 @@ error:
 
 uint32_t
 net_rest_delete_static_ip_route(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -1117,14 +1277,19 @@ net_rest_delete_static_ip_route(
     char *pszIfName = NULL;
     NET_IP_ROUTE stIpRoute = {0};
     size_t dwCount = 0;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppOutputJson)
+    if(!pArgs || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = nm_delete_static_ip_route(&stIpRoute);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_delete_static_ip_route(hPMD, &stIpRoute);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -1133,6 +1298,7 @@ net_rest_delete_static_ip_route(
     *ppOutputJson = pszOutputJson;
 
 cleanup:
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -1146,7 +1312,7 @@ error:
 
 uint32_t
 net_rest_get_ipv4_gateway(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -1158,13 +1324,17 @@ net_rest_get_ipv4_gateway(
     char *pszGateway= NULL;
     json_t *pJson = NULL;
     NET_IPV4_ADDR_MODE nMode = IPV4_ADDR_MODE_NONE;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -1172,10 +1342,15 @@ net_rest_get_ipv4_gateway(
     dwError = json_get_string_value(pJson, "interface", &pszIfName);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = nm_get_ipv4_addr_gateway(pszIfName,
-                                       &nMode,
-                                       &pszPrefix,
-                                       &pszGateway);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_ipv4_addr_gateway(
+                  hPMD,
+                  pszIfName,
+                  &nMode,
+                  &pszPrefix,
+                  &pszGateway);
     BAIL_ON_PMD_ERROR(dwError);
 
     if(nMode == IPV4_ADDR_MODE_NONE)
@@ -1204,6 +1379,7 @@ cleanup:
     {
         json_decref(pJson);
     }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -1217,7 +1393,7 @@ error:
 
 uint32_t
 net_rest_put_ipv4_gateway(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -1229,13 +1405,17 @@ net_rest_put_ipv4_gateway(
     char *pszGateway= NULL;
     json_t *pJson = NULL;
     NET_IPV4_ADDR_MODE nMode = IPV4_ADDR_MODE_NONE;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -1261,10 +1441,15 @@ net_rest_put_ipv4_gateway(
         nMode = IPV4_ADDR_MODE_STATIC;
     }
 
-    dwError = nm_set_ipv4_addr_gateway(pszIfName,
-                                       nMode,
-                                       pszPrefix,
-                                       pszGateway);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_set_ipv4_addr_gateway(
+                  hPMD,
+                  pszIfName,
+                  nMode,
+                  pszPrefix,
+                  pszGateway);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -1281,6 +1466,7 @@ cleanup:
     {
         json_decref(pJson);
     }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -1294,7 +1480,7 @@ error:
 
 uint32_t
 net_rest_put_static_ipv6_addr(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -1303,13 +1489,17 @@ net_rest_put_static_ipv6_addr(
     char *pszIfName = NULL;
     char *pszPrefix = NULL;
     json_t *pJson = NULL;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -1320,7 +1510,10 @@ net_rest_put_static_ipv6_addr(
     dwError = json_get_string_value(pJson, "prefix", &pszPrefix);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = nm_add_static_ipv6_addr(pszIfName, pszPrefix);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_add_static_ipv6_addr(hPMD, pszIfName, pszPrefix);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -1335,6 +1528,7 @@ cleanup:
     {
         json_decref(pJson);
     }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -1348,7 +1542,7 @@ error:
 
 uint32_t
 net_rest_delete_static_ipv6_addr(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -1357,13 +1551,17 @@ net_rest_delete_static_ipv6_addr(
     char *pszIfName = NULL;
     char *pszPrefix = NULL;
     json_t *pJson = NULL;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -1374,7 +1572,10 @@ net_rest_delete_static_ipv6_addr(
     dwError = json_get_string_value(pJson, "prefix", &pszPrefix);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = nm_delete_static_ipv6_addr(pszIfName, pszPrefix);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_delete_static_ipv6_addr(hPMD, pszIfName, pszPrefix);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -1389,6 +1590,7 @@ cleanup:
     {
         json_decref(pJson);
     }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -1402,7 +1604,7 @@ error:
 
 uint32_t
 net_rest_get_ipv6_gateway(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -1411,13 +1613,17 @@ net_rest_get_ipv6_gateway(
     char *pszIfName = NULL;
     char *pszGateway = NULL;
     json_t *pJson = NULL;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -1425,7 +1631,10 @@ net_rest_get_ipv6_gateway(
     dwError = json_get_string_value(pJson, "interface", &pszIfName);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = nm_get_ipv6_gateway(pszIfName, &pszGateway);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_ipv6_gateway(hPMD, pszIfName, &pszGateway);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_string_from_key_value("gateway", pszGateway, &pszOutputJson);
@@ -1440,6 +1649,7 @@ cleanup:
     {
         json_decref(pJson);
     }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -1453,7 +1663,7 @@ error:
 
 uint32_t
 net_rest_put_ipv6_gateway(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -1462,13 +1672,17 @@ net_rest_put_ipv6_gateway(
     char *pszIfName = NULL;
     char *pszGateway = NULL;
     json_t *pJson = NULL;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -1479,7 +1693,10 @@ net_rest_put_ipv6_gateway(
     dwError = json_get_string_value(pJson, "gateway", &pszGateway);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = nm_set_ipv6_gateway(pszIfName, pszGateway);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_set_ipv6_gateway(hPMD, pszIfName, pszGateway);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -1494,6 +1711,7 @@ cleanup:
     {
         json_decref(pJson);
     }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -1507,7 +1725,7 @@ error:
 
 uint32_t
 net_rest_get_ipv6_addr_mode(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -1518,13 +1736,17 @@ net_rest_get_ipv6_addr_mode(
     PKEYVALUE pKeyValues = NULL;
     uint32_t nDhcp = 0;
     uint32_t nAutoConf = 0;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -1532,7 +1754,14 @@ net_rest_get_ipv6_addr_mode(
     dwError = json_get_string_value(pJson, "interface", &pszIfName);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = nm_get_ipv6_addr_mode(pszIfName, &nDhcp, &nAutoConf);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_ipv6_addr_mode(
+                  hPMD,
+                  pszIfName,
+                  &nDhcp,
+                  &nAutoConf);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -1545,6 +1774,7 @@ cleanup:
     {
         json_decref(pJson);
     }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -1558,7 +1788,7 @@ error:
 
 uint32_t
 net_rest_put_ipv6_addr_mode(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -1570,13 +1800,17 @@ net_rest_put_ipv6_addr_mode(
     json_t *pJson = NULL;
     uint32_t nEnableDhcp = 0;
     uint32_t nEnableAutoConf = 0;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -1593,7 +1827,14 @@ net_rest_put_ipv6_addr_mode(
     nEnableDhcp = !strcasecmp(pszDhcp, "true") ? 1 : 0;
     nEnableAutoConf = !strcasecmp(pszAutoConf, "true") ? 1 : 0;
 
-    dwError = nm_set_ipv6_addr_mode(pszIfName, nEnableDhcp, nEnableAutoConf);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_set_ipv6_addr_mode(
+                  hPMD,
+                  pszIfName,
+                  nEnableDhcp,
+                  nEnableAutoConf);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -1609,6 +1850,7 @@ cleanup:
     {
         json_decref(pJson);
     }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -1678,22 +1920,27 @@ error:
 
 uint32_t
 net_rest_get_link_info(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
     uint32_t dwError = 0;
     char *pszOutputJson = NULL;
     char *pszIfName = NULL;
+    char *pszLinkMode = NULL;
     json_t *pJson = NULL;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
     NET_LINK_INFO *pLinkInfo = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -1701,7 +1948,10 @@ net_rest_get_link_info(
     dwError = json_get_string_value(pJson, "interface", &pszIfName);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = nm_get_link_info(pszIfName, &pLinkInfo);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_link_info(hPMD, pszIfName, &pLinkInfo);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = get_link_info_json_string(pLinkInfo, &pszOutputJson);
@@ -1715,6 +1965,7 @@ cleanup:
     {
         json_decref(pJson);
     }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -1728,7 +1979,7 @@ error:
 
 uint32_t
 net_rest_get_link_mode(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -1738,13 +1989,17 @@ net_rest_get_link_mode(
     char *pszLinkMode = NULL;
     json_t *pJson = NULL;
     NET_LINK_MODE linkMode = LINK_MODE_UNKNOWN;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -1752,7 +2007,10 @@ net_rest_get_link_mode(
     dwError = json_get_string_value(pJson, "interface", &pszIfName);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = nm_get_link_mode(pszIfName, &linkMode);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_link_mode(hPMD, pszIfName, &linkMode);
     BAIL_ON_PMD_ERROR(dwError);
 
     if(linkMode == LINK_AUTO)
@@ -1775,6 +2033,7 @@ cleanup:
     {
         json_decref(pJson);
     }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -1788,7 +2047,7 @@ error:
 
 uint32_t
 net_rest_put_link_mode(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -1798,13 +2057,17 @@ net_rest_put_link_mode(
     char *pszLinkMode = NULL;
     json_t *pJson = NULL;
     NET_LINK_MODE linkMode = LINK_MODE_UNKNOWN;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -1824,7 +2087,10 @@ net_rest_put_link_mode(
         linkMode = LINK_MANUAL;
     }
 
-    dwError = nm_set_link_mode(pszIfName, linkMode);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_set_link_mode(hPMD, pszIfName, linkMode);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -1839,6 +2105,7 @@ cleanup:
     }
     PMD_SAFE_FREE_MEMORY(pszIfName);
     PMD_SAFE_FREE_MEMORY(pszLinkMode);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -1852,7 +2119,7 @@ error:
 
 uint32_t
 net_rest_get_link_mtu(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -1862,13 +2129,17 @@ net_rest_get_link_mtu(
     char *pszLinkMTU = NULL;
     json_t *pJson = NULL;
     uint32_t dwMTU = 0;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -1876,7 +2147,10 @@ net_rest_get_link_mtu(
     dwError = json_get_string_value(pJson, "interface", &pszIfName);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = nm_get_link_mtu(pszIfName, &dwMTU);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_link_mtu(hPMD, pszIfName, &dwMTU);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDAllocateStringPrintf(&pszLinkMTU, "%d", dwMTU);
@@ -1894,6 +2168,7 @@ cleanup:
     {
         json_decref(pJson);
     }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -1907,7 +2182,7 @@ error:
 
 uint32_t
 net_rest_put_link_mtu(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -1916,13 +2191,17 @@ net_rest_put_link_mtu(
     char *pszIfName = NULL;
     char *pszLinkMTU = NULL;
     json_t *pJson = NULL;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -1933,7 +2212,10 @@ net_rest_put_link_mtu(
     dwError = json_get_string_value(pJson, "link_mtu", &pszLinkMTU);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = nm_set_link_mtu(pszIfName, atoi(pszLinkMTU));
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_set_link_mtu(hPMD, pszIfName, atoi(pszLinkMTU));
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -1948,6 +2230,7 @@ cleanup:
     {
         json_decref(pJson);
     }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -1961,7 +2244,7 @@ error:
 
 uint32_t
 net_rest_get_link_state(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -1971,13 +2254,17 @@ net_rest_get_link_state(
     char *pszLinkState = "down";
     json_t *pJson = NULL;
     NET_LINK_STATE linkState;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -1985,7 +2272,10 @@ net_rest_get_link_state(
     dwError = json_get_string_value(pJson, "interface", &pszIfName);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = nm_get_link_state(pszIfName, &linkState);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_link_state(hPMD, pszIfName, &linkState);
     BAIL_ON_PMD_ERROR(dwError);
 
     if(linkState == LINK_UP)
@@ -2004,6 +2294,7 @@ cleanup:
     {
         json_decref(pJson);
     }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -2017,7 +2308,7 @@ error:
 
 uint32_t
 net_rest_put_link_state(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -2027,13 +2318,17 @@ net_rest_put_link_state(
     char *pszLinkState = NULL;
     json_t *pJson = NULL;
     NET_LINK_STATE linkState = LINK_DOWN;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -2049,7 +2344,10 @@ net_rest_put_link_state(
         linkState = LINK_UP;
     }
 
-    dwError = nm_set_link_state(pszIfName, linkState);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_set_link_state(hPMD, pszIfName, linkState);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -2064,6 +2362,7 @@ cleanup:
     {
         json_decref(pJson);
     }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -2077,7 +2376,7 @@ error:
 
 uint32_t
 net_rest_get_mac_addr(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -2086,13 +2385,17 @@ net_rest_get_mac_addr(
     char *pszIfName = NULL;
     char *pszMacAddr = NULL;
     json_t *pJson = NULL;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -2100,7 +2403,10 @@ net_rest_get_mac_addr(
     dwError = json_get_string_value(pJson, "interface", &pszIfName);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = nm_get_link_mac_addr(pszIfName, &pszMacAddr);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_mac_addr(hPMD, pszIfName, &pszMacAddr);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_string_from_key_value("mac_address", pszMacAddr, &pszOutputJson);
@@ -2115,6 +2421,7 @@ cleanup:
     {
         json_decref(pJson);
     }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -2128,7 +2435,7 @@ error:
 
 uint32_t
 net_rest_put_mac_addr(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -2137,13 +2444,17 @@ net_rest_put_mac_addr(
     char *pszIfName = NULL;
     char *pszMacAddr = NULL;
     json_t *pJson = NULL;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -2154,7 +2465,10 @@ net_rest_put_mac_addr(
     dwError = json_get_string_value(pJson, "mac_address", &pszMacAddr);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = nm_set_link_mac_addr(pszIfName, pszMacAddr);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_set_mac_addr(hPMD, pszIfName, pszMacAddr);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -2169,6 +2483,7 @@ cleanup:
     {
         json_decref(pJson);
     }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -2182,7 +2497,7 @@ error:
 
 uint32_t
 net_rest_get_version(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -2282,7 +2597,7 @@ error:
 
 uint32_t
 net_rest_put_ntp_servers(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -2291,13 +2606,17 @@ net_rest_put_ntp_servers(
     char **ppszServers = NULL;
     json_t *pJson = NULL;
     int nCount = 0;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -2308,6 +2627,11 @@ net_rest_put_ntp_servers(
                                     &ppszServers);
     BAIL_ON_PMD_ERROR(dwError);
 
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_set_ntp_servers(hPMD, nCount, ppszServers);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -2320,6 +2644,7 @@ cleanup:
     {
         json_decref(pJson);
     }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -2333,7 +2658,7 @@ error:
 
 uint32_t
 net_rest_delete_ntp_servers(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -2342,13 +2667,17 @@ net_rest_delete_ntp_servers(
     char **ppszServers = NULL;
     json_t *pJson = NULL;
     int nCount = 0;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(IsNullOrEmptyString(pszInputJson) || !ppOutputJson)
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -2370,200 +2699,7 @@ cleanup:
     {
         json_decref(pJson);
     }
-    return dwError;
-
-error:
-    if(ppOutputJson)
-    {
-        *ppOutputJson = NULL;
-    }
-    PMD_SAFE_FREE_MEMORY(pszOutputJson);
-    goto cleanup;
-}
-
-uint32_t
-get_firewall_rules_json_string(
-    size_t dwCount,
-    NET_FW_RULE **ppFwRules,
-    char **ppszJson
-    )
-{
-    uint32_t dwError = 0;
-    char *pszJson = NULL;
-    json_t *pRoot = NULL;
-    size_t i = 0;
-
-    if(dwCount == 0 || !ppFwRules || !ppszJson)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    pRoot = json_array();
-    if(!pRoot)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    for(i = 0; i < dwCount; ++i)
-    {
-        PNET_FW_RULE pFwRule = ppFwRules[i];
-        json_array_append_new(pRoot, json_string(pFwRule->pszRawFwRule));
-    }
-
-    pszJson = json_dumps(pRoot, 0);
-
-    *ppszJson = pszJson;
-
-cleanup:
-    if(pRoot)
-    {
-        json_decref(pRoot);
-    }
-    return dwError;
-
-error:
-    if(ppszJson)
-    {
-        *ppszJson = NULL;
-    }
-    PMD_SAFE_FREE_MEMORY(pszJson);
-    goto cleanup;
-}
-
-uint32_t
-net_rest_get_firewall_rule(
-    void *pInputJson,
-    void **ppOutputJson
-    )
-{
-    uint32_t dwError = 0;
-    char *pszOutputJson = NULL;
-    PNET_FW_RULE *ppFwRules = NULL;
-    size_t dwCount = 0;
-
-    if(!ppOutputJson)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = nm_get_firewall_rules(&dwCount, &ppFwRules);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = get_firewall_rules_json_string(dwCount, ppFwRules, &pszOutputJson);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    *ppOutputJson = pszOutputJson;
-
-cleanup:
-    return dwError;
-
-error:
-    if(ppOutputJson)
-    {
-        *ppOutputJson = NULL;
-    }
-    PMD_SAFE_FREE_MEMORY(pszOutputJson);
-    goto cleanup;
-}
-
-uint32_t
-net_rest_put_firewall_rule(
-    void *pInputJson,
-    void **ppOutputJson
-    )
-{
-    uint32_t dwError = 0;
-    char *pszOutputJson = NULL;
-    char *pszFwRule = NULL;
-    json_t *pJson = NULL;
-    NET_FW_RULE netFwRule = {0};
-    const char *pszInputJson = pInputJson;
-
-    if(!ppOutputJson || IsNullOrEmptyString(pszInputJson))
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = get_json_object_from_string(pszInputJson, &pJson);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = json_get_string_value(pJson, "rule", &pszFwRule);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    netFwRule.ipVersion = IPV4;
-    netFwRule.type = FW_RAW;
-    netFwRule.pszRawFwRule = pszFwRule;
-
-    dwError = nm_add_firewall_rule(&netFwRule);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = json_make_result_success(&pszOutputJson);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    *ppOutputJson = pszOutputJson;
-
-cleanup:
-    if(pJson)
-    {
-        json_decref(pJson);
-    }
-    return dwError;
-
-error:
-    if(ppOutputJson)
-    {
-        *ppOutputJson = NULL;
-    }
-    PMD_SAFE_FREE_MEMORY(pszOutputJson);
-    goto cleanup;
-}
-
-uint32_t
-net_rest_delete_firewall_rule(
-    void *pInputJson,
-    void **ppOutputJson
-    )
-{
-    uint32_t dwError = 0;
-    char *pszOutputJson = NULL;
-    char *pszFwRule = NULL;
-    json_t *pJson = NULL;
-    NET_FW_RULE netFwRule = {0};
-    const char *pszInputJson = pInputJson;
-
-    if(!ppOutputJson || IsNullOrEmptyString(pszInputJson))
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = get_json_object_from_string(pszInputJson, &pJson);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = json_get_string_value(pJson, "rule", &pszFwRule);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    netFwRule.ipVersion = IPV4;
-    netFwRule.type = FW_RAW;
-    netFwRule.pszRawFwRule = pszFwRule;
-
-    dwError = nm_delete_firewall_rule(&netFwRule);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = json_make_result_success(&pszOutputJson);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    *ppOutputJson = pszOutputJson;
-
-cleanup:
-    if(pJson)
-    {
-        json_decref(pJson);
-    }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -2577,7 +2713,7 @@ error:
 
 uint32_t
 net_rest_get_hostname(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -2585,14 +2721,19 @@ net_rest_get_hostname(
     char *pszOutputJson = NULL;
     char *pszHostname = NULL;
     json_t *pJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppOutputJson)
+    if(!pArgs || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = nm_get_hostname(&pszHostname);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_hostname(hPMD, &pszHostname);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_string_from_key_value("hostname", pszHostname, &pszOutputJson);
@@ -2602,6 +2743,8 @@ net_rest_get_hostname(
 
 cleanup:
     PMD_SAFE_FREE_MEMORY(pszHostname);
+    rpc_free_handle(hPMD);
+    rpc_free_handle(hPMD);
     return dwError;
 error:
     if(ppOutputJson)
@@ -2614,7 +2757,7 @@ error:
 
 uint32_t
 net_rest_set_hostname(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -2622,21 +2765,28 @@ net_rest_set_hostname(
     char *pszOutputJson = NULL;
     char *pszHostname = NULL;
     json_t *pJson = NULL;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppOutputJson || IsNullOrEmptyString(pszInputJson))
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_get_string_value(pJson, "hostname", &pszHostname);
     BAIL_ON_PMD_ERROR(dwError);
+ 
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = nm_set_hostname(pszHostname);
+    dwError = netmgr_client_set_hostname(hPMD, pszHostname);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -2650,6 +2800,7 @@ cleanup:
         json_decref(pJson);
     }
     PMD_SAFE_FREE_MEMORY(pszHostname);
+    rpc_free_handle(hPMD);
     return dwError;
 error:
     if(ppOutputJson)
@@ -2662,7 +2813,7 @@ error:
 
 uint32_t
 net_rest_waitforlink(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -2671,13 +2822,17 @@ net_rest_waitforlink(
     char *pszIfName = NULL;
     char *pszTimeout = NULL;
     json_t *pJson = NULL;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppOutputJson || IsNullOrEmptyString(pszInputJson))
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -2700,7 +2855,10 @@ net_rest_waitforlink(
         }
     }
 
-    dwError = nm_wait_for_link_up(pszIfName, dwTimeout);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_wait_for_link_up(hPMD, pszIfName, dwTimeout);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -2715,6 +2873,7 @@ cleanup:
     }
     PMD_SAFE_FREE_MEMORY(pszIfName);
     PMD_SAFE_FREE_MEMORY(pszTimeout);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -2728,7 +2887,7 @@ error:
 
 uint32_t
 net_rest_waitforip(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -2738,13 +2897,17 @@ net_rest_waitforip(
     char *pszTimeout = NULL;
     char *pszAddrTypes = NULL;
     json_t *pJson = NULL;
-    const char *pszInputJson = pInputJson;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppOutputJson || IsNullOrEmptyString(pszInputJson))
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pArgs->pszInputJson;
 
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
@@ -2779,7 +2942,14 @@ net_rest_waitforip(
         dwAddrTypes |= NET_ADDR_IPV6;
     }
 
-    dwError = nm_wait_for_ip(pszIfName, dwTimeout, dwAddrTypes);
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_wait_for_ip(
+                  hPMD,
+                  pszIfName,
+                  dwTimeout,
+                  dwAddrTypes);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -2795,6 +2965,7 @@ cleanup:
     PMD_SAFE_FREE_MEMORY(pszIfName);
     PMD_SAFE_FREE_MEMORY(pszTimeout);
     PMD_SAFE_FREE_MEMORY(pszAddrTypes);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -2805,4 +2976,3 @@ error:
     PMD_SAFE_FREE_MEMORY(pszOutputJson);
     goto cleanup;
 }
-

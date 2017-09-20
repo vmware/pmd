@@ -32,6 +32,7 @@
 #include <string.h>
 #include <shadow.h>
 
+#include <pmd.h>
 #include "defines.h"
 #include "structs.h"
 #include "pmdsecurity.h"
@@ -39,3 +40,5 @@
 
 #include <vmdirclient.h>
 #include <vmafdclient.h>
+#include <openssl/rsa.h>
+#include <openssl/pem.h>

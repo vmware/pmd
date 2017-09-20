@@ -17,17 +17,25 @@
 //demoapi.c
 uint32_t
 demo_version(
+    PPMDHANDLE pHandle,
     char **ppszVersion
     );
 
 uint32_t
+demo_version_w(
+    wstring_t *ppwszVersion
+    );
+
+uint32_t
 demo_isprime(
+    PPMDHANDLE pHandle,
     int nNumToCheck,
     int *pnIsPrime
     );
 
 uint32_t
 demo_primes(
+    PPMDHANDLE pHandle,
     int nStart,
     int nCount,
     int **ppnPrimes,
@@ -38,6 +46,12 @@ demo_primes(
 uint32_t
 demo_rest_get_registration(
     PREST_MODULE *ppRestModule
+    );
+
+uint32_t
+demo_rest_version_json(
+    void *pInputJson,
+    void **ppOutputJson
     );
 
 uint32_t
@@ -74,4 +88,27 @@ uint32_t
 demo_rest_delete_fav_json(
     void *pInputJson,
     void **ppOutputJson
+    );
+
+//privsep path
+uint32_t
+demo_privsep_client_version(
+    PPMDHANDLE hHandle,
+    wstring_t *ppwszVersion
+    );
+
+//rpc
+uint32_t
+demo_open_privsep(
+    PPMDHANDLE *phHandle
+    );
+
+uint32_t
+has_admin_access(
+    rpc_binding_handle_t h
+    );
+
+uint32_t
+verify_privsep_daemon(
+    rpc_binding_handle_t h
     );

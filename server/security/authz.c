@@ -483,6 +483,64 @@ error:
 }
 
 uint32_t
+is_daemon_user(
+    uid_t uid,
+    gid_t gid,
+    int *pnIsDaemonUser
+    )
+{
+    uint32_t dwError = 0;
+    int nIsDaemonUser = 0;
+    const char *pszDaemonUser = "pmd";
+    struct passwd stPwd = {0};
+    struct passwd *pResult = NULL;
+    int nPwdLength = 0;
+    char *pBuffer = NULL;
+
+    if(!pnIsDaemonUser)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    nPwdLength = sysconf(_SC_GETPW_R_SIZE_MAX);
+    if(nPwdLength <= 0)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateMemory(nPwdLength, (void **)&pBuffer);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = getpwnam_r(pszDaemonUser, &stPwd, pBuffer, nPwdLength, &pResult);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if(!pResult)
+    {
+        dwError = ERROR_PMD_NO_DAEMON_USER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(uid == stPwd.pw_uid || gid == stPwd.pw_gid)
+    {
+        nIsDaemonUser = 1;
+    }
+
+    *pnIsDaemonUser = nIsDaemonUser;
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pBuffer);
+    return dwError;
+
+error:
+    if(pnIsDaemonUser)
+    {
+        *pnIsDaemonUser = 0;
+    }
+    goto cleanup;
+}
+
+uint32_t
 pmd_check_group_membership(
     rpc_binding_handle_t h,
     uint32_t* administrator_access,
@@ -509,36 +567,67 @@ pmd_check_group_membership(
 
     gid_t* memberships = NULL;
     uint32_t num_memberships = 0;
+
+    int nBindingHasNoAuth = 0;
+    int nIsDaemonUser = 0;
+
     rpc_binding_inq_prot_seq(h, &prot_seq, &dwError);
     BAIL_ON_PMD_ERROR(dwError);
-    if (prot_seq == rpc_c_protseq_id_ncalrpc)
+
+    rpc_binding_inq_auth_caller(
+        h,
+        &hPriv,
+        &authPrinc,
+        &dwProtectLevel,
+        NULL, /* unsigned32 *authn_svc, */
+        NULL, /* unsigned32 *authz_svc, */
+        &dwError);
+    if(dwError == RPC_BINDING_HAS_NO_AUTH)
+    {
+        nBindingHasNoAuth = 1;
+        dwError = 0;
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (prot_seq == rpc_c_protseq_id_ncalrpc && nBindingHasNoAuth)
     {
         if(IsNullOrEmptyString(local_group))
         {
             dwError = ERROR_PMD_INVALID_PARAMETER;
             BAIL_ON_PMD_ERROR(dwError);
         }
+
         rpc_binding_inq_transport_info(h, &info, &dwError);
         BAIL_ON_PMD_ERROR(dwError);
+
+        //dwError might not indicate failure. check for info
+        if(!info)
+        {
+            dwError = ERROR_PMD_RPC_PEER_NOT_READY;
+            BAIL_ON_PMD_ERROR(dwError);
+        }
+
         rpc_lrpc_transport_info_inq_peer_eid(info, &uid, &gid);
-        dwError = memberships_from_uid(uid, &memberships, &num_memberships);
-        BAIL_ON_PMD_ERROR(dwError);
-        dwError = gid_from_group_name(local_group, &gid);
-        BAIL_ON_PMD_ERROR(dwError);
-        *administrator_access = member_of_groups(gid, memberships, num_memberships);
-    }
-    else
-    {
-        rpc_binding_inq_auth_caller(
-            h,
-            &hPriv,
-            &authPrinc,
-            &dwProtectLevel,
-            NULL, /* unsigned32 *authn_svc, */
-            NULL, /* unsigned32 *authz_svc, */
-            &dwError);
+
+        dwError = is_daemon_user(uid, gid, &nIsDaemonUser);
         BAIL_ON_PMD_ERROR(dwError);
 
+        if(nIsDaemonUser)
+        {
+            dwError = ERROR_PMD_IS_DAEMON_USER_GROUP;
+            BAIL_ON_PMD_ERROR(dwError);
+        }
+
+        dwError = memberships_from_uid(uid, &memberships, &num_memberships);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        dwError = gid_from_group_name(local_group, &gid);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        *administrator_access = member_of_groups(gid, memberships, num_memberships);
+    }
+    else if(!nBindingHasNoAuth)
+    {
         if(strchr((const char*)authPrinc, '@'))
         {
             uint32_t allowed;
@@ -560,17 +649,29 @@ pmd_check_group_membership(
                 dwError = ERROR_PMD_INVALID_PARAMETER;
                 BAIL_ON_PMD_ERROR(dwError);
             }
-            dwError = memberships_from_user_name((char*) authPrinc, &memberships, &num_memberships);
+
+            dwError = memberships_from_user_name(
+                          (char *)authPrinc,
+                          &memberships,
+                          &num_memberships);
             BAIL_ON_PMD_ERROR(dwError);
+
             dwError = gid_from_group_name(local_group, &gid);
             BAIL_ON_PMD_ERROR(dwError);
+
             *administrator_access = member_of_groups(gid, memberships, num_memberships);
         }
         rpc_string_free(&authPrinc, &dwError);
     }
-    PMDFreeMemory(memberships);
+    else//should not be here.
+    {
+        fprintf(stderr, "Authorization failed with insufficient data\n");
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
 
 cleanup:
+    PMDFreeMemory(memberships);
     if(administrator_access && !*administrator_access)
     {
         fprintf(stderr, "Authorization failed for group: %s\n", local_group);
@@ -578,9 +679,7 @@ cleanup:
     return dwError;
 
 error:
-    PMDFreeMemory(memberships);
     goto cleanup;
-
 }
 
 uint32_t
@@ -625,6 +724,43 @@ has_admin_access(
     )
 {
     return has_group_access(hBinding, "Administrators", "root");
+}
+
+uint32_t
+verify_privsep_daemon(
+    rpc_binding_handle_t hBinding
+    )
+{
+    uint32_t dwError = 0;
+    unsigned32 prot_seq = 0;
+    rpc_transport_info_handle_t info;
+    uid_t uid = -1;
+    gid_t gid = -1;
+
+    rpc_binding_inq_prot_seq(hBinding, &prot_seq, &dwError);
+    BAIL_ON_PMD_ERROR(dwError);
+    if (prot_seq == rpc_c_protseq_id_ncalrpc)
+    {
+        rpc_binding_inq_transport_info(hBinding, &info, &dwError);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        //dwError might not indicate failure. check for info
+        if(!info)
+        {
+            dwError = ERROR_PMD_RPC_PEER_NOT_READY;
+            BAIL_ON_PMD_ERROR(dwError);
+        }
+
+        rpc_lrpc_transport_info_inq_peer_eid(info, &uid, &gid);
+        //ensure that the peer is started by root.
+        if(uid != 0 && gid != 0)
+        {
+            dwError = ERROR_PMD_PRIVSEP_INTEGRITY;
+            BAIL_ON_PMD_ERROR(dwError);
+        }
+    }
+error:
+    return dwError;
 }
 
 uint32_t
