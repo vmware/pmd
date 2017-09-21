@@ -31,6 +31,7 @@ pmd_SOURCES = \
     pkgmgmt_sstub.c \
     pmd_sstub.c \
     netmgmt_sstub.c \
+    privsephandlelist.c \
     utils.c
 
 fwmgmt_sstub.c:

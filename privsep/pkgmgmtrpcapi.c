@@ -511,7 +511,7 @@ pkg_privsep_handle_t_rundown(void *handle)
     {
         PTDNF pTdnf = (PTDNF)handle;
 
-        TDNFCloseHandle(pTdnf);
+        pkg_close_handle_s(pTdnf);
     }
 }
 

@@ -266,6 +266,56 @@ error:
    goto cleanup;
 }
 
+void
+netmgmt_free_ip_addrs(
+    PNET_IP_ADDR *ppIpAddrArray,
+    size_t dwCount
+    )
+{
+    size_t i = 0;
+    if(!dwCount || !ppIpAddrArray)
+    {
+        return;
+    }
+    for (i = 0; i < dwCount; i++)
+    {
+        if (ppIpAddrArray[i] == NULL)
+        {
+            continue;
+        }
+        PMDFreeMemory(ppIpAddrArray[i]->pszInterfaceName);
+        PMDFreeMemory(ppIpAddrArray[i]->pszIPAddrPrefix);
+        PMDFreeMemory(ppIpAddrArray[i]);
+    }
+    PMD_SAFE_FREE_MEMORY(ppIpAddrArray);
+}
+
+void
+netmgmt_free_iproutes(
+    PNET_IP_ROUTE *ppRouteArray,
+    size_t dwCount
+    )
+{
+    size_t i = 0;
+    if(!dwCount || !ppRouteArray)
+    {
+        return;
+    }
+    for (i = 0; i < dwCount; i++)
+    {
+        if (ppRouteArray[i] == NULL)
+        {
+            continue;
+        }
+        PMDFreeMemory(ppRouteArray[i]->pszInterfaceName);
+        PMDFreeMemory(ppRouteArray[i]->pszDestNetwork);
+        PMDFreeMemory(ppRouteArray[i]->pszSourceNetwork);
+        PMDFreeMemory(ppRouteArray[i]->pszGateway);
+        PMDFreeMemory(ppRouteArray[i]);
+    }
+    PMD_SAFE_FREE_MEMORY(ppRouteArray);
+}
+
 uint32_t
 net_rest_put_dns_servers(
     void *pInput,
@@ -328,6 +378,7 @@ cleanup:
     {
         json_decref(pRoot);
     }
+    PMDFreeStringArrayWithCount(ppszDnsServers, nCount);
     PMD_SAFE_FREE_MEMORY(pszMode);
     rpc_free_handle(hPMD);
     return dwError;
@@ -497,6 +548,7 @@ cleanup:
         PMD_SAFE_FREE_MEMORY(ppszDnsDomains[i]);
     }
     PMD_SAFE_FREE_MEMORY(ppszDnsDomains);
+    PMD_SAFE_FREE_MEMORY(pszIfName);
     rpc_free_handle(hPMD);
     return dwError;
 
@@ -632,6 +684,7 @@ net_rest_get_dhcp_duid(
     *ppOutputJson = pszOutputJson;
 
 cleanup:
+    PMD_SAFE_FREE_MEMORY(pszIfName);
     PMD_SAFE_FREE_MEMORY(pszDuid);
     rpc_free_handle(hPMD);
     return dwError;
@@ -762,6 +815,7 @@ net_rest_get_dhcp_iaid(
     *ppOutputJson = pszOutputJson;
 
 cleanup:
+    PMD_SAFE_FREE_MEMORY(pszIfName);
     PMD_SAFE_FREE_MEMORY(pszIaid);
     rpc_free_handle(hPMD);
     return dwError;
@@ -1085,6 +1139,7 @@ cleanup:
     }
     PMD_SAFE_FREE_MEMORY(pszIfName);
     PMD_SAFE_FREE_MEMORY(pszAddrType);
+    netmgmt_free_ip_addrs(ppIpAddr, dwCount);
     rpc_free_handle(hPMD);
     return dwError;
 
@@ -1205,6 +1260,7 @@ net_rest_get_static_ip_route(
     *ppOutputJson = pszOutputJson;
 
 cleanup:
+    netmgmt_free_iproutes(ppIpRoutes, dwCount);
     if(pJson)
     {
         json_decref(pJson);
@@ -1774,6 +1830,7 @@ cleanup:
     {
         json_decref(pJson);
     }
+    PMD_SAFE_FREE_MEMORY(pszIfName);
     rpc_free_handle(hPMD);
     return dwError;
 
@@ -1960,6 +2017,7 @@ net_rest_get_link_info(
     *ppOutputJson = pszOutputJson;
 
 cleanup:
+    PMD_SAFE_FREE_MEMORY(pszIfName);
     nm_free_link_info(pLinkInfo);
     if(pJson)
     {
@@ -2743,7 +2801,6 @@ net_rest_get_hostname(
 
 cleanup:
     PMD_SAFE_FREE_MEMORY(pszHostname);
-    rpc_free_handle(hPMD);
     rpc_free_handle(hPMD);
     return dwError;
 error:
