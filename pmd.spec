@@ -55,6 +55,7 @@ photon management daemon cmd line cli
 %package devel
 Summary: photon management daemon client devel
 Group: Development/Libraries
+Requires: %{name} = %{version}-%{release}
 
 %description devel
 photon management daemon client devel
@@ -104,6 +105,7 @@ popd
 %install
 cd $RPM_BUILD_DIR/%{name}-%{version}
 make DESTDIR=%{buildroot} install
+rm -f %{buildroot}%{_libdir}/*.la
 
 pushd python
 python2 setup.py install --skip-build --root %{buildroot}
@@ -275,15 +277,13 @@ rm -rf %{buildroot}/*
     %attr(0766, %{name}, %{name}) %dir /var/log/%{name}
 
 %files libs
-    %{_libdir}/libpmdclient.so.*
+    %{_libdir}/libpmdclient.so*
 
 %files cli
     %{_bindir}/pmd-cli
 
 %files devel
     %{_includedir}/pmd/*.h
-    %{_libdir}/*.la
-    %{_libdir}/libpmdclient.so
     %{_libdir}/pkgconfig/pmdclient.pc
 
 %files python2

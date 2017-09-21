@@ -335,6 +335,7 @@ cleanup:
     {
         free_keyvalue(pKeyValue);
     }
+    pkg_free_cmd_args(pArgs);
     rpc_free_handle(hPMD);
     return dwError;
 
@@ -387,6 +388,7 @@ pkg_rest_get_repolist(
     *ppOutputJson = pszOutputJson;
 
 cleanup:
+    pkg_free_cmd_args(pArgs);
     rpc_free_handle(hPMD);
     return dwError;
 
@@ -463,7 +465,10 @@ pkg_rest_list(
     *ppOutputJson = pszOutputJson;
 
 cleanup:
+    pkg_free_package_info_array(pPkgInfo, dwCount);
+    pkg_free_cmd_args(pArgs);
     PMD_SAFE_FREE_MEMORY(pszScope);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -576,6 +581,7 @@ cleanup:
     {
         PMDFreeStringArrayWithCount(ppszPackages, nPkgCount);
     }
+    pkg_free_cmd_args(pArgs);
     PMD_SAFE_FREE_MEMORY(pszAlterCmd);
     PMD_SAFE_FREE_MEMORY(pszOutputKey);
     rpc_free_handle(hPMD);
@@ -790,7 +796,7 @@ pkg_json_get_alter_args(
                                 (void **)&ppszCmds);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = PMDAllocateString("update", &ppszCmds[0]);
+    dwError = PMDAllocateString(pszAlterCmd, &ppszCmds[0]);
     BAIL_ON_PMD_ERROR(dwError);
 
     for(i = 1; i < nCmdCount; ++i)

@@ -236,6 +236,10 @@ pkg_py_packages(
     }
 
 cleanup:
+    if(self && self->hHandle && hPkgHandle)
+    {
+        pkg_close_handle(self->hHandle, hPkgHandle);
+    }
     PMDFreeStringArrayWithCount(ppszPkgNameSpecs, nPkgCount);
     if(pPkgInfo)
     {
@@ -298,6 +302,10 @@ pkg_py_repos(
     }
 
 cleanup:
+    if(self && self->hHandle && hPkgHandle)
+    {
+        pkg_close_handle(self->hHandle, hPkgHandle);
+    }
     pkg_free_repos(pRepos);
     return pyRepoList;
 
@@ -331,6 +339,10 @@ pkg_py_count(
     pyCount = Py_BuildValue("I", dwCount);
 
 cleanup:
+    if(self && self->hHandle && hPkgHandle)
+    {
+        pkg_close_handle(self->hHandle, hPkgHandle);
+    }
     return pyCount;
 
 error:
@@ -439,6 +451,10 @@ pkg_py_alter(
     ppyResult = Py_None;
 
 cleanup:
+    if(self && self->hHandle && hPkgHandle)
+    {
+        pkg_close_handle(self->hHandle, hPkgHandle);
+    }
     pkg_free_solvedinfo(pSolvedInfo);
     PMD_SAFE_FREE_MEMORY(pszCmd);
     PMDFreeStringArray(ppszPackages);
@@ -580,6 +596,10 @@ pkg_py_resolve(
     BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:
+    if(self && self->hHandle && hPkgHandle)
+    {
+        pkg_close_handle(self->hHandle, hPkgHandle);
+    }
     pkg_free_solvedinfo(pSolvedInfo);
     PMDFreeStringArray(ppszPackages);
     return ppyResult;
