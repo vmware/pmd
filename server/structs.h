@@ -37,6 +37,13 @@ typedef struct _PMD_CONFIG_
     char *pszPrivsepPubKeyFile;
 }PMD_CONFIG, *PPMD_CONFIG;
 
+typedef struct _HPRIVSEP_TO_HPKG_
+{
+    PPMDHANDLE hPMD;
+    PPKGHANDLE hPkg;
+    struct _HPRIVSEP_TO_HPKG_ *pNext;
+}HPRIVSEP_TO_HPKG, *PHPRIVSEP_TO_HPKG;
+
 typedef struct _SERVER_ENV_
 {
     pthread_mutex_t mutexModuleEntries;
@@ -46,4 +53,6 @@ typedef struct _SERVER_ENV_
     PREST_PROCESSOR pRestProcessor;
     PPMD_SECURITY_CONTEXT pSecurityContext;
     PVMREST_HANDLE pRestHandle;
+    pthread_mutex_t mutexPrivSepHandleList;
+    PHPRIVSEP_TO_HPKG gpPrivSepHandleList;
 }SERVER_ENV, *PSERVER_ENV;

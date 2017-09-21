@@ -981,3 +981,21 @@ usermgmt_delete_group_w(
     PPMDHANDLE hHandle,
     const wstring_t pwszName
     );
+//privsephandlelist.c
+uint32_t
+privsep_handle_list_add(
+    PPMDHANDLE hPMD,
+    PPKGHANDLE hPkg
+    );
+
+uint32_t
+privsep_handle_list_get(
+    PPKGHANDLE hPkg,
+    PPMDHANDLE *phPMD
+    );
+
+uint32_t
+privsep_handle_list_remove(
+    PPKGHANDLE hPkg,
+    PPMDHANDLE *phPMD
+    );

@@ -214,7 +214,7 @@ cleanup:
     rpc_free_handle(hPMD);
     return dwError;
 error:
-    if(!ppOutputJson)
+    if(ppOutputJson)
     {
         *ppOutputJson = NULL;
     }

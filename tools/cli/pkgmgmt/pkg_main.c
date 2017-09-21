@@ -120,6 +120,10 @@ pkg_main(
     }
 
 cleanup:
+    if(stCliContext.hPMD && stCliContext.hPkgHandle)
+    {
+        pkg_close_handle(stCliContext.hPMD, stCliContext.hPkgHandle);
+    }
     rpc_free_handle(stCliContext.hPMD);
     if(pCmdArgs)
     {
