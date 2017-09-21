@@ -15,6 +15,104 @@
 
 #include "includes.h"
 
+typedef struct _HPRIVSEP_TO_HPKG_
+{
+    PPMDHANDLE hPMD;
+    PPKGHANDLE hPkg;
+    struct _HPRIVSEP_TO_HPKG_ *pNext;
+}HPRIVSEP_TO_HPKG, *PHPRIVSEP_TO_HPKG;
+
+PHPRIVSEP_TO_HPKG gpHandleToPkg = NULL;
+
+uint32_t
+add_handle_map(
+    PPMDHANDLE hPMD,
+    PPKGHANDLE hPkg
+    )
+{
+    uint32_t dwError = 0;
+    PHPRIVSEP_TO_HPKG pEntry = NULL;
+    if(!hPMD || !hPkg)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateMemory(sizeof(HPRIVSEP_TO_HPKG), (void **)&pEntry);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pEntry->hPMD = hPMD;
+    pEntry->hPkg = hPkg;
+
+    if(!gpHandleToPkg)
+    {
+        gpHandleToPkg = pEntry;
+    }
+    else
+    {
+        PHPRIVSEP_TO_HPKG pTemp = gpHandleToPkg;
+        while(pTemp->pNext) pTemp = pTemp->pNext;
+        pTemp->pNext = pEntry;
+    }
+
+cleanup:
+    return dwError;
+
+error:
+    PMD_SAFE_FREE_MEMORY(pEntry);
+    goto cleanup;
+}
+
+uint32_t
+get_privsep_for_pkg(
+    PPKGHANDLE hPkg,
+    PPMDHANDLE *phPMD
+    )
+{
+    uint32_t dwError = 0;
+    PHPRIVSEP_TO_HPKG pEntry = NULL;
+    PHPRIVSEP_TO_HPKG pTemp = NULL;
+    PPMDHANDLE hPMD = NULL;
+
+    if(!hPkg || !phPMD)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(!gpHandleToPkg)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    for(pTemp = gpHandleToPkg; pTemp; pTemp = pTemp->pNext)
+    {
+        if(pTemp->hPkg == hPkg)
+        {
+            hPMD = pTemp->hPMD;
+            break;
+        }
+    }
+
+    if(!hPMD)
+    {
+        dwError = ERROR_PMD_NO_DATA;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    *phPMD = hPMD;
+cleanup:
+    return dwError;
+
+error:
+    if(phPMD)
+    {
+        *phPMD = NULL;
+    }
+    goto cleanup;
+}
+
 unsigned32
 pkg_rpc_open_handle(
     handle_t hBinding,
@@ -44,10 +142,13 @@ pkg_rpc_open_handle(
     dwError = pkg_open_handle(hPMD, pArgs, &hPkgHandle);
     BAIL_ON_PMD_ERROR(dwError);
 
+    dwError = add_handle_map(hPMD, hPkgHandle);
+    BAIL_ON_PMD_ERROR(dwError);
+
     *phPkgHandle = hPkgHandle;
 
 cleanup:
-    rpc_free_handle(hPMD);
+    pkg_free_cmd_args(pArgs);
     return dwError;
 
 error:
@@ -55,6 +156,7 @@ error:
     {
         *phPkgHandle = NULL;
     }
+    rpc_free_handle(hPMD);
     goto cleanup;
 }
 
@@ -77,7 +179,7 @@ pkg_rpc_count(
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
-    dwError = rpc_open_privsep_internal(PKG_PRIVSEP, &hPMD);
+    dwError = get_privsep_for_pkg(hPkgHandle, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = pkg_count(hPMD, hPkgHandle, &dwCount);
@@ -85,7 +187,6 @@ pkg_rpc_count(
 
     *pdwCount = dwCount;
 cleanup:
-    rpc_free_handle(hPMD);
     return dwError;
 error:
 
@@ -118,7 +219,7 @@ pkg_rpc_list(
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
-    dwError = rpc_open_privsep_internal(PKG_PRIVSEP, &hPMD);
+    dwError = get_privsep_for_pkg(hPkgHandle, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = pkg_list_w(hPMD,
@@ -130,7 +231,6 @@ pkg_rpc_list(
 
     *ppInfo = pInfo;
 cleanup:
-    rpc_free_handle(hPMD);
     return dwError;
 error:
     if(ppInfo)
@@ -170,7 +270,7 @@ pkg_rpc_repolist(
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
-    dwError = rpc_open_privsep_internal(PKG_PRIVSEP, &hPMD);
+    dwError = get_privsep_for_pkg(hPkgHandle, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = pkg_repolist_w(
@@ -183,7 +283,6 @@ pkg_rpc_repolist(
     *ppRepoData = pRpcRepoDataArray;
 
 cleanup:
-    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -229,7 +328,7 @@ pkg_rpc_updateinfo_summary(
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
-    dwError = rpc_open_privsep_internal(PKG_PRIVSEP, &hPMD);
+    dwError = get_privsep_for_pkg(hPkgHandle, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = pkg_updateinfo_summary_w(
@@ -242,7 +341,6 @@ pkg_rpc_updateinfo_summary(
     *ppRpcUpdateInfoArray = pRpcUpdateInfoArray;
 
 cleanup:
-    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -278,7 +376,6 @@ pkg_rpc_version(
     *ppwszVersion = pwszVersion;
 
 cleanup:
-    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -309,7 +406,7 @@ pkg_rpc_resolve(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = rpc_open_privsep_internal(PKG_PRIVSEP, &hPMD);
+    dwError = get_privsep_for_pkg(hPkgHandle, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = pkg_resolve_w(
@@ -322,7 +419,6 @@ pkg_rpc_resolve(
     *ppSolvedInfo = pSolvedInfo;
 
 cleanup:
-    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -352,7 +448,7 @@ pkg_rpc_alter(
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
-    dwError = rpc_open_privsep_internal(PKG_PRIVSEP, &hPMD);
+    dwError = get_privsep_for_pkg(hPkgHandle, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = pkg_alter_w(
@@ -362,14 +458,12 @@ pkg_rpc_alter(
     BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:
-    rpc_free_handle(hPMD);
     return dwError;
 error:
     goto cleanup;
 }
 
-//no handle to close here as its owned
-//by the privsep daemon. close implemented there.
+//remove the handle from handle list
 void
 pkg_handle_t_rundown(void *handle)
 {
