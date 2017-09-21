@@ -335,6 +335,7 @@ cleanup:
     {
         free_keyvalue(pKeyValue);
     }
+    pkg_free_cmd_args(pArgs);
     rpc_free_handle(hPMD);
     return dwError;
 
@@ -387,6 +388,7 @@ pkg_rest_get_repolist(
     *ppOutputJson = pszOutputJson;
 
 cleanup:
+    pkg_free_cmd_args(pArgs);
     rpc_free_handle(hPMD);
     return dwError;
 
@@ -463,6 +465,8 @@ pkg_rest_list(
     *ppOutputJson = pszOutputJson;
 
 cleanup:
+    pkg_free_package_info_array(pPkgInfo, dwCount);
+    pkg_free_cmd_args(pArgs);
     PMD_SAFE_FREE_MEMORY(pszScope);
     return dwError;
 
@@ -576,6 +580,7 @@ cleanup:
     {
         PMDFreeStringArrayWithCount(ppszPackages, nPkgCount);
     }
+    pkg_free_cmd_args(pArgs);
     PMD_SAFE_FREE_MEMORY(pszAlterCmd);
     PMD_SAFE_FREE_MEMORY(pszOutputKey);
     rpc_free_handle(hPMD);
@@ -807,6 +812,7 @@ pkg_json_get_alter_args(
     *ppArgs = pArgs;
 
 cleanup:
+    pkg_free_cmd_args(pArgs);
     if(ppszCmds)
     {
         PMDFreeStringArrayWithCount(ppszCmds, nPkgCount + 1);

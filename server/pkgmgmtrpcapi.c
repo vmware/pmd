@@ -47,6 +47,7 @@ pkg_rpc_open_handle(
     *phPkgHandle = hPkgHandle;
 
 cleanup:
+    pkg_free_cmd_args(pArgs);
     rpc_free_handle(hPMD);
     return dwError;
 
