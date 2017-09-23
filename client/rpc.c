@@ -159,6 +159,7 @@ get_client_rpc_binding(
     error_status_t status;
     unsigned char* pszUPN = NULL;
     rpc_auth_identity_handle_t rpc_identity_h = NULL;
+    int nSetAuthInfo = 0;
 
     /*
      * create a string binding given the command line parameters and
@@ -177,7 +178,6 @@ get_client_rpc_binding(
                 "rpc_string_binding_compose()",
                 "get_client_rpc_binding", 1);
 
-
     rpc_binding_from_string_binding((unsigned char *)string_binding,
                                     binding_handle,
                                     &status);
@@ -189,6 +189,21 @@ get_client_rpc_binding(
     chk_dce_err(status, "rpc_string_free()", "get_client_rpc_binding", 1);
 
     if(strcmp(protocol, PROTOCOL_NCALRPC) != 0)
+    {
+        nSetAuthInfo = 1;
+    }
+    //When using the privsep endpoint, REST calls will pass
+    //in credentials. dcerpc calls have reached till this point
+    //because they passed authentication.
+    else if(!strcmp(endpoint, PMD_PRIVSEP_NCALRPC_END_POINT))
+    {
+        if(!IsNullOrEmptyString(username) &&  !IsNullOrEmptyString(password))
+        {
+            nSetAuthInfo = 1;
+        }
+    }
+
+    if(nSetAuthInfo)
     {
         if(IsNullOrEmptyString(username) ||
            IsNullOrEmptyString(password))
@@ -252,3 +267,210 @@ error:
     goto cleanup;
 }
 
+uint32_t
+rpc_open(
+    const char* pszModule,
+    const char* pszServer,
+    const char* pszUser,
+    const char* pszDomain,
+    const char* pszPass,
+    const char* pszSpn,
+    PPMDHANDLE* phHandle
+    )
+{
+    uint32_t dwError = 0;
+    PMDHANDLE* hHandle = NULL;
+    char* pszProt = PROTOCOL_TCP;
+    char* pszEndpoint = PMD_RPC_TCP_END_POINT;
+    int nIndex = 0;
+
+    KNOWN_IF_SPEC knownIfspecs[] =
+    {
+#ifdef DEMO_ENABLED
+        {"demo", demo_v1_0_c_ifspec},
+#endif
+        {"fwmgmt", fwmgmt_v1_0_c_ifspec},
+        {"pkg", pkg_v1_0_c_ifspec},
+        {"pmd", pmd_v1_0_c_ifspec},
+        {"net", netmgmt_v1_0_c_ifspec},
+        {"usermgmt", usermgmt_v1_0_c_ifspec},
+    };
+
+    int nNumKnownIfspecs =
+        sizeof(knownIfspecs)/sizeof(knownIfspecs[0]);
+
+    rpc_if_handle_t spec = NULL;
+    for(nIndex = 0; nIndex < nNumKnownIfspecs; ++nIndex)
+    {
+        if(!strcasecmp(knownIfspecs[nIndex].pszModule, pszModule))
+        {
+            spec = knownIfspecs[nIndex].interface_spec;
+            break;
+        }
+    }
+
+    if(!spec)
+    {
+        fprintf(stderr, "Module %s is not registered\n", pszModule);
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(!pszServer || !strcasecmp(pszServer, "localhost"))
+    {
+        pszProt = PROTOCOL_NCALRPC;
+        pszEndpoint = PMD_NCALRPC_END_POINT;
+    }
+
+    dwError = PMDAllocateMemory(
+                  sizeof(PMDHANDLE),
+                  (void**)&hHandle);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = get_client_rpc_binding(
+              &hHandle->hRpc,
+              spec,
+              pszServer,
+              pszUser,
+              pszDomain,
+              pszPass,
+              pszProt,
+              pszEndpoint,
+              pszSpn);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *phHandle = hHandle;
+
+cleanup:
+    return dwError;
+error:
+    if(phHandle)
+    {
+        *phHandle = NULL;
+    }
+    PMDFreeMemory(hHandle);
+    goto cleanup;
+}
+
+uint32_t
+rpc_open_privsep(
+    const char *pszModule,
+    const char* pszUser,
+    const char* pszPass,
+    const char* pszDomain,
+    PPMDHANDLE* phHandle
+    )
+{
+    uint32_t dwError = 0;
+    int nIndex = 0;
+    PPMDHANDLE hHandle = NULL;
+    struct stat stStat = {0};
+
+    KNOWN_IF_SPEC knownIfspecs[] =
+    {
+#ifdef DEMO_ENABLED
+        {"demo_privsep", demo_privsep_v1_0_c_ifspec},
+#endif
+        {"privsepd", privsepd_v1_0_c_ifspec},
+        {"pkg_privsep", pkg_privsep_v1_0_c_ifspec},
+        {"net_privsep", netmgmt_privsep_v1_0_c_ifspec},
+        {"fwmgmt_privsep", fwmgmt_privsep_v1_0_c_ifspec},
+        {"usermgmt_privsep", usermgmt_privsep_v1_0_c_ifspec},
+    };
+
+    int nNumKnownIfspecs =
+        sizeof(knownIfspecs)/sizeof(knownIfspecs[0]);
+
+    rpc_if_handle_t spec = NULL;
+
+    if(IsNullOrEmptyString(pszModule) || !phHandle)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    for(nIndex = 0; nIndex < nNumKnownIfspecs; ++nIndex)
+    {
+        if(!strcasecmp(knownIfspecs[nIndex].pszModule, pszModule))
+        {
+            spec = knownIfspecs[nIndex].interface_spec;
+            break;
+        }
+    }
+
+    if(!spec)
+    {
+        fprintf(stderr, "Module %s is not registered\n", pszModule);
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateMemory(
+                  sizeof(PMDHANDLE),
+                  (void**)&hHandle);
+    BAIL_ON_PMD_ERROR(dwError);
+    hHandle->nPrivSep = 1;
+
+    dwError = get_client_rpc_binding(
+              &hHandle->hRpc,
+              spec,
+              NULL,
+              pszUser,
+              pszDomain,
+              pszPass,
+              PROTOCOL_NCALRPC,
+              PMD_PRIVSEP_NCALRPC_END_POINT,
+              NULL);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    //make sure that the privsep server is listening.
+    rpc_mgmt_is_server_listening(hHandle->hRpc, &dwError);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    //make sure that domain socket file is owned by root
+    dwError = stat(PMD_NCALRPC_BASE_DIR "/" PMD_PRIVSEP_NCALRPC_END_POINT,
+                   &stStat);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if(stStat.st_uid != 0 || stStat.st_gid != 0)
+    {
+        dwError = ERROR_PMD_PRIVSEP_INTEGRITY;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    *phHandle = hHandle;
+cleanup:
+    return dwError;
+error:
+    if(phHandle)
+    {
+        *phHandle = NULL;
+    }
+    rpc_free_handle(hHandle);
+    goto cleanup;
+}
+
+uint32_t
+rpc_open_privsep_internal(
+    const char *pszModule,
+    PPMDHANDLE* phHandle
+    )
+{
+    return rpc_open_privsep(pszModule, NULL, NULL, NULL, phHandle);
+}
+
+void
+rpc_free_handle(
+    PPMDHANDLE hPMD
+    )
+{
+    if(!hPMD)
+    {
+        return;
+    }
+    if(hPMD->hRpc)
+    {
+        PMDRpcFreeBinding(&hPMD->hRpc);
+    }
+    PMDFreeMemory(hPMD);
+}

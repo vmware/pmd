@@ -15,6 +15,8 @@
 
 #pragma once
 
+typedef struct _PMDHANDLE_* PPMDHANDLE;
+
 #ifndef HOST_NAME_MAX
 #define HOST_NAME_MAX 256
 #endif
@@ -34,10 +36,12 @@
 #define PMD_CONFIG_FILE_NAME "/etc/pmd/pmd.conf"
 #define PMD_CONFIG_MAIN_GROUP "main"
 #define PMD_CONFIG_REST_GROUP "rest-server"
+#define PMD_CONFIG_PRIVSEP_GROUP "privsep"
 
 #define PMD_CONFIG_KEY_REST_ENABLED "enabled"
 #define PMD_CONFIG_KEY_REST_PORT    "port"
 #define PMD_CONFIG_KEY_REST_APISPEC "apispec"
+#define PMD_CONFIG_KEY_REST_AUTH    "authenticate"
 
 #define PMD_CONFIG_KEY_SERVERTYPE "servertype"
 #define PMD_CONFIG_KEY_CURRENTHASH "currenthash"
@@ -45,6 +49,14 @@
 #define PMD_CONFIG_KEY_COMPOSESERVER "composeserver"
 #define PMD_CONFIG_KEY_API_SECURITY "apisecurity"
 
+#define PMD_CONFIG_KEY_PRIVSEP_PUBKEY "pubkey"
+#define PMD_CONFIG_KEY_PRIVSEP_PRIVKEY "privkey"
+
 #define REST_COMMA "%2C"
 
 #define PMD_DEFAULT_HASH  "DEADBEEFDEADBEEF"
+
+#define FWMGMT_PRIVSEP "fwmgmt_privsep"
+#define PKG_PRIVSEP "pkg_privsep"
+#define NET_PRIVSEP "net_privsep"
+#define USERMGMT_PRIVSEP "usermgmt_privsep"

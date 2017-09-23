@@ -16,96 +16,6 @@
 #include "includes.h"
 
 uint32_t
-rpc_open(
-    const char* pszModule,
-    const char* pszServer,
-    const char* pszUser,
-    const char* pszDomain,
-    const char* pszPass,
-    const char* pszSpn,
-    PPMDHANDLE* phHandle
-    )
-{
-    uint32_t dwError = 0;
-    PMDHANDLE* hHandle = NULL;
-    char* pszProt = PROTOCOL_TCP;
-    char* pszEndpoint = PMD_RPC_TCP_END_POINT;
-    int nIndex = 0;
-
-    struct _stKnownIfspec
-    {
-        const char* pszModule;
-        rpc_if_handle_t interface_spec;
-    }knownIfspecs[] =
-    {
-#ifdef DEMO_ENABLED
-        {"demo", demo_v1_0_c_ifspec},
-#endif
-        {"fwmgmt", fwmgmt_v1_0_c_ifspec},
-        {"pkg", pkg_v1_0_c_ifspec},
-        {"pmd", pmd_v1_0_c_ifspec},
-        {"net", netmgmt_v1_0_c_ifspec},
-        {"rpmostree", rpmostree_v1_0_c_ifspec},
-        {"usermgmt", usermgmt_v1_0_c_ifspec},
-    };
-
-    int nNumKnownIfspecs =
-        sizeof(knownIfspecs)/sizeof(knownIfspecs[0]);
-
-    rpc_if_handle_t spec = NULL;
-    for(nIndex = 0; nIndex < nNumKnownIfspecs; ++nIndex)
-    {
-        if(!strcasecmp(knownIfspecs[nIndex].pszModule, pszModule))
-        {
-            spec = knownIfspecs[nIndex].interface_spec;
-            break;
-        }
-    }
-
-    if(!spec)
-    {
-        fprintf(stderr, "Module %s is not registered\n", pszModule);
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if(!pszServer || !strcasecmp(pszServer, "localhost"))
-    {
-        pszProt = PROTOCOL_NCALRPC;
-        pszEndpoint = PMD_NCALRPC_END_POINT;
-    }
-
-    dwError = PMDAllocateMemory(
-                  sizeof(PMDHANDLE),
-                  (void**)&hHandle);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = get_client_rpc_binding(
-              &hHandle->hRpc,
-              spec,
-              pszServer,
-              pszUser,
-              pszDomain,
-              pszPass,
-              pszProt,
-              pszEndpoint,
-              pszSpn);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    *phHandle = hHandle;
-
-cleanup:
-    return dwError;
-error:
-    if(phHandle)
-    {
-        *phHandle = NULL;
-    }
-    PMDFreeMemory(hHandle);
-    goto cleanup;
-}
-
-uint32_t
 pkg_open_handle(
     PPMDHANDLE hHandle,
     PTDNF_CMD_ARGS pArgs,
@@ -119,10 +29,20 @@ pkg_open_handle(
     dwError = pkg_get_rpc_cmd_args(pArgs, &pRpcArgs);
     BAIL_ON_PMD_ERROR(dwError);
 
-    DO_RPC(pkg_rpc_open_handle(
-               hHandle->hRpc,
-               pRpcArgs,
-               &hPkgHandle), dwError);
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(pkg_privsep_rpc_open_handle(
+                   hHandle->hRpc,
+                   pRpcArgs,
+                   &hPkgHandle), dwError);
+    }
+    else
+    {
+        DO_RPC(pkg_rpc_open_handle(
+                   hHandle->hRpc,
+                   pRpcArgs,
+                   &hPkgHandle), dwError);
+    }
     BAIL_ON_PMD_ERROR(dwError);
 
     *phPkgHandle = hPkgHandle;
@@ -137,6 +57,61 @@ error:
         *phPkgHandle = NULL;
     }
     goto cleanup;
+}
+
+uint32_t
+pkg_close_handle(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle
+    )
+{
+    uint32_t dwError = 0;
+
+    DO_RPC(pkg_rpc_close_handle(
+               hHandle->hRpc,
+               hPkgHandle), dwError);
+    BAIL_ON_PMD_ERROR(dwError);
+
+error:
+    return dwError;
+}
+
+uint32_t
+pkg_list_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    TDNF_SCOPE nScope,
+    PPMD_WSTRING_ARRAY pPkgNameSpecs,
+    PTDNF_RPC_PKGINFO_ARRAY* ppRpcInfo
+    )
+{
+    uint32_t dwError = 0;
+    if(!hHandle || !hPkgHandle || !pPkgNameSpecs || !ppRpcInfo)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(pkg_privsep_rpc_list(hHandle->hRpc,
+                            hPkgHandle,
+                            nScope,
+                            pPkgNameSpecs,
+                            ppRpcInfo), dwError);
+    }
+    else
+    {
+        DO_RPC(pkg_rpc_list(hHandle->hRpc,
+                            hPkgHandle,
+                            nScope,
+                            pPkgNameSpecs,
+                            ppRpcInfo), dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+error:
+    return dwError;
 }
 
 uint32_t
@@ -192,11 +167,7 @@ pkg_list(
         }
     }
 
-    DO_RPC(pkg_rpc_list(hHandle->hRpc,
-                        hPkgHandle,
-                        nScope,
-                        pPkgNameSpecs,
-                        &pRpcInfo), dwError);
+    dwError = pkg_list_w(hHandle, hPkgHandle, nScope, pPkgNameSpecs, &pRpcInfo);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDRpcClientConvertPkgInfo(pRpcInfo, &pPkgInfo);
@@ -237,7 +208,15 @@ pkg_count(
     uint32_t dwError = 0;
     uint32_t dwCount = 0;
 
-    DO_RPC(pkg_rpc_count(hHandle->hRpc, hPkgHandle, &dwCount), dwError);
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(pkg_privsep_rpc_count(hHandle->hRpc, hPkgHandle, &dwCount),
+               dwError);
+    }
+    else
+    {
+        DO_RPC(pkg_rpc_count(hHandle->hRpc, hPkgHandle, &dwCount), dwError);
+    }
     BAIL_ON_PMD_ERROR(dwError);
 
     *pdwCount = dwCount;
@@ -249,6 +228,42 @@ error:
         *pdwCount = 0;
     }
     goto cleanup;
+}
+
+
+uint32_t
+pkg_repolist_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    TDNF_REPOLISTFILTER nRepoListFilter,
+    PTDNF_RPC_REPODATA_ARRAY *ppRpcRepoDataArray
+    )
+{
+    uint32_t dwError = 0;
+    if(!hHandle || !hPkgHandle || !ppRpcRepoDataArray)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(pkg_privsep_rpc_repolist(hHandle->hRpc,
+                            hPkgHandle,
+                            nRepoListFilter,
+                            ppRpcRepoDataArray), dwError);
+    }
+    else
+    {
+        DO_RPC(pkg_rpc_repolist(hHandle->hRpc,
+                            hPkgHandle,
+                            nRepoListFilter,
+                            ppRpcRepoDataArray), dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+error:
+    return dwError;
 }
 
 uint32_t
@@ -274,10 +289,11 @@ pkg_repolist(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    DO_RPC(pkg_rpc_repolist(hHandle->hRpc,
-                            hPkgHandle,
-                            nRepoListFilter,
-                            &pRpcRepoDataArray), dwError);
+    dwError = pkg_repolist_w(
+                  hHandle,
+                  hPkgHandle,
+                  nRepoListFilter,
+                  &pRpcRepoDataArray);
     BAIL_ON_PMD_ERROR(dwError);
 
     if(!pRpcRepoDataArray || !pRpcRepoDataArray->dwCount)
@@ -326,6 +342,37 @@ error:
 }
 
 uint32_t
+pkg_updateinfo_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    PTDNF_RPC_UPDATEINFO_SUMMARY_ARRAY *ppRpcSummary
+    )
+{
+    uint32_t dwError = 0;
+    if(!hHandle || !hPkgHandle || !ppRpcSummary)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(pkg_privsep_rpc_updateinfo_summary(hHandle->hRpc,
+                                      hPkgHandle,
+                                      ppRpcSummary), dwError);
+    }
+    else
+    {
+        DO_RPC(pkg_rpc_updateinfo_summary(hHandle->hRpc,
+                                      hPkgHandle,
+                                      ppRpcSummary), dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+error:
+    return dwError;
+}
+
+uint32_t
 pkg_updateinfo(
     PPMDHANDLE hHandle,
     PPKGHANDLE hPkgHandle,
@@ -345,9 +392,7 @@ pkg_updateinfo(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    DO_RPC(pkg_rpc_updateinfo_summary(hHandle->hRpc,
-                                      hPkgHandle,
-                                      &pRpcSummary), dwError);
+    dwError = pkg_updateinfo_w(hHandle, hPkgHandle, &pRpcSummary);
     BAIL_ON_PMD_ERROR(dwError);
 
     if(!pRpcSummary || !pRpcSummary->dwCount)
@@ -375,6 +420,39 @@ error:
 }
 
 uint32_t
+pkg_updateinfo_summary_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    TDNF_AVAIL nAvail,
+    PTDNF_RPC_UPDATEINFO_SUMMARY_ARRAY *ppRpcSummary
+    )
+{
+    uint32_t dwError = 0;
+    if(!hHandle || !hPkgHandle || !ppRpcSummary)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(pkg_privsep_rpc_updateinfo_summary(hHandle->hRpc,
+                                      hPkgHandle,
+                                      ppRpcSummary), dwError);
+    }
+    else
+    {
+        DO_RPC(pkg_rpc_updateinfo_summary(hHandle->hRpc,
+                                      hPkgHandle,
+                                      ppRpcSummary), dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+error:
+    return dwError;
+}
+
+uint32_t
 pkg_updateinfo_summary(
     PPMDHANDLE hHandle,
     PPKGHANDLE hPkgHandle,
@@ -395,9 +473,11 @@ pkg_updateinfo_summary(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    DO_RPC(pkg_rpc_updateinfo_summary(hHandle->hRpc,
-                                      hPkgHandle,
-                                      &pRpcSummary), dwError);
+    dwError = pkg_updateinfo_summary_w(
+                  hHandle,
+                  hPkgHandle,
+                  nAvail,
+                  &pRpcSummary);
     BAIL_ON_PMD_ERROR(dwError);
 
     if(!pRpcSummary || !pRpcSummary->dwCount)
@@ -434,6 +514,41 @@ error:
 }
 
 uint32_t
+pkg_resolve_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    TDNF_ALTERTYPE nAlterType,
+    PTDNF_RPC_SOLVED_PKG_INFO *ppRpcSolvedInfo
+    )
+{
+    uint32_t dwError = 0;
+    if(!hHandle || !hPkgHandle || !ppRpcSolvedInfo)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(pkg_privsep_rpc_resolve(hHandle->hRpc,
+                                       hPkgHandle,
+                                       nAlterType,
+                                       ppRpcSolvedInfo), dwError);
+    }
+    else
+    {
+        DO_RPC(pkg_rpc_resolve(hHandle->hRpc,
+                               hPkgHandle,
+                               nAlterType,
+                               ppRpcSolvedInfo), dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+error:
+    return dwError;
+}
+
+uint32_t
 pkg_resolve(
     PPMDHANDLE hHandle,
     PPKGHANDLE hPkgHandle,
@@ -451,10 +566,11 @@ pkg_resolve(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    DO_RPC(pkg_rpc_resolve(hHandle->hRpc,
-                           hPkgHandle,
-                           nAlterType,
-                           &pRpcSolvedInfo), dwError);
+    dwError = pkg_resolve_w(
+                  hHandle,
+                  hPkgHandle,
+                  nAlterType,
+                  &pRpcSolvedInfo);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDRpcClientConvertSolvedPkgInfo(pRpcSolvedInfo, &pSolvedInfo);
@@ -475,6 +591,35 @@ error:
 }
 
 uint32_t
+pkg_alter_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    TDNF_ALTERTYPE nAlterType
+    )
+{
+    uint32_t dwError = 0;
+    if(!hHandle || !hPkgHandle)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(pkg_privsep_rpc_alter(hHandle->hRpc, hPkgHandle, nAlterType),
+               dwError);
+    }
+    else
+    {
+        DO_RPC(pkg_rpc_alter(hHandle->hRpc, hPkgHandle, nAlterType), dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+error:
+    return dwError;
+}
+
+uint32_t
 pkg_alter(
     PPMDHANDLE hHandle,
     PPKGHANDLE hPkgHandle,
@@ -490,7 +635,10 @@ pkg_alter(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    DO_RPC(pkg_rpc_alter(hHandle->hRpc, hPkgHandle, nAlterType), dwError);
+    dwError = pkg_alter_w(
+                  hHandle,
+                  hPkgHandle,
+                  nAlterType);
     BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:
@@ -498,6 +646,33 @@ cleanup:
 
 error:
     goto cleanup;
+}
+
+uint32_t
+pkg_version_w(
+    PPMDHANDLE hHandle,
+    wstring_t *ppwszVersion
+    )
+{
+    uint32_t dwError = 0;
+    if(!hHandle || !ppwszVersion)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(pkg_privsep_rpc_version(hHandle->hRpc, ppwszVersion), dwError);
+    }
+    else
+    {
+        DO_RPC(pkg_rpc_version(hHandle->hRpc, ppwszVersion), dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+error:
+    return dwError;
 }
 
 uint32_t
@@ -516,7 +691,7 @@ pkg_version(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    DO_RPC(pkg_rpc_version(hHandle->hRpc, &pwszVersion), dwError);
+    dwError = pkg_version_w(hHandle, &pwszVersion);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDAllocateStringAFromW(
@@ -567,166 +742,6 @@ error:
         *pdwServerType = 0;
     }
     goto cleanup;
-}
-
-uint32_t
-rpmostree_server_info(
-    PPMDHANDLE hHandle,
-    PPMD_RPMOSTREE_SERVER_INFO_A* ppInfoA
-    )
-{
-    uint32_t dwError = 0;
-    PPMD_RPMOSTREE_SERVER_INFO pInfo = NULL;
-    PPMD_RPMOSTREE_SERVER_INFO_A pInfoA = NULL;
-
-    if(!hHandle || !ppInfoA)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    DO_RPC(rpmostree_rpc_server_info(hHandle->hRpc, &pInfo), dwError);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if(!pInfo)
-    {
-        dwError = ERROR_PMD_NO_DATA;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateMemory(
-                  sizeof(PMD_RPMOSTREE_SERVER_INFO_A),
-                  (void**)&pInfoA);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    pInfoA->dwServerType = pInfo->dwServerType;
-    if(pInfo->pwszServerUrl)
-    {
-        dwError = PMDAllocateStringAFromW(
-                      pInfo->pwszServerUrl,
-                      &pInfoA->pszServerUrl);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-    if(pInfo->pwszCurrentHash)
-    {
-        dwError = PMDAllocateStringAFromW(
-                      pInfo->pwszCurrentHash,
-                      &pInfoA->pszCurrentHash);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    *ppInfoA = pInfoA;
-
-cleanup:
-    return dwError;
-
-error:
-    if(ppInfoA)
-    {
-        *ppInfoA = pInfoA;
-    }
-    rpmostree_free_server_info(pInfoA);
-    goto cleanup;
-}
-
-uint32_t
-rpmostree_client_info(
-    PPMDHANDLE hHandle,
-    PPMD_RPMOSTREE_CLIENT_INFO_A* ppInfoA
-    )
-{
-    uint32_t dwError = 0;
-    PPMD_RPMOSTREE_CLIENT_INFO_A pInfoA = NULL;
-    PPMD_RPMOSTREE_CLIENT_INFO pInfo = NULL;
-
-    if(!hHandle || !ppInfoA)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    DO_RPC(rpmostree_rpc_client_info(hHandle->hRpc, &pInfo), dwError);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if(!pInfo)
-    {
-        dwError = ERROR_PMD_NO_DATA;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateMemory(
-                  sizeof(PMD_RPMOSTREE_CLIENT_INFO_A),
-                  (void**)&pInfoA);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    pInfoA->dwServerType = pInfo->dwServerType;
-    if(pInfo->pwszComposeServer)
-    {
-        dwError = PMDAllocateStringAFromW(
-                      pInfo->pwszComposeServer,
-                      &pInfoA->pszComposeServer);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-    if(pInfo->pwszCurrentHash)
-    {
-        dwError = PMDAllocateStringAFromW(
-                      pInfo->pwszCurrentHash,
-                      &pInfoA->pszCurrentHash);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    *ppInfoA = pInfoA;
-
-cleanup:
-    rpmostree_free_client_info(pInfoA);
-    return dwError;
-
-error:
-    if(ppInfoA)
-    {
-        *ppInfoA = NULL;
-    }
-    goto cleanup;
-}
-
-uint32_t
-rpmostree_client_syncto(
-    PPMDHANDLE hHandle,
-    const char* pszHash
-    )
-{
-    uint32_t dwError = 0;
-    wstring_t pwszHash = NULL;
-
-    if(!hHandle || !pszHash)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringWFromA(pszHash, &pwszHash);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    DO_RPC(rpmostree_rpc_client_syncto(hHandle->hRpc, pwszHash), dwError);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pwszHash);
-    return dwError;
-
-error:
-    goto cleanup;
-}
-
-uint32_t
-PMDFreeHandle(
-    PPMDHANDLE hPMD
-    )
-{
-    uint32_t dwError = 0;
-    dwError = PMDRpcFreeBinding(&hPMD->hRpc);
-    PMDFreeMemory(hPMD);
-    return dwError;
 }
 
 void
@@ -807,6 +822,38 @@ pkg_free_package_info_array(
 }
 
 uint32_t
+pkg_get_error_string_w(
+    PPMDHANDLE hHandle,
+    uint32_t dwErrorCode,
+    wstring_t *ppwszError
+    )
+{
+    uint32_t dwError = 0;
+    if(!hHandle || !ppwszError)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(pkg_privsep_rpc_get_error_string(
+                   hHandle->hRpc, dwErrorCode, ppwszError),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(pkg_rpc_get_error_string(
+                   hHandle->hRpc, dwErrorCode, ppwszError),
+                   dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+error:
+    return dwError;
+}
+
+uint32_t
 pkg_get_error_string(
     PPMDHANDLE hHandle,
     uint32_t dwErrorCode,
@@ -823,8 +870,10 @@ pkg_get_error_string(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    DO_RPC(pkg_rpc_get_error_string(hHandle->hRpc, dwErrorCode, &pwszError),
-           dwError);
+    dwError = pkg_get_error_string_w(
+                  hHandle,
+                  dwErrorCode,
+                  &pwszError);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDAllocateStringAFromW(
@@ -891,32 +940,5 @@ pkg_free_solvedinfo(
         pkg_free_package_info_list(pSolvedInfo->pPkgsToReinstall);
         PMDFreeStringArray(pSolvedInfo->ppszPkgsNotResolved);
         PMD_SAFE_FREE_MEMORY(pSolvedInfo);
-    }
-}
-
-void
-rpmostree_free_server_info(
-    PPMD_RPMOSTREE_SERVER_INFO_A pInfoA
-    )
-{
-    if(pInfoA)
-    {
-        PMD_SAFE_FREE_MEMORY(pInfoA->pszServerUrl);
-        PMD_SAFE_FREE_MEMORY(pInfoA->pszCurrentHash);
-        PMD_SAFE_FREE_MEMORY(pInfoA);
-    }
-}
-
-void
-rpmostree_free_client_info(
-    PPMD_RPMOSTREE_CLIENT_INFO_A pInfoA
-    )
-{
-    if(pInfoA)
-    {
-        PMD_SAFE_FREE_MEMORY(pInfoA->pszComposeServer);
-        PMD_SAFE_FREE_MEMORY(pInfoA->pszCurrentHash);
-        PMD_SAFE_FREE_MEMORY(pInfoA->pszLastSyncDate);
-        PMD_SAFE_FREE_MEMORY(pInfoA);
     }
 }

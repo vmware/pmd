@@ -6,6 +6,7 @@ libpmdclient_la_CPPFLAGS = \
     @LW_INCLUDES@
 
 libpmdclient_la_SOURCES = \
+    gssapi_creds_plugin.c \
     fwmgmt_api.c \
     fwmgmt_cstub.c \
     pkgmgmt_api.c \
@@ -15,17 +16,24 @@ libpmdclient_la_SOURCES = \
     pkgmgmt_cstub.c \
     pmd_cstub.c \
     netmgmt_cstub.c \
-    rpmostree_cstub.c \
     netmgr_api.c \
     usermgmt_api.c \
     usermgmt_cstub.c \
-    usermgmt_rpc_misc.c
+    usermgmt_rpc_misc.c \
+    privsepd_api.c \
+    privsepd_cstub.c \
+    pkgmgmt_privsep_cstub.c \
+    netmgmt_privsep_cstub.c \
+    fwmgmt_privsep_cstub.c \
+    usermgmt_privsep_cstub.c
 
 if ENABLE_DEMO
 demo_cstub.c:
 	cp ../idl/demo_cstub.c .
+	cp ../idl/demo_privsep_cstub.c .
 
     libpmdclient_la_SOURCES += demo_cstub.c
+    libpmdclient_la_SOURCES += demo_privsep_cstub.c
     libpmdclient_la_SOURCES += demo_api.c
 endif
 
@@ -41,20 +49,38 @@ pmd_cstub.c:
 netmgmt_cstub.c:
 	cp ../idl/netmgmt_cstub.c .
 
-rpmostree_cstub.c:
-	cp ../idl/rpmostree_cstub.c .
 
 usermgmt_cstub.c:
 	cp ../idl/usermgmt_cstub.c .
 
+privsepd_cstub.c:
+	cp ../idl/privsepd_cstub.c .
+
+pkgmgmt_privsep_cstub.c:
+	cp ../idl/pkgmgmt_privsep_cstub.c .
+
+netmgmt_privsep_cstub.c:
+	cp ../idl/netmgmt_privsep_cstub.c .
+
+fwmgmt_privsep_cstub.c:
+	cp ../idl/fwmgmt_privsep_cstub.c .
+
+usermgmt_privsep_cstub.c:
+	cp ../idl/usermgmt_privsep_cstub.c .
+
 CLEANFILES = \
     demo_cstub.c \
+    demo_privsep_cstub.c \
     fwmgmt_cstub.c \
     pkgmgmt_cstub.c \
     pmd_cstub.c \
     netmgmt_cstub.c \
-    rpmostree_cstub.c \
-    usermgmt_cstub.c
+    usermgmt_cstub.c \
+    privsepd_cstub.c \
+    pkgmgmt_privsep_cstub.c \
+    netgmgmt_privsep_cstub.c \
+    fwgmgmt_privsep_cstub.c \
+    usergmgmt_privsep_cstub.c
 
 libpmdclient_la_LIBADD =  \
     @top_builddir@/common/libcommon.la \

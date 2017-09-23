@@ -17,19 +17,20 @@
 
 uint32_t
 demo_version(
+    PPMDHANDLE hPMD,
     char **ppszVersion
     )
 {
     uint32_t dwError = 0;
     char *pszVersion = NULL;
 
-    if(!ppszVersion)
+    if(hPMD && !ppszVersion)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = PMDAllocateString(DEMO_VERSION, &pszVersion);
+    dwError = demo_client_version(hPMD, &pszVersion);
     BAIL_ON_PMD_ERROR(dwError);
 
     *ppszVersion = pszVersion;
@@ -41,66 +42,35 @@ error:
     {
         *ppszVersion = NULL;
     }
-    PMD_SAFE_FREE_MEMORY(ppszVersion);
+    PMD_SAFE_FREE_MEMORY(pszVersion);
     goto cleanup;
 }
 
 uint32_t
 demo_isprime(
+    PPMDHANDLE hPMD,
     int nNumToCheck,
     int *pnIsPrime
     )
 {
     uint32_t dwError = 0;
-    int nIsPrime = 1;
-    int nLimit = 0;
-    int nIndex = 0;
 
-    if(nNumToCheck <= 0 || !pnIsPrime)
+    if(!hPMD || !pnIsPrime)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    if(nNumToCheck == 1)
-    {
-        *pnIsPrime = 0;
-        goto cleanup;
-    }
+    dwError = demo_client_isprime(hPMD, nNumToCheck, pnIsPrime);
+    BAIL_ON_PMD_ERROR(dwError);
 
-    if(nNumToCheck < 4)
-    {
-        *pnIsPrime = 1;
-        goto cleanup;
-    }
-
-    if(nNumToCheck % 2 == 0)
-    {
-        *pnIsPrime = 0;
-        goto cleanup;
-    }
-
-    nLimit = sqrt(nNumToCheck);
-    for(nIndex = 3; nIndex <= nLimit; nIndex+=2)
-    {
-        if(nNumToCheck % nIndex == 0)
-        {
-            //fprintf(stdout, "%d is divisible by %d\n", nNumber, nIndex);
-            nIsPrime = 0;
-            break;
-        }
-    }
-
-    *pnIsPrime = nIsPrime;
-
-cleanup:
-    return dwError;
 error:
-    goto cleanup; 
+    return dwError;
 }
 
 uint32_t
 demo_primes(
+    PPMDHANDLE hPMD,
     int nStart,
     int nCount,
     int **ppnPrimes,
@@ -108,49 +78,23 @@ demo_primes(
     )
 {
     uint32_t dwError = 0;
-    int nIsPrime = 0;
-    int nMaxPrimesInRange = (nCount/2) + 1;
-    int *pnPrimes = NULL;
-    int nPrimeCount = 0;
 
-    if(nStart <= 0 || nCount == 0 || !ppnPrimes)
+    if(!hPMD || nStart <= 0 || nCount == 0 || !ppnPrimes || !pnPrimeCount)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = PMDAllocateMemory(sizeof(int) * nMaxPrimesInRange,
-                                (void **)&pnPrimes);
+    dwError = demo_client_primes(
+                  hPMD,
+                  nStart,
+                  nCount,
+                  ppnPrimes,
+                  pnPrimeCount);
     BAIL_ON_PMD_ERROR(dwError);
 
-    do
-    {
-        dwError = demo_isprime(nStart, &nIsPrime);
-        BAIL_ON_PMD_ERROR(dwError);
-
-        if(nIsPrime)
-        {
-            pnPrimes[nPrimeCount++] = nStart;
-        }
-        ++nStart;
-    }while(--nCount);
-
-    *ppnPrimes = pnPrimes;
-    *pnPrimeCount = nPrimeCount;
-
-cleanup:
-    return dwError;
 error:
-    if(ppnPrimes)
-    {
-        *ppnPrimes = NULL;
-    }
-    if(pnPrimeCount)
-    {
-        *pnPrimeCount = 0;
-    }
-    PMD_SAFE_FREE_MEMORY(pnPrimes);
-    goto cleanup; 
+    return dwError;
 }
 
 uint32_t

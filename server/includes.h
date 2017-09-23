@@ -32,26 +32,30 @@
 #include <dce/dcethread.h>
 #include <dce/lrpc.h>
 #include <netdb.h>
-#include <openssl/evp.h>
-#include <openssl/bio.h>
-#include <openssl/buffer.h>
 #include <gssapi/gssapi.h>
 #include <gssapi/gssapi_generic.h>
 
 #include <vmdirclient.h>
 #include <vmafdclient.h>
 #include <vmrest.h>
+<<<<<<< HEAD
 #include <tdnf/tdnf.h>
+=======
+>>>>>>> dev-coverity
 #include <netmgmt/netmgr.h>
 #include <jansson.h>
 #include <copenapi/copenapi.h>
 #include <pmd.h>
 
-#include "../idl/fwmgmt_h.h"
+//pkgmgmt server support
 #include "../idl/pkgmgmt_h.h"
+#include <tdnf/tdnftypes.h>
+#include <pmd_pkgmgmt.h>
+#include "common/pkgmgmt_utils.h"
+
+#include "../idl/fwmgmt_h.h"
 #include "../idl/pmd_h.h"
 #include "../idl/netmgmt_h.h"
-#include "../idl/rpmostree_h.h"
 #include "../idl/usermgmt_h.h"
 
 #include "../common/includes.h"
@@ -76,3 +80,8 @@
 #include "demo/prototypes.h"
 #include "../idl/demo_h.h"
 #endif
+#include "common/prototypes.h"
+
+#include "../idl/fwmgmt_h.h"
+#include <pmd_fwmgmt.h>
+#include <pmd_usermgmt.h>

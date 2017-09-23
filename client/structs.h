@@ -18,4 +18,11 @@
 typedef struct _PMDHANDLE_
 {
     rpc_binding_handle_t hRpc;
+    int nPrivSep;
 }PMDHANDLE;
+
+typedef struct _KNOWN_IF_SPEC_
+{
+    const char* pszModule;
+    rpc_if_handle_t interface_spec;
+}KNOWN_IF_SPEC;

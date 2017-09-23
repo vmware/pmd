@@ -12,39 +12,40 @@
  * under the License.
  */
 
-
-#ifndef __RPMOSTREE_RPC_TYPES_H__
-#define __RPMOSTREE_RPC_TYPES_H__
+#ifndef __PRIVSEP_RPC_TYPES_H__
+#define __PRIVSEP_RPC_TYPES_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if (!defined NO_LIKEWISE && !defined _WIN32)
-#include <lw/types.h>
-#endif
-
 #ifdef _DCE_IDL_
 
-cpp_quote("#include <rpmostreerpctypes.h>")
+cpp_quote("#include <privseprpctypes.h>")
 cpp_quote("#if 0")
 
 #endif
 
-typedef struct _PMD_RPMOSTREE_SERVER_INFO_
+typedef enum
 {
-    unsigned32 dwServerType;
-    wstring_t pwszServerUrl;
-    wstring_t pwszCurrentHash;
-}PMD_RPMOSTREE_SERVER_INFO, *PPMD_RPMOSTREE_SERVER_INFO;
+    AUTH_MODE_USER_PASS,
+    AUTH_MODE_UID,
+    AUTH_MODE_KRB
+}PRIVSEP_AUTH_MODE;
 
-typedef struct _PMD_RPMOSTREE_CLIENT_INFO_
+typedef struct _PRIVSEP_AUTH_T_
 {
-    unsigned32 dwServerType;
-    wstring_t pwszComposeServer;
-    wstring_t pwszCurrentHash;
-    wstring_t pwszLastSyncDate;
-}PMD_RPMOSTREE_CLIENT_INFO, *PPMD_RPMOSTREE_CLIENT_INFO;
+    wstring_t pwszEncrypted;
+    wstring_t pwszContext;
+    unsigned32 uid;
+    unsigned32 gid;
+}PRIVSEP_AUTH_T, *PPRIVSEP_AUTH_T;
+
+typedef struct _PRIVSEP_AUTH_
+{
+    PRIVSEP_AUTH_MODE nAuthMode;
+    PRIVSEP_AUTH_T stAuth;
+}PRIVSEP_AUTH, *PPRIVSEP_AUTH;
 
 #ifdef _DCE_IDL_
 cpp_quote("#endif")
@@ -54,4 +55,4 @@ cpp_quote("#endif")
 }
 #endif
 
-#endif /* __RPMOSTREE_RPC_TYPES_H__ */
+#endif /* __PRIVSEP_RPC_TYPES_H__ */

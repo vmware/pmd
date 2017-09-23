@@ -22,6 +22,7 @@ typedef struct _PMD_REST_CONFIG_
 {
     int nEnabled;
     int nPort;
+    int nUseKerberos;
     char *pszApiSpec;
 }PMD_REST_CONFIG, *PPMD_REST_CONFIG;
 
@@ -33,16 +34,25 @@ typedef struct _PMD_CONFIG_
     char* pszComposeServer;
     char *pszApiSecurityConf;
     PPMD_REST_CONFIG pRestConfig;
+    char *pszPrivsepPubKeyFile;
 }PMD_CONFIG, *PPMD_CONFIG;
+
+typedef struct _HPRIVSEP_TO_HPKG_
+{
+    PPMDHANDLE hPMD;
+    PPKGHANDLE hPkg;
+    struct _HPRIVSEP_TO_HPKG_ *pNext;
+}HPRIVSEP_TO_HPKG, *PHPRIVSEP_TO_HPKG;
 
 typedef struct _SERVER_ENV_
 {
     pthread_mutex_t mutexModuleEntries;
-    pthread_mutex_t mutexPkgMgmtApi;
     PPMD_CONFIG pConfig;
     PREST_API_DEF pApiDef;
     PREST_MODULE_ENTRY pModuleEntries;
     PREST_PROCESSOR pRestProcessor;
     PPMD_SECURITY_CONTEXT pSecurityContext;
     PVMREST_HANDLE pRestHandle;
+    pthread_mutex_t mutexPrivSepHandleList;
+    PHPRIVSEP_TO_HPKG gpPrivSepHandleList;
 }SERVER_ENV, *PSERVER_ENV;

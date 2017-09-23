@@ -15,8 +15,27 @@
 
 #pragma once
 
-#define FIREWALL_API_VERSION "0.1"
-#define MAX_SCRIPT_LINE_LENGTH 1024
-#define IPTABLES_CMD "iptables"
-#define IP6TABLES_CMD "ip6tables"
-#define IPTABLES_SCRIPT_PATH "/etc/systemd/scripts/iptables"
+#include <lw/base.h>
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include <termios.h>
+
+#include <dce/rpc.h>
+#include <dce/dcethread.h>
+#include <dce/dce_error.h>
+
+#include <pmderror.h>
+ 
+#include "../idl/pmdrpctypes.h"
+#include "../idl/pkgmgmtrpctypes.h"
+
+#include <tdnf/tdnftypes.h>
+#include <pmd_pkgmgmt.h>
+
+#include "../../common/includes.h"
+#include "defines.h"
+#include "pkgmgmt_utils.h"
+#include "prototypes.h"

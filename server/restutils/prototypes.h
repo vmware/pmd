@@ -202,6 +202,7 @@ uint32_t
 process_auth(
     PVMREST_HANDLE pRestHandle,
     PREST_REQUEST pRequest,
+    const char *pszPubKeyFile,
     PREST_RESPONSE* ppResponse
     );
 
@@ -210,6 +211,7 @@ uint32_t
 rest_register_api_spec(
     PVMREST_HANDLE pRestHandle,
     PREST_API_DEF pApiDef,
+    int nUseKerberos,
     PREST_PROCESSOR *ppRestProcessor
     );
 
@@ -227,28 +229,20 @@ rest_method(
     PREST_RESPONSE* ppResponse,
     uint32_t paramsCount
     );
+
+uint32_t
+handle_options(
+    PVMREST_HANDLE pHandle,
+    PREST_REQUEST pRequest,
+    PREST_RESPONSE* ppResponse,
+    uint32_t paramsCount
+    );
+
+uint32_t
+rest_set_privsep_pubkey(
+    const char *pszPubKeyFile
+    );
 //
-uint32_t
-base64_encode(
-    const unsigned char* pszInput,
-    const size_t nInputLength,
-    char** ppszOutput
-    );
-
-uint32_t
-base64_decode(
-    const char* pszInput,
-    char** ppszOutput,
-    int *pnLength
-    );
-
-uint32_t
-split_user_and_pass(
-    const char* pszUserPass,
-    char** ppszUser,
-    char** ppszPass
-    );
-
 uint32_t
 pmd_check_password(
     const char* user_name,
@@ -290,5 +284,17 @@ uint32_t
 verify_basic_auth(
     PVMREST_HANDLE pRestHandle,
     PREST_REQUEST pRequest,
+    const char *pszPubKeyFile,
     PREST_RESPONSE* ppResponse
+    );
+
+uint32_t
+pre_process_auth(
+    PREST_AUTH_ARGS pAuthArgs,
+    PREST_AUTH *ppResult
+    );
+
+void
+free_rest_auth(
+    PREST_AUTH pResult
     );

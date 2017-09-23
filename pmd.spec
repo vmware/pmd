@@ -14,16 +14,15 @@ Requires:       netmgmt
 Requires:	systemd
 Requires:	tdnf >= 1.2.0
 Requires:	c-rest-engine
-Requires:       vmware-afd-client
-Requires:       vmware-directory-client
+Requires:       lightwave-client-libs
 Requires:       jansson
 Requires:       copenapi
+Requires:       %{name}-libs = %{version}-%{release}
 BuildRequires:	popt-devel
 BuildRequires:	rpm-devel
 BuildRequires:	tdnf-devel >= 1.2.0
 BuildRequires:	c-rest-engine-devel
-BuildRequires:  vmware-afd-client-devel
-BuildRequires:  vmware-directory-client-devel
+BuildRequires:  lightwave-devel
 BuildRequires:	netmgmt-devel
 BuildRequires:  jansson-devel
 BuildRequires:  copenapi-devel
@@ -36,11 +35,19 @@ Source0:	%{name}-%{version}.tar.gz
 %description
 Photon Management Daemon
 
+%package libs
+Summary: photon management daemon libs
+Requires: likewise-open >= 6.2.0
+
+%description libs
+photon management daemon libs used by server and clients
+
 %package cli
 BuildRequires:	netmgmt-cli-devel >= 1.0.4-2
 Summary: photon management daemon cmd line cli
+Requires: %{name}-libs = %{version}-%{release}
 Requires: likewise-open >= 6.2.0
-Requires: vmware-directory-client
+Requires: lightwave-client-libs
 
 %description cli
 photon management daemon cmd line cli
@@ -48,6 +55,7 @@ photon management daemon cmd line cli
 %package devel
 Summary: photon management daemon client devel
 Group: Development/Libraries
+Requires: %{name} = %{version}-%{release}
 
 %description devel
 photon management daemon client devel
@@ -85,6 +93,7 @@ autoreconf -mif
     --sysconfdir=/etc \
     --with-likewise=/opt/likewise \
     --enable-python=no \
+    --enable-demo=yes \
     --disable-static
 make
 
@@ -96,6 +105,7 @@ popd
 %install
 cd $RPM_BUILD_DIR/%{name}-%{version}
 make DESTDIR=%{buildroot} install
+rm -f %{buildroot}%{_libdir}/*.la
 
 pushd python
 python2 setup.py install --skip-build --root %{buildroot}
@@ -105,17 +115,19 @@ popd
 
 install -d $RPM_BUILD_ROOT/var/log/pmd
 install -D -m 444 pmd.service %{buildroot}/lib/systemd/system/pmd.service
+install -D -m 444 pmdprivsepd.service %{buildroot}/lib/systemd/system/pmdprivsepd.service
 install -D -m 444 conf/restapispec.json %{buildroot}/etc/pmd/restapispec.json
 install -D -m 444 conf/api_sddl.conf %{buildroot}/etc/pmd/api_sddl.conf
 install -D -m 444 conf/restconfig.txt %{buildroot}/etc/pmd/restconfig.txt
-install -D -m 444 conf/server.crt  %{buildroot}/etc/pmd/server.crt
-install -D -m 444 conf/server.key %{buildroot}/etc/pmd/server.key
 
 # Pre-install
 %pre
-
-    # First argument is 1 => New Installation
-    # First argument is 2 => Upgrade
+if ! getent group %{name} >/dev/null; then
+    /sbin/groupadd -r %{name}
+fi
+if ! getent passwd %{name} >/dev/null; then
+    /sbin/useradd -g %{name} %{name} -s /sbin/nologin
+fi
 
 # Post-install
 %post
@@ -125,13 +137,6 @@ install -D -m 444 conf/server.key %{buildroot}/etc/pmd/server.key
     sed -i "s/IPADDRESS_MARKER/`ifconfig eth0 | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'`/g" /etc/pmd/restapispec.json
     /sbin/ldconfig
     %systemd_post pmd.service
-    systemctl daemon-reload
-    systemctl restart pmd
-    #open port 81 for REST server
-    iptables -A INPUT -p tcp --dport 81 -j ACCEPT
-    #open port 2016 for dcerpc server
-    iptables -A INPUT -p tcp --dport 2016 -j ACCEPT
-    #persist firewall info
 
     if [ ! -d "%{_libdir}/gss" ] ; then
         mkdir %{_libdir}/gss
@@ -139,7 +144,7 @@ install -D -m 444 conf/server.key %{buildroot}/etc/pmd/server.key
 
     # Add libgssapi_unix.so to GSSAPI plugin directory
     if [ ! -h %{_libdir}/gss/libgssapi_unix.so ]; then
-        /bin/ln -sf /opt/vmware/lib64/libgssapi_unix.so %{_libdir}/gss/libgssapi_unix.so
+        /bin/ln -sf %{_libdir}/libgssapi_unix.so %{_libdir}/gss/libgssapi_unix.so
     fi
     # Add gssapi_unix plugin configuration to GSS mech file
     if [ -f "%{_mech_file}" ]; then
@@ -147,13 +152,32 @@ install -D -m 444 conf/server.key %{buildroot}/etc/pmd/server.key
             echo "unix %{_mech_id} libgssapi_unix.so" >> "%{_mech_file}"
         fi
     fi
+    chown %{name} /var/lib/likewise/rpc
 
+    if [ "$1" = 1 ]; then
+      openssl req \
+          -new \
+          -newkey rsa:2048 \
+          -days 365 \
+          -nodes \
+          -x509 \
+          -subj "/C=US/ST=WA/L=Bellevue/O=vmware/CN=photon-pmd-default" \
+          -keyout /etc/pmd/server.key \
+          -out /etc/pmd/server.crt
+      chmod 0400 /etc/pmd/server.key
+      chown %{name} /etc/pmd/server.key
+      openssl genrsa -out /etc/pmd/privsep_priv.key 2048
+      openssl rsa -in /etc/pmd/privsep_priv.key -pubout > /etc/pmd/privsep_pub.key
+      chmod 0400 /etc/pmd/privsep*.key
+      chown %{name} /etc/pmd/privsep_pub.key
+    fi
 # Pre-uninstall
 %preun
 
     # First argument is 0 => Uninstall
     # First argument is 1 => Upgrade
     %systemd_preun pmd.service
+    %systemd_preun pmdprivsepd.service
 if [ "$1" = 0 ]; then
     if [ ! -e %{_bindir}/pmd-cli ]; then
         # Cleanup GSSAPI UNIX symlink
@@ -175,12 +199,23 @@ fi
 
 # Post-uninstall
 %postun
-
     /sbin/ldconfig
+
+    %systemd_postun_with_restart pmd.service
+    %systemd_postun_with_restart pmdprivsepd.service
 
     # First argument is 0 => Uninstall
     # First argument is 1 => Upgrade
-    %systemd_postun_with_restart pmd.service
+if [ $1 -eq 0 ] ; then
+    if getent passwd %{name} >/dev/null; then
+        chown root /var/lib/likewise/rpc
+        /sbin/userdel %{name}
+    fi
+    if getent group %{name} >/dev/null; then
+        /sbin/groupdel %{name}
+    fi
+fi
+
 
 # Post pmd-cli
 %post cli
@@ -190,7 +225,7 @@ fi
 
     # Add libgssapi_unix.so to GSSAPI plugin directory
     if [ ! -h %{_libdir}/gss/libgssapi_unix.so ]; then
-        /bin/ln -sf /opt/vmware/lib64/libgssapi_unix.so %{_libdir}/gss/libgssapi_unix.so
+        /bin/ln -sf %{_libdir}/libgssapi_unix.so %{_libdir}/gss/libgssapi_unix.so
     fi
     # Add gssapi_unix plugin configuration to GSS mech file
     if [ -f "%{_mech_file}" ]; then
@@ -232,23 +267,23 @@ rm -rf %{buildroot}/*
 %files
     %defattr(-,root,root,0755)
     %{_bindir}/pmd
+    %{_bindir}/pmdprivsepd
     /lib/systemd/system/pmd.service
+    /lib/systemd/system/pmdprivsepd.service
     /etc/pmd/pmd.conf
     /etc/pmd/api_sddl.conf
     /etc/pmd/restapispec.json
     /etc/pmd/restconfig.txt
-    /etc/pmd/server.crt
-    /etc/pmd/server.key
-    %dir /var/log/pmd
+    %attr(0766, %{name}, %{name}) %dir /var/log/%{name}
+
+%files libs
+    %{_libdir}/libpmdclient.so*
 
 %files cli
     %{_bindir}/pmd-cli
-    %{_libdir}/libpmdclient.so.*
 
 %files devel
     %{_includedir}/pmd/*.h
-    %{_libdir}/*.la
-    %{_libdir}/libpmdclient.so
     %{_libdir}/pkgconfig/pmdclient.pc
 
 %files python2

@@ -1,0 +1,83 @@
+/*
+ * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License.  You may obtain a copy
+ * of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, without
+ * warranties or conditions of any kind, EITHER EXPRESS OR IMPLIED.  See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ */
+
+
+[
+    uuid (4c9853bf-d918-4faa-a2b9-245a9f103cb9),
+    version(1.0),
+    pointer_default(unique)
+]
+
+interface usermgmt_privsep
+{
+#include <lw/types.h>
+#include "pmdrpctypes.h"
+#include "usermgmtrpctypes.h"
+
+    unsigned32
+    usermgmt_privsep_rpc_version(
+        [in] handle_t hBinding,
+        [out] wstring_t* ppwszVersion
+        );
+
+    unsigned32
+    usermgmt_privsep_rpc_add_user(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszName
+        );
+
+    unsigned32
+    usermgmt_privsep_rpc_delete_user(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszName
+        );
+
+    unsigned32
+    usermgmt_privsep_rpc_add_group(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszName
+        );
+
+    unsigned32
+    usermgmt_privsep_rpc_delete_group(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszName
+        );
+
+    unsigned32
+    usermgmt_privsep_rpc_get_userid(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszName,
+        [out] unsigned32 *pnUID
+        );
+
+    unsigned32
+    usermgmt_privsep_rpc_get_groupid(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszName,
+        [out] unsigned32 *pnGID
+        );
+
+    unsigned32
+    usermgmt_privsep_rpc_get_users(
+        [in] handle_t hBinding,
+        [out] PPMD_RPC_USER_ARRAY *ppUserArray
+        );
+
+    unsigned32
+    usermgmt_privsep_rpc_get_groups(
+        [in] handle_t hBinding,
+        [out] PPMD_RPC_GROUP_ARRAY *ppGroupArray
+        );
+}

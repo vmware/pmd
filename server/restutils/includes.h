@@ -37,3 +37,6 @@
 #include "defines.h"
 #include "structs.h"
 #include "prototypes.h"
+#include "global.h"
+
+#include "../security/includes.h"

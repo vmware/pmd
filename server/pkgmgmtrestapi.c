@@ -183,13 +183,62 @@ error:
     {
         *ppArgs = NULL;
     }
-    TDNFFreeCmdArgs(pArgs);
+    pkg_free_cmd_args(pArgs);
+    goto cleanup;
+}
+
+uint32_t
+pkg_open_privsep_rest(
+    PREST_AUTH pRestAuth,
+    PPMDHANDLE *phPMD
+    )
+{
+    uint32_t dwError = 0;
+    PPMDHANDLE hPMD = NULL;
+    char *pszUser = NULL;
+    char *pszPass = NULL;
+
+    if(!pRestAuth || !phPMD)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(pRestAuth->nAuthMethod != REST_AUTH_BASIC)
+    {
+        dwError = ERROR_INVALID_REST_AUTH;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = base64_get_user_pass(
+                  pRestAuth->pszAuthBase64,
+                  &pszUser,
+                  &pszPass);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = rpc_open_privsep(
+                  PKG_PRIVSEP,
+                  pszUser,
+                  pszPass,
+                  NULL,
+                  &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *phPMD = hPMD;
+
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pszUser);
+    PMD_SAFE_FREE_MEMORY(pszPass);
+    return dwError;
+
+error:
+    rpc_free_handle(hPMD);
     goto cleanup;
 }
 
 uint32_t
 pkg_rest_get_version(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -197,17 +246,21 @@ pkg_rest_get_version(
     char *pszVersion = NULL;
     char *pszOutputJson = NULL;
     PKEYVALUE pKeyValue = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
-    if(!ppOutputJson)
+    if(!pArgs || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+    dwError = pkg_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = make_keyvalue("version", NULL, &pKeyValue);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = pkg_version_s(&pKeyValue->pszValue);
+    dwError = pkg_version(hPMD, &pKeyValue->pszValue);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = get_json_string(pKeyValue, &pszOutputJson);
@@ -220,6 +273,7 @@ cleanup:
     {
         free_keyvalue(pKeyValue);
     }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -233,7 +287,7 @@ error:
 
 uint32_t
 pkg_rest_get_count(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -242,25 +296,30 @@ pkg_rest_get_count(
     char *pszOutputJson = NULL;
     PKEYVALUE pKeyValue = NULL;
     PTDNF_CMD_ARGS pArgs = NULL;
-    PTDNF pTdnf = NULL;
     const char *ppszCmds[] = {"count"};
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pRestArgs = (PREST_FN_ARGS)pInput;
+    PPKGHANDLE hPkgHandle = NULL;
 
-    if(!ppOutputJson)
+    if(!pRestArgs || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
+    dwError = pkg_open_privsep_rest(pRestArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
     dwError = pkg_rest_get_cmd_args(ppszCmds, 1, &pArgs);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = TDNFOpenHandle(pArgs, &pTdnf);
+    dwError = pkg_open_handle(hPMD, pArgs, &hPkgHandle);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = pkg_count(hPMD, hPkgHandle, &dwCount);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = make_keyvalue("count", NULL, &pKeyValue);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = pkg_count_s(pTdnf, &dwCount);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDAllocateStringPrintf(&pKeyValue->pszValue, "%d", dwCount);
@@ -272,14 +331,12 @@ pkg_rest_get_count(
     *ppOutputJson = pszOutputJson;
 
 cleanup:
-    if(pTdnf)
-    {
-        TDNFCloseHandle(pTdnf);
-    }
     if(pKeyValue)
     {
         free_keyvalue(pKeyValue);
     }
+    pkg_free_cmd_args(pArgs);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -293,7 +350,7 @@ error:
 
 uint32_t
 pkg_rest_get_repolist(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
@@ -301,23 +358,28 @@ pkg_rest_get_repolist(
     uint32_t dwCount = 0;
     char *pszOutputJson = NULL;
     PTDNF_CMD_ARGS pArgs = NULL;
-    PTDNF pTdnf = NULL;
     PTDNF_REPO_DATA pRepoData = NULL;
     const char *ppszCmds[] = {"repolist"};
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pRestArgs = (PREST_FN_ARGS)pInput;
+    PPKGHANDLE hPkgHandle = NULL;
 
-    if(!ppOutputJson)
+    if(!pRestArgs || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
+    dwError = pkg_open_privsep_rest(pRestArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
     dwError = pkg_rest_get_cmd_args(ppszCmds, 1, &pArgs);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = TDNFOpenHandle(pArgs, &pTdnf);
+    dwError = pkg_open_handle(hPMD, pArgs, &hPkgHandle);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = pkg_repolist_s(pTdnf, 0, &pRepoData);
+    dwError = pkg_repolist(hPMD, hPkgHandle, REPOLISTFILTER_ALL, &pRepoData);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = get_repodata_json_string(pRepoData, &pszOutputJson);
@@ -326,10 +388,8 @@ pkg_rest_get_repolist(
     *ppOutputJson = pszOutputJson;
 
 cleanup:
-    if(pTdnf)
-    {
-        TDNFCloseHandle(pTdnf);
-    }
+    pkg_free_cmd_args(pArgs);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -343,14 +403,13 @@ error:
 
 uint32_t
 pkg_rest_list(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
     uint32_t dwError = 0;
     uint32_t dwCount = 0;
     PTDNF_CMD_ARGS pArgs = NULL;
-    PTDNF pTdnf = NULL;
     PTDNF_PKG_INFO pPkgInfo = NULL;
     TDNF_SCOPE nScope = SCOPE_ALL;
     json_t *pJson = NULL;
@@ -358,13 +417,18 @@ pkg_rest_list(
     char *pszPkgNameSpecs[] = {NULL};
     char *pszOutputJson = NULL;
     const char *ppszCmds[] = {"list"};
-    const char *pszInputJson = pInputJson;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pRestArgs = (PREST_FN_ARGS)pInput;
+    const char *pszInputJson = NULL;
+    PPKGHANDLE hPkgHandle = NULL;
 
-    if(!ppOutputJson)
+    if(!pRestArgs || !ppOutputJson)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    pszInputJson = pRestArgs->pszInputJson;
 
     if(pszInputJson)
     {
@@ -378,13 +442,21 @@ pkg_rest_list(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
+    dwError = pkg_open_privsep_rest(pRestArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
     dwError = pkg_rest_get_cmd_args(ppszCmds, 1, &pArgs);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = TDNFOpenHandle(pArgs, &pTdnf);
+    dwError = pkg_open_handle(hPMD, pArgs, &hPkgHandle);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = pkg_list_s(pTdnf, nScope, pszPkgNameSpecs, &pPkgInfo, &dwCount);
+    dwError = pkg_list(hPMD,
+                       hPkgHandle,
+                       nScope,
+                       pszPkgNameSpecs,
+                       &pPkgInfo,
+                       &dwCount);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = get_pkginfo_json_string(pPkgInfo, dwCount, &pszOutputJson);
@@ -393,11 +465,10 @@ pkg_rest_list(
     *ppOutputJson = pszOutputJson;
 
 cleanup:
-    if(pTdnf)
-    {
-        TDNFCloseHandle(pTdnf);
-    }
+    pkg_free_package_info_array(pPkgInfo, dwCount);
+    pkg_free_cmd_args(pArgs);
     PMD_SAFE_FREE_MEMORY(pszScope);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -412,7 +483,7 @@ error:
 uint32_t
 pkg_rest_alter(
     TDNF_ALTERTYPE nAlterType,
-    const char *pszInputJson,
+    PREST_FN_ARGS pRestArgs,
     void **ppOutputJson
     )
 {
@@ -424,9 +495,19 @@ pkg_rest_alter(
     json_t *pRoot = NULL;
     json_t *pRequestArray = NULL;
     PTDNF_CMD_ARGS pArgs = NULL;
-    PTDNF pTdnf = NULL;
     int nPkgCount = 0;
     int i = 0;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PPKGHANDLE hPkgHandle = NULL;
+
+    if(!pRestArgs || !ppOutputJson)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    pszInputJson = pRestArgs->pszInputJson;
 
     if(nAlterType == ALTER_INSTALL ||
        nAlterType == ALTER_ERASE ||
@@ -437,12 +518,6 @@ pkg_rest_alter(
             dwError = ERROR_PMD_INVALID_PARAMETER;
             BAIL_ON_PMD_ERROR(dwError);
         }
-    }
-
-    if(!ppOutputJson)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
     }
 
     if(pszInputJson)
@@ -463,10 +538,14 @@ pkg_rest_alter(
                                       &pArgs);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = TDNFOpenHandle(pArgs, &pTdnf);
+    dwError = pkg_open_privsep_rest(pRestArgs->pAuthArgs->pRestAuth, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = pkg_alter_s(pTdnf, nAlterType);
+    dwError = pkg_open_handle(hPMD, pArgs, &hPkgHandle);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    //server will call resolve and alter - hence null for solvedinfo
+    dwError = pkg_alter(hPMD, hPkgHandle, nAlterType, NULL);
     BAIL_ON_PMD_ERROR(dwError);
 
     pRoot = json_object();
@@ -502,12 +581,10 @@ cleanup:
     {
         PMDFreeStringArrayWithCount(ppszPackages, nPkgCount);
     }
+    pkg_free_cmd_args(pArgs);
     PMD_SAFE_FREE_MEMORY(pszAlterCmd);
     PMD_SAFE_FREE_MEMORY(pszOutputKey);
-    if(pTdnf)
-    {
-        TDNFCloseHandle(pTdnf);
-    }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -521,56 +598,56 @@ error:
 
 uint32_t
 pkg_rest_install(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
-    return pkg_rest_alter(ALTER_INSTALL, pInputJson, ppOutputJson);
+    return pkg_rest_alter(ALTER_INSTALL, pInput, ppOutputJson);
 }
 
 uint32_t
 pkg_rest_update(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
-    return pkg_rest_alter(ALTER_UPGRADE, pInputJson, ppOutputJson);
+    return pkg_rest_alter(ALTER_UPGRADE, pInput, ppOutputJson);
 }
 
 uint32_t
 pkg_rest_erase(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
-    return pkg_rest_alter(ALTER_ERASE, pInputJson, ppOutputJson);
+    return pkg_rest_alter(ALTER_ERASE, pInput, ppOutputJson);
 }
 
 uint32_t
 pkg_rest_distro_sync(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
-    return pkg_rest_alter(ALTER_DISTRO_SYNC, pInputJson, ppOutputJson);
+    return pkg_rest_alter(ALTER_DISTRO_SYNC, pInput, ppOutputJson);
 }
 
 uint32_t
 pkg_rest_downgrade(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
-    return pkg_rest_alter(ALTER_DOWNGRADE, pInputJson, ppOutputJson);
+    return pkg_rest_alter(ALTER_DOWNGRADE, pInput, ppOutputJson);
 }
 
 uint32_t
 pkg_rest_reinstall(
-    void *pInputJson,
+    void *pInput,
     void **ppOutputJson
     )
 {
-    return pkg_rest_alter(ALTER_REINSTALL, pInputJson, ppOutputJson);
+    return pkg_rest_alter(ALTER_REINSTALL, pInput, ppOutputJson);
 }
 
 uint32_t
@@ -719,7 +796,7 @@ pkg_json_get_alter_args(
                                 (void **)&ppszCmds);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = PMDAllocateString("update", &ppszCmds[0]);
+    dwError = PMDAllocateString(pszAlterCmd, &ppszCmds[0]);
     BAIL_ON_PMD_ERROR(dwError);
 
     for(i = 1; i < nCmdCount; ++i)

@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
  
 #include <dce/rpc.h>
 #include <dce/dcethread.h>
@@ -31,11 +32,17 @@
 #include "../idl/pkgmgmt_h.h"
 #include "../idl/pmd_h.h"
 #include "../idl/netmgmt_h.h"
-#include "../idl/rpmostree_h.h"
 #include "../idl/usermgmt_h.h"
+
+#include "../idl/privsepd_h.h"
+#include "../idl/pkgmgmt_privsep_h.h"
+#include "../idl/netmgmt_privsep_h.h"
+#include "../idl/fwmgmt_privsep_h.h"
+#include "../idl/usermgmt_privsep_h.h"
 
 #ifdef DEMO_ENABLED
 #include "../idl/demo_h.h"
+#include "../idl/demo_privsep_h.h"
 #endif
 
 #include "../common/includes.h"
@@ -53,3 +60,4 @@
 
 #include <netmgmt/netmgr.h>
 #include "pmd_netmgr.h"
+#include <gssapi_creds_plugin.h>

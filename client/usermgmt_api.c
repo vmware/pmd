@@ -16,6 +16,42 @@
 #include "includes.h"
 
 uint32_t
+usermgmt_get_version_w(
+    PPMDHANDLE hHandle,
+    wstring_t *ppwszVersion
+    )
+{
+    uint32_t dwError = 0;
+    wstring_t pwszVersion = NULL;
+
+    if(!hHandle || !ppwszVersion)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(usermgmt_privsep_rpc_version(hHandle->hRpc, &pwszVersion),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(usermgmt_rpc_version(hHandle->hRpc, &pwszVersion), dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszVersion = pwszVersion;
+
+cleanup:
+    return dwError;
+
+error:
+    PMDRpcClientFreeStringW(pwszVersion);
+    goto cleanup;
+}
+
+uint32_t
 usermgmt_get_version(
     PPMDHANDLE hHandle,
     char **ppszVersion
@@ -31,7 +67,7 @@ usermgmt_get_version(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    DO_RPC(usermgmt_rpc_version(hHandle->hRpc, &pwszVersion), dwError);
+    dwError = usermgmt_get_version_w(hHandle, &pwszVersion);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDAllocateStringAFromW(
@@ -46,6 +82,47 @@ cleanup:
     return dwError;
 
 error:
+    goto cleanup;
+}
+
+uint32_t
+usermgmt_get_userid_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszName,
+    uint32_t *pnUID
+    )
+{
+    uint32_t dwError = 0;
+    uint32_t nUID = 0;
+
+    if(!hHandle || !pwszName || !pnUID)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(usermgmt_privsep_rpc_get_userid(hHandle->hRpc, pwszName, &nUID),
+               dwError);
+    }
+    else
+    {
+        DO_RPC(usermgmt_rpc_get_userid(hHandle->hRpc, pwszName, &nUID),
+               dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *pnUID = nUID;
+
+cleanup:
+    return dwError;
+
+error:
+    if(pnUID)
+    {
+        *pnUID = 0;
+    }
     goto cleanup;
 }
 
@@ -71,7 +148,7 @@ usermgmt_get_userid(
                   &pwszName);
     BAIL_ON_PMD_ERROR(dwError);
 
-    DO_RPC(usermgmt_rpc_get_userid(hHandle->hRpc, pwszName, &nUID), dwError);
+    dwError = usermgmt_get_userid_w(hHandle, pwszName, &nUID);
     BAIL_ON_PMD_ERROR(dwError);
 
     *pnUID = nUID;
@@ -84,6 +161,47 @@ error:
     if(pnUID)
     {
         *pnUID = 0;
+    }
+    goto cleanup;
+}
+
+uint32_t
+usermgmt_get_groupid_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszName,
+    uint32_t *pnGID
+    )
+{
+    uint32_t dwError = 0;
+    uint32_t nGID = 0;
+
+    if(!hHandle || !pwszName || !pnGID)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(usermgmt_privsep_rpc_get_groupid(hHandle->hRpc, pwszName, &nGID),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(usermgmt_rpc_get_groupid(hHandle->hRpc, pwszName, &nGID),
+                   dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *pnGID = nGID;
+
+cleanup:
+    return dwError;
+
+error:
+    if(pnGID)
+    {
+        *pnGID = 0;
     }
     goto cleanup;
 }
@@ -110,7 +228,7 @@ usermgmt_get_groupid(
                   &pwszName);
     BAIL_ON_PMD_ERROR(dwError);
 
-    DO_RPC(usermgmt_rpc_get_groupid(hHandle->hRpc, pwszName, &nGID), dwError);
+    dwError = usermgmt_get_groupid_w(hHandle, pwszName, &nGID);
     BAIL_ON_PMD_ERROR(dwError);
 
     *pnGID = nGID;
@@ -123,6 +241,45 @@ error:
     if(pnGID)
     {
         *pnGID = 0;
+    }
+    goto cleanup;
+}
+
+uint32_t
+usermgmt_get_users_w(
+    PPMDHANDLE hHandle,
+    PPMD_RPC_USER_ARRAY *ppRpcUsers
+    )
+{
+    uint32_t dwError = 0;
+    PPMD_RPC_USER_ARRAY pRpcUsers = NULL;
+
+    if(!hHandle || !ppRpcUsers)
+    {
+         dwError = ERROR_PMD_INVALID_PARAMETER;
+         BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(usermgmt_privsep_rpc_get_users(hHandle->hRpc, &pRpcUsers),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(usermgmt_rpc_get_users(hHandle->hRpc, &pRpcUsers), dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppRpcUsers = pRpcUsers;
+
+cleanup:
+    return dwError;
+
+error:
+    if(ppRpcUsers)
+    {
+        *ppRpcUsers = NULL;
     }
     goto cleanup;
 }
@@ -143,7 +300,7 @@ usermgmt_get_users(
          BAIL_ON_PMD_ERROR(dwError);
     }
 
-    DO_RPC(usermgmt_rpc_get_users(hHandle->hRpc, &pRpcUsers), dwError);
+    dwError = usermgmt_get_users_w(hHandle, &pRpcUsers);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = usermgmt_convert_users(pRpcUsers, &pUsers);
@@ -164,6 +321,45 @@ error:
 }
 
 uint32_t
+usermgmt_get_groups_w(
+    PPMDHANDLE hHandle,
+    PPMD_RPC_GROUP_ARRAY *ppRpcGroups
+    )
+{
+    uint32_t dwError = 0;
+    PPMD_RPC_GROUP_ARRAY pRpcGroups = NULL;
+
+    if(!hHandle || !ppRpcGroups)
+    {
+         dwError = ERROR_PMD_INVALID_PARAMETER;
+         BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(usermgmt_privsep_rpc_get_groups(hHandle->hRpc, &pRpcGroups),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(usermgmt_rpc_get_groups(hHandle->hRpc, &pRpcGroups), dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppRpcGroups = pRpcGroups;
+
+cleanup:
+    return dwError;
+
+error:
+    if(ppRpcGroups)
+    {
+        *ppRpcGroups = NULL;
+    }
+    goto cleanup;
+}
+
+uint32_t
 usermgmt_get_groups(
     PPMDHANDLE hHandle,
     PPMD_GROUP *ppGroups
@@ -179,7 +375,7 @@ usermgmt_get_groups(
          BAIL_ON_PMD_ERROR(dwError);
     }
 
-    DO_RPC(usermgmt_rpc_get_groups(hHandle->hRpc, &pRpcGroups), dwError);
+    dwError = usermgmt_get_groups_w(hHandle, &pRpcGroups);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = usermgmt_convert_groups(pRpcGroups, &pGroups);
@@ -196,6 +392,37 @@ error:
         *ppGroups = NULL;
     }
     usermgmt_free_group(pGroups);
+    goto cleanup;
+}
+
+uint32_t
+usermgmt_add_user_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszName
+    )
+{
+    uint32_t dwError = 0;
+
+    if(!hHandle || !pwszName)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(usermgmt_privsep_rpc_add_user(hHandle->hRpc, pwszName), dwError);
+    }
+    else
+    {
+        DO_RPC(usermgmt_rpc_add_user(hHandle->hRpc, pwszName), dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    return dwError;
+
+error:
     goto cleanup;
 }
 
@@ -219,11 +446,43 @@ usermgmt_add_user(
                   &pwszName);
     BAIL_ON_PMD_ERROR(dwError);
 
-    DO_RPC(usermgmt_rpc_add_user(hHandle->hRpc, pwszName), dwError);
+    dwError = usermgmt_add_user_w(hHandle, pwszName);
     BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:
     PMD_SAFE_FREE_MEMORY(pwszName);
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+uint32_t
+usermgmt_delete_user_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszName
+    )
+{
+    uint32_t dwError = 0;
+
+    if(!hHandle || !pwszName)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(usermgmt_privsep_rpc_delete_user(hHandle->hRpc, pwszName),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(usermgmt_rpc_delete_user(hHandle->hRpc, pwszName), dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
     return dwError;
 
 error:
@@ -250,11 +509,43 @@ usermgmt_delete_user(
                   &pwszName);
     BAIL_ON_PMD_ERROR(dwError);
 
-    DO_RPC(usermgmt_rpc_delete_user(hHandle->hRpc, pwszName), dwError);
+    dwError = usermgmt_delete_user_w(hHandle, pwszName);
     BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:
     PMD_SAFE_FREE_MEMORY(pwszName);
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+uint32_t
+usermgmt_add_group_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszName
+    )
+{
+    uint32_t dwError = 0;
+
+    if(!hHandle || !pwszName)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(usermgmt_privsep_rpc_add_group(hHandle->hRpc, pwszName),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(usermgmt_rpc_add_group(hHandle->hRpc, pwszName), dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
     return dwError;
 
 error:
@@ -281,11 +572,43 @@ usermgmt_add_group(
                   &pwszName);
     BAIL_ON_PMD_ERROR(dwError);
 
-    DO_RPC(usermgmt_rpc_add_group(hHandle->hRpc, pwszName), dwError);
+    dwError = usermgmt_add_group_w(hHandle, pwszName);
     BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:
     PMD_SAFE_FREE_MEMORY(pwszName);
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+uint32_t
+usermgmt_delete_group_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszName
+    )
+{
+    uint32_t dwError = 0;
+
+    if(!hHandle || !pwszName)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(usermgmt_privsep_rpc_delete_group(hHandle->hRpc, pwszName),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(usermgmt_rpc_delete_group(hHandle->hRpc, pwszName), dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
     return dwError;
 
 error:
@@ -312,7 +635,7 @@ usermgmt_delete_group(
                   &pwszName);
     BAIL_ON_PMD_ERROR(dwError);
 
-    DO_RPC(usermgmt_rpc_delete_group(hHandle->hRpc, pwszName), dwError);
+    dwError = usermgmt_delete_group_w(hHandle, pwszName);
     BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:

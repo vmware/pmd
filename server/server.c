@@ -38,23 +38,6 @@ print_endpoints(
     }
 }
 
-uint32_t
-init_modules(
-    )
-{
-    uint32_t dwError = 0;
-
-    //init tdnf global
-    dwError = TDNFInit();
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    return dwError;
-
-error:
-    goto cleanup;
-}
-
 unsigned32
 start_rpc_server(
     rpc_binding_vector_p_t *ppBinding
@@ -81,7 +64,6 @@ start_rpc_server(
         pkg_v1_0_s_ifspec,
         pmd_v1_0_s_ifspec,
         netmgmt_v1_0_s_ifspec,
-        rpmostree_v1_0_s_ifspec,
         usermgmt_v1_0_s_ifspec
     };
     int nInterfaces = sizeof(interface_spec)/sizeof(*interface_spec);
@@ -150,15 +132,12 @@ int main(int argc, char *argv[])
                   &gpServerEnv->pConfig);
     if(dwError > 0)
     {
-        fprintf(stderr, "missing config file: /etc/pmd/pmd.conf\n");
+        fprintf(stderr, "Error reading config: %s\n", PMD_CONFIG_FILE_NAME);
     }
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = init_security_config(gpServerEnv->pConfig->pszApiSecurityConf,
                                 &gpServerEnv->pSecurityContext);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = init_modules();
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = StartRestServer();
@@ -201,12 +180,9 @@ cleanup:
     }
     pmd_free_server_env(gpServerEnv);
 
-    TDNFUninit();
-
     return dwError;
 
 error:
     dwError = 1;
     goto cleanup;
 }
-

@@ -15,6 +15,38 @@
 
 #include "includes.h"
 
+/*
+HTTP/1.1 401 Authorization Required
+WWW-Authenticate: Basic realm="Photon Management Daemon"
+Content-Type: text/html
+Content-Length: 20
+*/
+
+uint32_t
+request_basic_auth(
+    PVMREST_HANDLE pRestHandle,
+    PREST_REQUEST pRequest,
+    PREST_RESPONSE* ppResponse
+    )
+{
+    uint32_t dwError = 0;
+    uint32_t temp = 0;
+
+    dwError = VmRESTSetHttpStatusVersion(ppResponse, "HTTP/1.1");
+    dwError = VmRESTSetHttpStatusCode(ppResponse, "401");
+    dwError = VmRESTSetHttpReasonPhrase(ppResponse, "Unauthorized");
+    dwError = VmRESTSetHttpHeader(ppResponse, "Connection", "close");
+    dwError = VmRESTSetHttpHeader(ppResponse, "Content-Length", "0");
+    dwError = VmRESTSetHttpHeader(
+                  ppResponse,
+                  "WWW-Authenticate",
+                  "Basic realm=\"Photon Management Daemon\"");
+    dwError = VmRESTSetHttpPayload(pRestHandle, ppResponse,"", 0, &temp );
+    dwError = EACCES;
+    return dwError;
+}
+
+//this path is not in rest basic auth anymore
 uint32_t
 populate_error(
     PVMREST_HANDLE pRestHandle,
@@ -62,22 +94,27 @@ error:
 }
 
 uint32_t
-process_auth(
-    PVMREST_HANDLE pRestHandle,
-    PREST_REQUEST pRequest,
-    PREST_RESPONSE* ppResponse
+pre_process_auth(
+    PREST_AUTH_ARGS pAuthArgs,
+    PREST_AUTH *ppResult
     )
 {
     uint32_t dwError = 0;
     char* pszAuth = NULL;
+    char* pszAuthBase64 = NULL;
+    PREST_AUTH pResult = NULL;
+    REST_AUTH_METHOD nAuthMethod = REST_AUTH_NONE;
 
-    if(!pRestHandle || !pRequest || !ppResponse)
+    if(!pAuthArgs || !ppResult)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = VmRESTGetHttpHeader(pRequest, "Authorization", &pszAuth);
+    dwError = VmRESTGetHttpHeader(
+                  pAuthArgs->pRequest,
+                  AUTHORIZATION,
+                  &pszAuth);
     BAIL_ON_PMD_ERROR(dwError);
 
     if(!pszAuth)
@@ -86,21 +123,28 @@ process_auth(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    if(strstr(pszAuth, AUTH_NEGOTIATE))
+    if(strstr(pszAuth, AUTH_BASIC))
     {
-        dwError = verify_krb_auth(pRestHandle, pRequest, ppResponse);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-    else if(strstr(pszAuth, AUTH_BASIC))
-    {
-        dwError = verify_basic_auth(pRestHandle, pRequest, ppResponse);
-        BAIL_ON_PMD_ERROR(dwError);
+        nAuthMethod = REST_AUTH_BASIC;
+        pszAuthBase64 = pszAuth + strlen(AUTH_BASIC);
     }
     else
     {
         dwError = ERROR_PMD_REST_AUTH_BASIC_MIN;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    dwError = PMDAllocateMemory(
+                  sizeof(REST_AUTH),
+                  (void **)&pResult);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pResult->nAuthMethod = nAuthMethod;
+
+    dwError = PMDAllocateString(pszAuthBase64, &pResult->pszAuthBase64);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppResult = pResult;
 
 cleanup:
     return dwError;
@@ -109,7 +153,31 @@ error:
     if(dwError == ERROR_PMD_REST_AUTH_REQUIRED ||
        dwError == ERROR_PMD_REST_AUTH_BASIC_MIN)
     {
-        request_basic_auth(pRestHandle, pRequest, ppResponse);
+        if(pAuthArgs)
+        {
+            request_basic_auth(
+                pAuthArgs->pRestHandle,
+                pAuthArgs->pRequest,
+                pAuthArgs->ppResponse);
+        }
     }
+    if(ppResult)
+    {
+        *ppResult = NULL;
+    }
+    free_rest_auth(pResult);
     goto cleanup;
+}
+
+void
+free_rest_auth(
+    PREST_AUTH pResult
+    )
+{
+    if(!pResult)
+    {
+        return;
+    }
+    PMD_SAFE_FREE_MEMORY(pResult->pszAuthBase64);
+    PMD_SAFE_FREE_MEMORY(pResult);
 }

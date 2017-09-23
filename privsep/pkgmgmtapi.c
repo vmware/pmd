@@ -431,59 +431,6 @@ error:
 }
 
 uint32_t
-pkg_get_scope_from_string(
-    const char *pszScope,
-    TDNF_SCOPE *pnScope
-    )
-{
-    uint32_t dwError = 0;
-    TDNF_SCOPE nScope = SCOPE_NONE;
-
-    if(IsNullOrEmptyString(pszScope) || !pnScope)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if(!strcasecmp(pszScope, "all"))
-    {
-        nScope = SCOPE_ALL;
-    }
-    else if(!strcasecmp(pszScope, "installed"))
-    {
-        nScope = SCOPE_INSTALLED;
-    }
-    else if(!strcasecmp(pszScope, "available"))
-    {
-        nScope = SCOPE_AVAILABLE;
-    }
-    else if(!strcasecmp(pszScope, "updates"))
-    {
-        nScope = SCOPE_UPGRADES;
-    }
-    else if(!strcasecmp(pszScope, "downgrades"))
-    {
-        nScope = SCOPE_DOWNGRADES;
-    }
-    else
-    {
-        dwError = ENOENT;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    *pnScope = nScope;
-cleanup:
-    return dwError;
-
-error:
-    if(pnScope)
-    {
-        *pnScope = SCOPE_NONE;
-    }
-    goto cleanup;
-}
-
-uint32_t
 pkg_get_error_string_s(
     uint32_t dwErrorCode,
     char **ppszError
