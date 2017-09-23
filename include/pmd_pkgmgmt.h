@@ -30,6 +30,12 @@ pkg_open_handle(
     );
 
 uint32_t
+pkg_close_handle(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle
+    );
+
+uint32_t
 pkg_list(
     PPMDHANDLE hHandle,
     PPKGHANDLE phPkgHandle,

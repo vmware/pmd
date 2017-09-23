@@ -24,15 +24,6 @@ interface demo
 #include <lw/types.h>
 #include "pmdrpctypes.h"
 
-typedef struct _INT_ARRAY
-{
-unsigned32 dwCount;
-#ifdef _DCE_IDL_
-[size_is(dwCount)]
-#endif
-signed32 *pnInts;
-}INT_ARRAY, *PINT_ARRAY;
-
     unsigned32
     demo_rpc_version(
         [in] handle_t hBinding,

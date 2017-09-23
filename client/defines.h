@@ -21,21 +21,6 @@
 #define PROTOCOL_NP  "ncacn_np"
 #define PROTOCOL_NCALRPC "ncalrpc"
 
-#define DO_RPC(rpc_pfn, sts) \
-  do {                       \
-    dcethread_exc *exc = NULL;      \
-    DCETHREAD_TRY            \
-    {                        \
-      (sts) = rpc_pfn;       \
-    }                        \
-    DCETHREAD_CATCH_ALL(exc) \
-    {                        \
-      sts = dcethread_exc_getstatus(exc); \
-    }                        \
-    DCETHREAD_ENDTRY         \
-  } while (0)
-
-#define PPMD_RPC_PROTECT_LEVEL_NONE        rpc_c_protect_level_none
 #define PPMD_RPC_PROTECT_LEVEL_PKT_PRIVACY rpc_c_protect_level_pkt_privacy
 
 #define PPMD_RPC_AUTHN_NONE                rpc_c_authn_none

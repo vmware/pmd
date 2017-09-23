@@ -210,6 +210,33 @@ PMDGetSystemErrorString(
     char** ppszError
     );
 
+uint32_t
+split_user_and_pass(
+    const char* pszUserPass,
+    char** ppszUser,
+    char** ppszPass
+    );
+
+uint32_t
+base64_encode(
+    const unsigned char* pszInput,
+    const size_t nInputLength,
+    char** ppszOutput
+    );
+
+uint32_t
+base64_decode(
+    const char *pszInput,
+    unsigned char **ppOutBytes,
+    int *pnLength
+    );
+
+uint32_t
+base64_get_user_pass(
+    const char *pszBase64,
+    char **ppszUser,
+    char **ppszPass
+    );
 //rpcsrvutils.c
 uint32_t
 PMDRpcServerAllocateMemory(

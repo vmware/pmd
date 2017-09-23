@@ -22,8 +22,8 @@ usermgmt_rpc_version(
     )
 {
     uint32_t dwError = 0;
-    char* pszVersion = NULL;
     wstring_t pwszVersion = NULL;
+    PPMDHANDLE hPMD = NULL;
 
     if(!hBinding || !ppwszVersion)
     {
@@ -31,22 +31,18 @@ usermgmt_rpc_version(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = pmd_usermgmt_get_version(&pszVersion);
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = rpc_open_privsep_internal(USERMGMT_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
-    if(IsNullOrEmptyString(pszVersion))
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDRpcServerAllocateWFromA(pszVersion, &pwszVersion);
+    dwError = usermgmt_get_version_w(hPMD, &pwszVersion);
     BAIL_ON_PMD_ERROR(dwError);
 
     *ppwszVersion = pwszVersion;
 
 cleanup:
-    PMD_SAFE_FREE_MEMORY(pszVersion);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -54,7 +50,6 @@ error:
     {
         *ppwszVersion = NULL;
     }
-    PMD_SAFE_FREE_MEMORY(pwszVersion);
     goto cleanup;
 }
 
@@ -66,8 +61,8 @@ usermgmt_rpc_get_userid(
     )
 {
     uint32_t dwError = 0;
-    char *pszName = NULL;
     unsigned32 nUID = 0;
+    PPMDHANDLE hPMD = NULL;
 
     if(!hBinding || !pwszName || !pnUID)
     {
@@ -77,16 +72,16 @@ usermgmt_rpc_get_userid(
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
-    dwError = PMDAllocateStringAFromW(pwszName, &pszName);
+    dwError = rpc_open_privsep_internal(USERMGMT_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = pmd_usermgmt_get_userid(pszName, &nUID);
+    dwError = usermgmt_get_userid_w(hPMD, pwszName, &nUID);
     BAIL_ON_PMD_ERROR(dwError);
 
     *pnUID = nUID;
 
 cleanup:
-    PMD_SAFE_FREE_MEMORY(pszName);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -105,8 +100,8 @@ usermgmt_rpc_get_groupid(
     )
 {
     uint32_t dwError = 0;
-    char *pszName = NULL;
     unsigned32 nGID = 0;
+    PPMDHANDLE hPMD = NULL;
 
     if(!hBinding || !pwszName || !pnGID)
     {
@@ -116,16 +111,16 @@ usermgmt_rpc_get_groupid(
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
-    dwError = PMDAllocateStringAFromW(pwszName, &pszName);
+    dwError = rpc_open_privsep_internal(USERMGMT_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = pmd_usermgmt_get_groupid(pszName, &nGID);
+    dwError = usermgmt_get_groupid_w(hPMD, pwszName, &nGID);
     BAIL_ON_PMD_ERROR(dwError);
 
     *pnGID = nGID;
 
 cleanup:
-    PMD_SAFE_FREE_MEMORY(pszName);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -143,12 +138,8 @@ usermgmt_rpc_get_users(
     )
 {
     uint32_t dwError = 0;
-    PPMD_RPC_USER pRpcUser = NULL;
     PPMD_RPC_USER_ARRAY pUserArray = NULL;
-    PPMD_USER pUsers = NULL;
-    PPMD_USER pUsersTemp  = NULL;
-    wstring_t pwszTemp = NULL;
-    int nCount = 0;
+    PPMDHANDLE hPMD = NULL;
 
     if(!hBinding || !ppUserArray)
     {
@@ -158,66 +149,16 @@ usermgmt_rpc_get_users(
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
-    dwError = pmd_usermgmt_get_users(&pUsers);
+    dwError = rpc_open_privsep_internal(USERMGMT_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
-    for(pUsersTemp = pUsers; pUsersTemp; pUsersTemp = pUsersTemp->pNext)
-    {
-        ++nCount;
-    }
-
-    dwError = PMDRpcServerAllocateMemory(sizeof(PMD_RPC_USER_ARRAY),
-                                (void **)&pUserArray);
+    dwError = usermgmt_get_users_w(hPMD, &pUserArray);
     BAIL_ON_PMD_ERROR(dwError);
-
-    pUserArray->dwCount = nCount;
-
-    dwError = PMDAllocateMemory(sizeof(PMD_RPC_USER) * nCount,
-                                (void **)&pUserArray->pUsers);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    pRpcUser = pUserArray->pUsers;
-    pUsersTemp = pUsers;
-    while(pUsersTemp)
-    {
-        pRpcUser->nUID = pUsersTemp->nUID;
-        pRpcUser->nGID = pUsersTemp->nGID;
-
-        dwError = PMDAllocateStringWFromA(pUsersTemp->pszName, &pwszTemp);
-        BAIL_ON_PMD_ERROR(dwError);
-        dwError = PMDRpcServerAllocateStringW(pwszTemp, &pRpcUser->pwszName);
-        BAIL_ON_PMD_ERROR(dwError);
-        PMDFreeMemory(pwszTemp);
-
-        dwError = PMDAllocateStringWFromA(pUsersTemp->pszRealName, &pwszTemp);
-        BAIL_ON_PMD_ERROR(dwError);
-        dwError = PMDRpcServerAllocateStringW(pwszTemp, &pRpcUser->pwszRealName);
-        BAIL_ON_PMD_ERROR(dwError);
-        PMDFreeMemory(pwszTemp);
-
-        dwError = PMDAllocateStringWFromA(pUsersTemp->pszHomeDir, &pwszTemp);
-        BAIL_ON_PMD_ERROR(dwError);
-        dwError = PMDRpcServerAllocateStringW(pwszTemp, &pRpcUser->pwszHomeDir);
-        BAIL_ON_PMD_ERROR(dwError);
-        PMDFreeMemory(pwszTemp);
-
-        dwError = PMDAllocateStringWFromA(pUsersTemp->pszShell, &pwszTemp);
-        BAIL_ON_PMD_ERROR(dwError);
-        dwError = PMDRpcServerAllocateStringW(pwszTemp, &pRpcUser->pwszShell);
-        BAIL_ON_PMD_ERROR(dwError);
-        PMDFreeMemory(pwszTemp);
-
-        pUsersTemp = pUsersTemp->pNext;
-        pRpcUser++;
-    }
 
     *ppUserArray = pUserArray;
 
 cleanup:
-    if(pUsers)
-    {
-        usermgmt_free_user(pUsers);
-    }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -235,12 +176,8 @@ usermgmt_rpc_get_groups(
     )
 {
     uint32_t dwError = 0;
-    PPMD_RPC_GROUP pRpcGroup = NULL;
     PPMD_RPC_GROUP_ARRAY pGroupArray = NULL;
-    PPMD_GROUP pGroups = NULL;
-    PPMD_GROUP pGroupsTemp  = NULL;
-    wstring_t pwszTemp = NULL;
-    int nCount = 0;
+    PPMDHANDLE hPMD = NULL;
 
     if(!hBinding || !ppGroupArray)
     {
@@ -250,48 +187,16 @@ usermgmt_rpc_get_groups(
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
-    dwError = pmd_usermgmt_get_groups(&pGroups);
+    dwError = rpc_open_privsep_internal(USERMGMT_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
-    for(pGroupsTemp = pGroups; pGroupsTemp; pGroupsTemp = pGroupsTemp->pNext)
-    {
-        ++nCount;
-    }
-
-    dwError = PMDAllocateMemory(sizeof(PMD_RPC_GROUP_ARRAY),
-                                (void **)&pGroupArray);
+    dwError = usermgmt_get_groups_w(hPMD, &pGroupArray);
     BAIL_ON_PMD_ERROR(dwError);
-
-    pGroupArray->dwCount = nCount;
-
-    dwError = PMDAllocateMemory(sizeof(PMD_RPC_GROUP) * nCount,
-                                (void **)&pGroupArray->pGroups);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    pRpcGroup = pGroupArray->pGroups;
-    pGroupsTemp = pGroups;
-    while(pGroupsTemp)
-    {
-        pRpcGroup->nGID = pGroupsTemp->nGID;
-
-        dwError = PMDAllocateStringWFromA(pGroupsTemp->pszName, &pwszTemp);
-        BAIL_ON_PMD_ERROR(dwError);
-
-        dwError = PMDRpcServerAllocateStringW(pwszTemp, &pRpcGroup->pwszName);
-        BAIL_ON_PMD_ERROR(dwError);
-        PMDFreeMemory(pwszTemp);
-
-        pGroupsTemp = pGroupsTemp->pNext;
-        pRpcGroup++;
-    }
 
     *ppGroupArray = pGroupArray;
 
 cleanup:
-    if(pGroups)
-    {
-        usermgmt_free_group(pGroups);
-    }
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -309,7 +214,8 @@ usermgmt_rpc_add_user(
     )
 {
     uint32_t dwError = 0;
-    char *pszName = NULL;
+    PPMDHANDLE hPMD = NULL;
+
     if(!hBinding || !pwszName)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
@@ -318,14 +224,14 @@ usermgmt_rpc_add_user(
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
-    dwError = PMDAllocateStringAFromW(pwszName, &pszName);
+    dwError = rpc_open_privsep_internal(USERMGMT_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = pmd_usermgmt_add_user(pszName);
+    dwError = usermgmt_add_user_w(hPMD, pwszName);
     BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:
-    PMD_SAFE_FREE_MEMORY(pszName);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -339,7 +245,8 @@ usermgmt_rpc_delete_user(
     )
 {
     uint32_t dwError = 0;
-    char *pszName = NULL;
+    PPMDHANDLE hPMD = NULL;
+
     if(!hBinding || !pwszName)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
@@ -348,14 +255,14 @@ usermgmt_rpc_delete_user(
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
-    dwError = PMDAllocateStringAFromW(pwszName, &pszName);
+    dwError = rpc_open_privsep_internal(USERMGMT_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = pmd_usermgmt_delete_user(pszName);
+    dwError = usermgmt_delete_user_w(hPMD, pwszName);
     BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:
-    PMD_SAFE_FREE_MEMORY(pszName);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -369,7 +276,8 @@ usermgmt_rpc_add_group(
     )
 {
     uint32_t dwError = 0;
-    char *pszName = NULL;
+    PPMDHANDLE hPMD = NULL;
+
     if(!hBinding || !pwszName)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
@@ -378,14 +286,14 @@ usermgmt_rpc_add_group(
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
-    dwError = PMDAllocateStringAFromW(pwszName, &pszName);
+    dwError = rpc_open_privsep_internal(USERMGMT_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = pmd_usermgmt_add_group(pszName);
+    dwError = usermgmt_add_group_w(hPMD, pwszName);
     BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:
-    PMD_SAFE_FREE_MEMORY(pszName);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:
@@ -399,7 +307,8 @@ usermgmt_rpc_delete_group(
     )
 {
     uint32_t dwError = 0;
-    char *pszName = NULL;
+    PPMDHANDLE hPMD = NULL;
+
     if(!hBinding || !pwszName)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
@@ -408,14 +317,14 @@ usermgmt_rpc_delete_group(
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
-    dwError = PMDAllocateStringAFromW(pwszName, &pszName);
+    dwError = rpc_open_privsep_internal(USERMGMT_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = pmd_usermgmt_delete_group(pszName);
+    dwError = usermgmt_delete_group_w(hPMD, pwszName);
     BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:
-    PMD_SAFE_FREE_MEMORY(pszName);
+    rpc_free_handle(hPMD);
     return dwError;
 
 error:

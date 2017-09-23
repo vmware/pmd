@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 unsigned32
@@ -23,8 +22,9 @@ pkg_rpc_open_handle(
     )
 {
     uint32_t dwError = 0;
+    PPMDHANDLE hPMD = NULL;
+    PPKGHANDLE hPkgHandle = NULL;
     PTDNF_CMD_ARGS pArgs = NULL;
-    PTDNF pTdnf = NULL;
 
     if(!hBinding || !pRpcArgs || !phPkgHandle)
     {
@@ -37,12 +37,19 @@ pkg_rpc_open_handle(
     dwError = pkg_rpc_get_cmd_args(pRpcArgs, &pArgs);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = pkg_open_handle_s(pArgs, &pTdnf);
+    dwError = rpc_open_privsep_internal(PKG_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
-    *phPkgHandle = pTdnf;
+    dwError = pkg_open_handle(hPMD, pArgs, &hPkgHandle);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = privsep_handle_list_add(hPMD, hPkgHandle);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *phPkgHandle = hPkgHandle;
 
 cleanup:
+    pkg_free_cmd_args(pArgs);
     return dwError;
 
 error:
@@ -50,10 +57,36 @@ error:
     {
         *phPkgHandle = NULL;
     }
-    if(pTdnf)
+    rpc_free_handle(hPMD);
+    goto cleanup;
+}
+
+unsigned32
+pkg_rpc_close_handle(
+    handle_t hBinding,
+    pkg_handle_t hPkgHandle
+    )
+{
+    uint32_t dwError = 0;
+    PPMDHANDLE hPMD = NULL;
+
+    if(!hBinding || !hPkgHandle)
     {
-        pkg_close_handle_s(pTdnf);
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
     }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = privsep_handle_list_remove(hPkgHandle, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    rpc_free_handle(hPMD);
+
+cleanup:
+    return dwError;
+
+error:
     goto cleanup;
 }
 
@@ -65,6 +98,8 @@ pkg_rpc_count(
     )
 {
     uint32_t dwError = 0;
+    PPMDHANDLE hPMD = NULL;
+    uint32_t dwCount = 0;
 
     if(!hBinding || !hPkgHandle || !pdwCount)
     {
@@ -74,8 +109,13 @@ pkg_rpc_count(
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
-    dwError =  pkg_count_s(hPkgHandle, pdwCount);
+    dwError = privsep_handle_list_get(hPkgHandle, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
 
+    dwError = pkg_count(hPMD, hPkgHandle, &dwCount);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *pdwCount = dwCount;
 cleanup:
     return dwError;
 error:
@@ -99,6 +139,7 @@ pkg_rpc_list(
     PTDNF_RPC_PKGINFO_ARRAY pInfo = NULL;
     PTDNF_PKG_INFO pPkgInfo = NULL;
     char **ppszPackageNameSpecs = NULL;
+    PPMDHANDLE hPMD = NULL;
 
     if(!hBinding || !hPkgHandle || !pPkgNameSpecs || !ppInfo)
     {
@@ -108,39 +149,24 @@ pkg_rpc_list(
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
-    dwCount = pPkgNameSpecs->dwCount;
-
-    dwError = PMDAllocateMemory(sizeof(char *) * (dwCount + 1),
-                                (void **)&ppszPackageNameSpecs);
+    dwError = privsep_handle_list_get(hPkgHandle, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
-    for(dwCount = 0; dwCount < pPkgNameSpecs->dwCount; ++dwCount)
-    {
-        dwError = PMDAllocateStringAFromW(pPkgNameSpecs->ppwszStrings[dwCount],
-                                          &ppszPackageNameSpecs[dwCount]);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    //TODO: Do authorization with rpc handle
-    dwError = pkg_list_s(
-                  hPkgHandle,
-                  nScope,
-                  ppszPackageNameSpecs,
-                  &pPkgInfo,
-                  &dwCount);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = PMDRpcServerConvertPkgInfoArray(pPkgInfo, dwCount, &pInfo);
+    dwError = pkg_list_w(hPMD,
+                       hPkgHandle,
+                       nScope,
+                       pPkgNameSpecs,
+                       &pInfo);
     BAIL_ON_PMD_ERROR(dwError);
 
     *ppInfo = pInfo;
 cleanup:
-    if(pPkgInfo)
-    {
-        TDNFFreePackageInfoArray(pPkgInfo, dwCount);
-    }
     return dwError;
 error:
+    if(ppInfo)
+    {
+        *ppInfo = NULL;
+    }
     if(pInfo)
     {
         PMDRpcServerFreeMemory(pInfo);
@@ -161,9 +187,10 @@ pkg_rpc_repolist(
     uint32_t dwIndex = 0;
     PTDNF_REPO_DATA pRepoData = NULL;
     PTDNF_REPO_DATA pRepoDataTemp = NULL;
-    PTDNF_RPC_REPODATA_ARRAY pPMDRepoDataArray = NULL;
+    PTDNF_RPC_REPODATA_ARRAY pRpcRepoDataArray = NULL;
     PTDNF_RPC_REPODATA pRpcRepoData = NULL;
     wstring_t pwszTemp = NULL;
+    PPMDHANDLE hPMD = NULL;
 
     if(!hBinding || !hPkgHandle || !ppRepoData)
     {
@@ -173,54 +200,26 @@ pkg_rpc_repolist(
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
-    dwError = pkg_repolist_s(hPkgHandle, nFilter, &pRepoData);
+    dwError = privsep_handle_list_get(hPkgHandle, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = PMDRpcServerAllocateMemory(
-        sizeof(TDNF_RPC_REPODATA_ARRAY),
-        (void**)&pPMDRepoDataArray);
+    dwError = pkg_repolist_w(
+                  hPMD,
+                  hPkgHandle,
+                  nFilter,
+                  &pRpcRepoDataArray);
     BAIL_ON_PMD_ERROR(dwError);
 
-    for(dwCount = 0, pRepoDataTemp = pRepoData;
-        pRepoDataTemp;
-        pRepoDataTemp = pRepoDataTemp->pNext, ++dwCount);
+    *ppRepoData = pRpcRepoDataArray;
 
-    pPMDRepoDataArray->dwCount = dwCount;
-
-    dwError = PMDRpcServerAllocateMemory(
-        sizeof(TDNF_RPC_REPODATA)*dwCount,
-        (void**)&pPMDRepoDataArray->pRepoData);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    pRpcRepoData = pPMDRepoDataArray->pRepoData;
-    pRepoDataTemp = pRepoData;
-    for(dwIndex = 0; dwIndex < dwCount; ++dwIndex)
-    {
-        dwError = PMDAllocateStringWFromA(pRepoDataTemp->pszId, &pwszTemp);
-        BAIL_ON_PMD_ERROR(dwError);
-        dwError = PMDRpcServerAllocateStringW(pwszTemp, &pRpcRepoData->pwszId);
-        BAIL_ON_PMD_ERROR(dwError);
-        PMDFreeMemory(pwszTemp);
-        dwError = PMDAllocateStringWFromA(pRepoDataTemp->pszName, &pwszTemp);
-        BAIL_ON_PMD_ERROR(dwError);
-        dwError = PMDRpcServerAllocateStringW(pwszTemp, &pRpcRepoData->pwszName);
-        BAIL_ON_PMD_ERROR(dwError);
-        PMDFreeMemory(pwszTemp);
-
-        pRpcRepoData->nEnabled = pRepoDataTemp->nEnabled;
-
-        pRepoDataTemp = pRepoDataTemp->pNext;
-        pRpcRepoData++;
-    }
-
-    *ppRepoData = pPMDRepoDataArray;
 cleanup:
-    if(pRepoData)
-    {
-        TDNFFreeRepos(pRepoData);
-    }
     return dwError;
+
 error:
+    if(ppRepoData)
+    {
+        *ppRepoData = NULL;
+    }
     goto cleanup;
 }
 
@@ -247,13 +246,9 @@ pkg_rpc_updateinfo_summary(
     )
 {
     uint32_t dwError = 0;
-    uint32_t dwIndex = 0;
-    uint32_t dwCount = 0;
-    char* pszPackageNameSpecs = {NULL};
-    PTDNF_UPDATEINFO_SUMMARY pUpdateInfoSummary = NULL;
+    PPMDHANDLE hPMD = NULL;
 
     PTDNF_RPC_UPDATEINFO_SUMMARY_ARRAY pRpcUpdateInfoArray = NULL;
-    PTDNF_RPC_UPDATEINFO_SUMMARY pRpcUpdateInfoSummary = NULL;
 
     if(!hBinding || !hPkgHandle || !ppRpcUpdateInfoArray)
     {
@@ -263,43 +258,21 @@ pkg_rpc_updateinfo_summary(
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
-    dwError = pkg_updateinfo_s(
+    dwError = privsep_handle_list_get(hPkgHandle, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = pkg_updateinfo_summary_w(
+                  hPMD,
                   hPkgHandle,
-                  0,
-                  &pszPackageNameSpecs,
-                  &pUpdateInfoSummary);
+                  AVAIL_AVAILABLE,
+                  &pRpcUpdateInfoArray);
     BAIL_ON_PMD_ERROR(dwError);
-
-    dwCount = (UPDATE_ENHANCEMENT - UPDATE_UNKNOWN) + 1;
-
-    dwError = PMDRpcServerAllocateMemory(
-        sizeof(TDNF_RPC_UPDATEINFO_SUMMARY_ARRAY),
-        (void**)&pRpcUpdateInfoArray);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    pRpcUpdateInfoArray->dwCount = dwCount;
-
-    dwError = PMDRpcServerAllocateMemory(
-        sizeof(TDNF_RPC_UPDATEINFO_SUMMARY) * dwCount,
-        (void**)&pRpcUpdateInfoArray->pRpcUpdateInfoSummaries);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    pRpcUpdateInfoSummary = pRpcUpdateInfoArray->pRpcUpdateInfoSummaries;
-    for(dwIndex = UPDATE_UNKNOWN;
-        dwIndex <= UPDATE_ENHANCEMENT;
-        ++dwIndex, ++pRpcUpdateInfoSummary)
-    {
-        pRpcUpdateInfoSummary->nCount = pUpdateInfoSummary[dwIndex].nCount;
-        pRpcUpdateInfoSummary->nType = pUpdateInfoSummary[dwIndex].nType;
-    }
 
     *ppRpcUpdateInfoArray = pRpcUpdateInfoArray;
+
 cleanup:
-    if(pUpdateInfoSummary)
-    {
-        TDNFFreeUpdateInfoSummary(pUpdateInfoSummary);
-    }
     return dwError;
+
 error:
     if(ppRpcUpdateInfoArray)
     {
@@ -315,8 +288,8 @@ pkg_rpc_version(
     )
 {
     uint32_t dwError = 0;
-    char* pszVersion = NULL;
     wstring_t pwszVersion = NULL;
+    PPMDHANDLE hPMD = NULL;
 
     if(!hBinding || !ppwszVersion)
     {
@@ -324,24 +297,15 @@ pkg_rpc_version(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
-
-    dwError = pkg_version_s(&pszVersion);
+    dwError = rpc_open_privsep_internal(PKG_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
-    if(IsNullOrEmptyString(pszVersion))
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDRpcServerAllocateWFromA(pszVersion, &pwszVersion);
+    dwError = pkg_version_w(hPMD, &pwszVersion);
     BAIL_ON_PMD_ERROR(dwError);
 
     *ppwszVersion = pwszVersion;
 
 cleanup:
-    PMD_SAFE_FREE_MEMORY(pszVersion);
     return dwError;
 
 error:
@@ -364,6 +328,7 @@ pkg_rpc_resolve(
     uint32_t dwError = 0;
     PTDNF_RPC_SOLVED_PKG_INFO pSolvedInfo = NULL;
     PTDNF_SOLVED_PKG_INFO pSolvedInfoA = NULL;
+    PPMDHANDLE hPMD = NULL;
 
     if(!hBinding || !hPkgHandle || !ppSolvedInfo)
     {
@@ -371,87 +336,15 @@ pkg_rpc_resolve(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = pkg_resolve_s(hPkgHandle, nAlterType, &pSolvedInfoA);
+    dwError = privsep_handle_list_get(hPkgHandle, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = PMDRpcServerAllocateMemory(sizeof(TDNF_RPC_SOLVED_PKG_INFO),
-                                         (void**)&pSolvedInfo);
+    dwError = pkg_resolve_w(
+                  hPMD,
+                  hPkgHandle,
+                  nAlterType,
+                  &pSolvedInfo);
     BAIL_ON_PMD_ERROR(dwError);
-
-    pSolvedInfo->nNeedAction = pSolvedInfoA->nNeedAction;
-    pSolvedInfo->nNeedDownload = pSolvedInfoA->nNeedDownload;
-    pSolvedInfo->nAlterType = pSolvedInfoA->nAlterType;
-
-    if(pSolvedInfoA->pPkgsNotAvailable)
-    {
-        dwError = PMDRpcServerConvertPkgInfoList(
-                      pSolvedInfoA->pPkgsNotAvailable,
-                      &pSolvedInfo->pPkgsNotAvailable);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-    if(pSolvedInfoA->pPkgsExisting)
-    {
-        dwError = PMDRpcServerConvertPkgInfoList(
-                      pSolvedInfoA->pPkgsExisting,
-                      &pSolvedInfo->pPkgsExisting);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-    if(pSolvedInfoA->pPkgsToInstall)
-    {
-        dwError = PMDRpcServerConvertPkgInfoList(
-                      pSolvedInfoA->pPkgsToInstall,
-                      &pSolvedInfo->pPkgsToInstall);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-    if(pSolvedInfoA->pPkgsToUpgrade)
-    {
-        dwError = PMDRpcServerConvertPkgInfoList(
-                      pSolvedInfoA->pPkgsToUpgrade,
-                      &pSolvedInfo->pPkgsToUpgrade);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-    if(pSolvedInfoA->pPkgsToDowngrade)
-    {
-        dwError = PMDRpcServerConvertPkgInfoList(
-                      pSolvedInfoA->pPkgsToDowngrade,
-                      &pSolvedInfo->pPkgsToDowngrade);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-    if(pSolvedInfoA->pPkgsToRemove)
-    {
-        dwError = PMDRpcServerConvertPkgInfoList(
-                      pSolvedInfoA->pPkgsToRemove,
-                      &pSolvedInfo->pPkgsToRemove);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-    if(pSolvedInfoA->pPkgsUnNeeded)
-    {
-        dwError = PMDRpcServerConvertPkgInfoList(
-                      pSolvedInfoA->pPkgsUnNeeded,
-                      &pSolvedInfo->pPkgsUnNeeded);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-    if(pSolvedInfoA->pPkgsToReinstall)
-    {
-        dwError = PMDRpcServerConvertPkgInfoList(
-                      pSolvedInfoA->pPkgsToReinstall,
-                      &pSolvedInfo->pPkgsToReinstall);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-    if(pSolvedInfoA->pPkgsObsoleted)
-    {
-        dwError = PMDRpcServerConvertPkgInfoList(
-                      pSolvedInfoA->pPkgsObsoleted,
-                      &pSolvedInfo->pPkgsObsoleted);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-    if(pSolvedInfoA->ppszPkgsNotResolved)
-    {
-        dwError = PMDRpcServerCopyStringArray(
-                      pSolvedInfoA->ppszPkgsNotResolved,
-                      &pSolvedInfo->pPkgsNotResolved);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
 
     *ppSolvedInfo = pSolvedInfo;
 
@@ -475,6 +368,7 @@ pkg_rpc_alter(
     )
 {
     uint32_t dwError = 0;
+    PPMDHANDLE hPMD = NULL;
 
     if(!hBinding || !hPkgHandle)
     {
@@ -484,7 +378,13 @@ pkg_rpc_alter(
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
-    dwError = pkg_alter_s(hPkgHandle, nAlterType);
+    dwError = privsep_handle_list_get(hPkgHandle, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = pkg_alter_w(
+                  hPMD,
+                  hPkgHandle,
+                  nAlterType);
     BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:
@@ -496,172 +396,12 @@ error:
 void
 pkg_handle_t_rundown(void *handle)
 {
-    if (handle)
+    PPMDHANDLE hPMD = NULL;
+    if(privsep_handle_list_remove(handle, &hPMD) == 0)
     {
-        PTDNF pTdnf = (PTDNF)handle;
-
-        TDNFCloseHandle(pTdnf);
-    }
-}
-
-//helper functions
-uint32_t
-pkg_rpc_get_cmd_args(
-    PTDNF_RPC_CMD_ARGS pRpcArgs,
-    PTDNF_CMD_ARGS *ppArgs
-    )
-{
-    uint32_t dwError = 0;
-    int nIndex = 0;
-    PTDNF_CMD_ARGS pArgs = NULL;
-
-    if(!pRpcArgs || !ppArgs)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateMemory(
-                            sizeof(TDNF_CMD_ARGS),
-                            (void**)&pArgs);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    pArgs->nAllowErasing  = pRpcArgs->nAllowErasing;
-    pArgs->nAssumeNo      = pRpcArgs->nAssumeNo;
-    pArgs->nAssumeYes     = pRpcArgs->nAssumeYes;
-    pArgs->nBest          = pRpcArgs->nBest;
-    pArgs->nCacheOnly     = pRpcArgs->nCacheOnly;
-    pArgs->nDebugSolver   = pRpcArgs->nDebugSolver;
-    pArgs->nNoGPGCheck    = pRpcArgs->nNoGPGCheck;
-    pArgs->nRefresh       = pRpcArgs->nRefresh;
-    pArgs->nRpmVerbosity  = pRpcArgs->nRpmVerbosity;
-    pArgs->nShowDuplicates= pRpcArgs->nShowDuplicates;
-    pArgs->nShowHelp      = pRpcArgs->nShowHelp;
-    pArgs->nShowVersion   = pRpcArgs->nShowVersion;
-    pArgs->nVerbose       = pRpcArgs->nVerbose;
-    pArgs->nIPv4          = pRpcArgs->nIPv4;
-    pArgs->nIPv6          = pRpcArgs->nIPv6;
-
-    if(IsNullOrEmptyString(pRpcArgs->pwszInstallRoot))
-    {
-        dwError = PMDAllocateString(
-                             "/",
-                             &pArgs->pszInstallRoot);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-    else
-    {
-        dwError = PMDAllocateStringAFromW(
-                             pRpcArgs->pwszInstallRoot,
-                             &pArgs->pszInstallRoot);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if(IsNullOrEmptyString(pRpcArgs->pwszConfFile))
-    {
-        dwError = PMDAllocateString(
-                             PKG_CONFIG_FILE_NAME,//TODO: replace with tdnf api
-                             &pArgs->pszConfFile);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-    else
-    {
-        dwError = PMDAllocateStringAFromW(
-                             pRpcArgs->pwszConfFile,
-                             &pArgs->pszConfFile);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if(!IsNullOrEmptyString(pRpcArgs->pwszReleaseVer))
-    {
-        dwError = PMDAllocateStringAFromW(
-                      pRpcArgs->pwszReleaseVer,
-                      &pArgs->pszReleaseVer);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if(pRpcArgs->pCmds)
-    {
-        pArgs->nCmdCount = pRpcArgs->pCmds->dwCount;
-        if(pArgs->nCmdCount)
+        if(hPMD)
         {
-            dwError = PMDAllocateMemory(
-                          pArgs->nCmdCount * sizeof(char*),
-                          (void**)&pArgs->ppszCmds
-                          );
-            BAIL_ON_PMD_ERROR(dwError);
-        }
-
-        for(nIndex = 0; nIndex < pArgs->nCmdCount; ++nIndex)
-        {
-            dwError = PMDAllocateStringAFromW(
-                          pRpcArgs->pCmds->ppwszStrings[nIndex],
-                          &pArgs->ppszCmds[nIndex]);
-            BAIL_ON_PMD_ERROR(dwError);
+            rpc_free_handle(hPMD);
         }
     }
-/*
-    if(pRpcArgs->pSetOpt)
-    {
-        dwError = TDNFCloneSetOpts(pRpcArgs->pSetOpt,
-                                   &pArgs->pSetOpt);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-*/
-    *ppArgs = pArgs;
-
-cleanup:
-    return dwError;
-
-error:
-    if(ppArgs)
-    {
-        *ppArgs = NULL;
-    }
-    TDNFFreeCmdArgs(pArgs);
-    goto cleanup;
-}
-
-unsigned32
-pkg_rpc_get_error_string(
-    handle_t hBinding,
-    unsigned32 dwErrorCode,
-    wstring_t* ppwszError
-    )
-{
-    uint32_t dwError = 0;
-    char* pszError = NULL;
-    wstring_t pwszError = NULL;
-
-    if(!hBinding || !ppwszError)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = pkg_get_error_string_s(dwErrorCode, &pszError);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if(IsNullOrEmptyString(pszError))
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDRpcServerAllocateWFromA(pszError, &pwszError);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    *ppwszError = pwszError;
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszError);
-    return dwError;
-
-error:
-    if(ppwszError)
-    {
-        *ppwszError = NULL;
-    }
-    PMDRpcServerFreeMemory(pwszError);
-    goto cleanup;
 }
