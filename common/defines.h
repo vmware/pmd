@@ -47,6 +47,15 @@ typedef unsigned short* wstring_t;
         }                                                          \
     } while(0)
 
+#define BAIL_ON_PMD_SYSTEM_ERROR(dwError) \
+    do {                                                           \
+        if (dwError)                                               \
+        {                                                          \
+            dwError = ERROR_PMD_SYSTEM_BASE + dwError;             \
+            goto error;                                            \
+        }                                                          \
+    } while(0)
+
 #define PMD_SAFE_FREE_MEMORY(pMemory) \
     do {                                                           \
         if (pMemory) {                                             \

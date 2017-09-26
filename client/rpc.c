@@ -428,7 +428,7 @@ rpc_open_privsep(
     BAIL_ON_PMD_ERROR(dwError);
 
     //make sure that domain socket file is owned by root
-    dwError = stat(PMD_NCALRPC_BASE_DIR "/" PMD_PRIVSEP_NCALRPC_END_POINT,
+    dwError = stat(PMD_PRIVSEP_NCALRPC_END_POINT,
                    &stStat);
     BAIL_ON_PMD_ERROR(dwError);
 
