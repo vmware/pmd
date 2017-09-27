@@ -480,6 +480,28 @@ error:
 }
 
 uint32_t
+validate_cmd(
+    const char *pszCmd
+    )
+{
+    uint32_t dwError = 0;
+    if(IsNullOrEmptyString(pszCmd))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(strpbrk(pszCmd, INVALID_CMD_CHARS))
+    {
+        dwError = ERROR_PMD_INVALID_CMD;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+error:
+    return dwError;
+}
+
+uint32_t
 run_cmd(
     const char *pszCmd,
     const char *pszCmdToLog
@@ -491,6 +513,9 @@ run_cmd(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    dwError = validate_cmd(pszCmd);
+    BAIL_ON_PMD_ERROR(dwError);
 
     fprintf(stdout, "Executing command: %s\n", pszCmdToLog);
 
@@ -524,6 +549,9 @@ run_cmd_pipe_in(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    dwError = validate_cmd(pszCmd);
+    BAIL_ON_PMD_ERROR(dwError);
 
     fprintf(stdout, "Executing command: %s\n", pszCmdToLog);
 

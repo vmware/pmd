@@ -21,6 +21,7 @@ typedef unsigned short* wstring_t;
 
 #define MAX_LINE_LENGTH 1024
 #define MAX_CONFIG_LINE_LENGTH 1024
+#define INVALID_CMD_CHARS ";&|`"
 
 #define IsNullOrEmptyString(str) (!(str) || !(*str))
 
@@ -74,4 +75,5 @@ typedef unsigned short* wstring_t;
     {ERROR_PMD_MISSING_PRIVSEP_PUBKEY,"ERROR_PMD_MISSING_PRIVSEP_PUBKEY","Missing public key for privilege separation encryption. Please check config."}, \
     {ERROR_PMD_PRIVSEP_ENCRYPT,     "ERROR_PMD_PRIVSEP_ENCRYPT",     "There was an error encrypting information for privilege separation. Please check privilege separation keys."}, \
     {ERROR_PMD_PRIVSEP_DECRYPT,     "ERROR_PMD_PRIVSEP_DECRYPT",     "There was an error decrypting information for privilege separation. Please check privilege separation keys."}, \
+    {ERROR_PMD_INVALID_CMD,         "ERROR_PMD_INVALID_CMD",         "Invalid command."}, \
 };

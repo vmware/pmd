@@ -237,6 +237,11 @@ base64_get_user_pass(
     char **ppszUser,
     char **ppszPass
     );
+
+uint32_t
+validate_cmd(
+    const char *pszCmd
+    );
 //rpcsrvutils.c
 uint32_t
 PMDRpcServerAllocateMemory(

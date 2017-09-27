@@ -441,6 +441,9 @@ usermgmt_add_user(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
+    dwError = validate_cmd(pszName);
+    BAIL_ON_PMD_ERROR(dwError);
+
     dwError = PMDAllocateStringWFromA(
                   pszName,
                   &pwszName);
@@ -503,6 +506,9 @@ usermgmt_delete_user(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    dwError = validate_cmd(pszName);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDAllocateStringWFromA(
                   pszName,
@@ -567,6 +573,9 @@ usermgmt_add_group(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
+    dwError = validate_cmd(pszName);
+    BAIL_ON_PMD_ERROR(dwError);
+
     dwError = PMDAllocateStringWFromA(
                   pszName,
                   &pwszName);
@@ -629,6 +638,9 @@ usermgmt_delete_group(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    dwError = validate_cmd(pszName);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDAllocateStringWFromA(
                   pszName,
