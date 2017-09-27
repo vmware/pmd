@@ -209,3 +209,13 @@ void
 usermgmt_free_group(
     PPMD_GROUP pGroup
     );
+//pkghandlelist.c
+uint32_t
+pkg_handle_list_add(
+    PTDNF pTdnf
+    );
+
+uint32_t
+privsep_handle_list_remove(
+    PTDNF pTdnf
+    );

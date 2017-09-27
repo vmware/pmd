@@ -14,10 +14,18 @@
 
 #pragma once
 
+typedef struct _PKG_HANDLE_LIST_
+{
+    PTDNF pTdnf;
+    struct _PKG_HANDLE_LIST_ *pNext;
+}PKG_HANDLE_LIST, *PPKG_HANDLE_LIST;
+
 typedef struct _PRIVSEP_SERVER_ENV_
 {
     pthread_mutex_t mutexModuleEntries;
     pthread_mutex_t mutexPkgMgmtApi;
+    pthread_mutex_t mutexPkgHandleList;
+    PPKG_HANDLE_LIST gpPkgHandleList;
 }PRIVSEP_SERVER_ENV, *PPRIVSEP_SERVER_ENV;
 
 typedef struct _PARAM_SPEC_

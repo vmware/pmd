@@ -120,7 +120,7 @@ install -D -m 444 conf/restapispec.json %{buildroot}/etc/pmd/restapispec.json
 install -D -m 444 conf/api_sddl.conf %{buildroot}/etc/pmd/api_sddl.conf
 install -D -m 444 conf/restconfig.txt %{buildroot}/etc/pmd/restconfig.txt
 install -d -m 0755 %{buildroot}/usr/lib/tmpfiles.d/
-install -m 0644 conf/pmd-tempfiles.conf %{buildroot}/usr/lib/tmpfiles.d/%{name}.conf
+install -m 0644 conf/pmd-tmpfiles.conf %{buildroot}/usr/lib/tmpfiles.d/%{name}.conf
 
 # Pre-install
 %pre

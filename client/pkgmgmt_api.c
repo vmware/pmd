@@ -67,10 +67,20 @@ pkg_close_handle(
 {
     uint32_t dwError = 0;
 
-    DO_RPC(pkg_rpc_close_handle(
-               hHandle->hRpc,
-               hPkgHandle), dwError);
-    BAIL_ON_PMD_ERROR(dwError);
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(pkg_privsep_rpc_close_handle(
+                   hHandle->hRpc,
+                   hPkgHandle), dwError);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+    else
+    {
+        DO_RPC(pkg_rpc_close_handle(
+                   hHandle->hRpc,
+                   hPkgHandle), dwError);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
 
 error:
     return dwError;
