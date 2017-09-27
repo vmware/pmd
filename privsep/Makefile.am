@@ -11,6 +11,7 @@ pmdprivsepd_SOURCES = \
     global.c \
     pkgmgmtapi.c \
     pkgmgmtrpcapi.c \
+    pkghandlelist.c \
     netmgmtrpcapi.c \
     fwmgmt_api.c \
     fwmgmt_rpcapi.c \

@@ -119,6 +119,8 @@ install -D -m 444 pmdprivsepd.service %{buildroot}/lib/systemd/system/pmdprivsep
 install -D -m 444 conf/restapispec.json %{buildroot}/etc/pmd/restapispec.json
 install -D -m 444 conf/api_sddl.conf %{buildroot}/etc/pmd/api_sddl.conf
 install -D -m 444 conf/restconfig.txt %{buildroot}/etc/pmd/restconfig.txt
+install -d -m 0755 %{buildroot}/usr/lib/tmpfiles.d/
+install -m 0644 conf/pmd-tmpfiles.conf %{buildroot}/usr/lib/tmpfiles.d/%{name}.conf
 
 # Pre-install
 %pre
@@ -152,7 +154,6 @@ fi
             echo "unix %{_mech_id} libgssapi_unix.so" >> "%{_mech_file}"
         fi
     fi
-    chown %{name} /var/lib/likewise/rpc
 
     if [ "$1" = 1 ]; then
       openssl req \
@@ -171,6 +172,7 @@ fi
       chmod 0400 /etc/pmd/privsep*.key
       chown %{name} /etc/pmd/privsep_pub.key
     fi
+    %tmpfiles_create %_tmpfilesdir/%{name}.conf
 # Pre-uninstall
 %preun
 
@@ -208,7 +210,6 @@ fi
     # First argument is 1 => Upgrade
 if [ $1 -eq 0 ] ; then
     if getent passwd %{name} >/dev/null; then
-        chown root /var/lib/likewise/rpc
         /sbin/userdel %{name}
     fi
     if getent group %{name} >/dev/null; then
@@ -275,6 +276,7 @@ rm -rf %{buildroot}/*
     /etc/pmd/restapispec.json
     /etc/pmd/restconfig.txt
     %attr(0766, %{name}, %{name}) %dir /var/log/%{name}
+    %_tmpfilesdir/%{name}.conf
 
 %files libs
     %{_libdir}/libpmdclient.so*

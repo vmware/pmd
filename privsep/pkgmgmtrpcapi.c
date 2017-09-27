@@ -59,6 +59,34 @@ error:
 }
 
 unsigned32
+pkg_privsep_rpc_close_handle(
+    handle_t hBinding,
+    pkg_privsep_handle_t hPkgHandle
+    )
+{
+    uint32_t dwError = 0;
+    PTDNF pTdnf = NULL;
+
+    if(!hBinding || !hPkgHandle)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = pkg_close_handle_s(hPkgHandle);
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+unsigned32
 pkg_privsep_rpc_count(
     handle_t hBinding,
     pkg_privsep_handle_t hPkgHandle,

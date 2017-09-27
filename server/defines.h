@@ -23,15 +23,6 @@ typedef struct _PMDHANDLE_* PPMDHANDLE;
 
 #define IsNullOrEmptyString(str) (!(str) || !(*str))
 
-#define BAIL_ON_PMD_SYSTEM_ERROR(dwError) \
-    do {                                                           \
-        if (dwError)                                               \
-        {                                                          \
-            dwError = ERROR_PMD_SYSTEM_BASE + dwError;             \
-            goto error;                                            \
-        }                                                          \
-    } while(0)
-
 #define PKG_CONFIG_FILE_NAME "/etc/tdnf/tdnf.conf"
 #define PMD_CONFIG_FILE_NAME "/etc/pmd/pmd.conf"
 #define PMD_CONFIG_MAIN_GROUP "main"
