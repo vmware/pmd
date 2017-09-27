@@ -37,6 +37,9 @@ pkg_open_handle_s(
     dwError = TDNFOpenHandle(pArgs, &pTdnf);
     BAIL_ON_PMD_ERROR(dwError);
 
+    dwError = pkg_handle_list_add(pTdnf);
+    BAIL_ON_PMD_ERROR(dwError);
+
     *ppTdnf = pTdnf;
 cleanup:
     if(nLocked)
@@ -69,6 +72,8 @@ pkg_close_handle_s(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+    dwError = privsep_handle_list_remove(pTdnf);
+    BAIL_ON_PMD_ERROR(dwError);
 
     pthread_mutex_lock(&gpServerEnv->mutexPkgMgmtApi);
 
@@ -80,6 +85,10 @@ cleanup:
     return dwError;
 
 error:
+    if(dwError == ERROR_PMD_NO_DATA)
+    {
+        dwError = 0;
+    }
     goto cleanup;
 }
 

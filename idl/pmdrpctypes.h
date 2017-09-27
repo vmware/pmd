@@ -24,9 +24,12 @@ extern "C" {
 #include <lw/types.h>
 #endif
 
-#define PMD_NCALRPC_BASE_DIR          "/var/lib/likewise/rpc"
-#define PMD_NCALRPC_END_POINT         "PhotonManagementDaemon"
-#define PMD_PRIVSEP_NCALRPC_END_POINT "pmdprivsepd"
+#define PMD_NCALRPC_BASE              "/var/run/pmd"
+#define PMD_NCALRPC_SOCKET            "pmd_socket"
+#define PMD_NCALRPC_END_POINT         PMD_NCALRPC_BASE"/"PMD_NCALRPC_SOCKET
+#define PMD_PRIVSEP_NCALRPC_BASE      "/var/run/pmdprivsepd"
+#define PMD_PRIVSEP_NCALRPC_SOCKET    "pmd_privsepd_socket"
+#define PMD_PRIVSEP_NCALRPC_END_POINT PMD_PRIVSEP_NCALRPC_BASE"/"PMD_PRIVSEP_NCALRPC_SOCKET
 #define PMD_END_POINT                 "pmdserver"
 #define PMD_SEPARATOR                 "/"
 #define PMD_RPC_TCP_END_POINT         "2016"

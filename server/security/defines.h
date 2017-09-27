@@ -30,10 +30,10 @@
     do {                                                           \
         dwError = has_admin_access(hBinding);                      \
         if(dwError){                                               \
-            fprintf(stderr, "RPC admin access fail: %s", __func__);\
+            fprintf(stderr, "RPC admin access fail: %s\n", __func__);\
             goto error;                                            \
         }                                                          \
         else {                                                     \
-            fprintf(stderr, "RPC admin access allowed: %s", __func__);\
+            fprintf(stderr, "RPC admin access allowed: %s\n", __func__);\
         }                                                          \
     } while(0)

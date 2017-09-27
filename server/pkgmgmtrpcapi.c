@@ -81,6 +81,7 @@ pkg_rpc_close_handle(
     dwError = privsep_handle_list_remove(hPkgHandle, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
+    pkg_close_handle(hPMD, hPkgHandle);
     rpc_free_handle(hPMD);
 
 cleanup:
