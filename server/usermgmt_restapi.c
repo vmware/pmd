@@ -327,6 +327,9 @@ usrmgmt_rest_put_user(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
+    dwError = validate_cmd(pszName);
+    BAIL_ON_PMD_ERROR(dwError);
+
     dwError = usermgmt_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -394,6 +397,9 @@ usrmgmt_rest_delete_user(
         dwError = json_get_string_value(pJson, "name", &pszName);
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    dwError = validate_cmd(pszName);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = usermgmt_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
@@ -629,6 +635,9 @@ usrmgmt_rest_delete_group(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
+    dwError = validate_cmd(pszName);
+    BAIL_ON_PMD_ERROR(dwError);
+
     dwError = usermgmt_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -696,6 +705,9 @@ usrmgmt_rest_put_group(
         dwError = json_get_string_value(pJson, "name", &pszName);
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    dwError = validate_cmd(pszName);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = usermgmt_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);

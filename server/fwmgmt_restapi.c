@@ -303,6 +303,12 @@ firewall_rest_put_rules(
     dwError = url_decode(pszRuleEncoded, &pszRule);
     BAIL_ON_PMD_ERROR(dwError);
 
+    dwError = validate_cmd(pszChain);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = validate_cmd(pszRule);
+    BAIL_ON_PMD_ERROR(dwError);
+
     dwError = json_get_opt_string_value(pJson, "persist", &pszPersist);
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -377,6 +383,12 @@ firewall_rest_delete_rules(
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = url_decode(pszRuleEncoded, &pszRule);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = validate_cmd(pszChain);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = validate_cmd(pszRule);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_get_opt_string_value(pJson, "persist", &pszPersist);

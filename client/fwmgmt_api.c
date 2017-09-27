@@ -271,6 +271,12 @@ fwmgmt_add_rule(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
+    dwError = validate_cmd(pszChain);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = validate_cmd(pszRuleSpec);
+    BAIL_ON_PMD_ERROR(dwError);
+
     dwError = PMDAllocateStringWFromA(pszChain, &pwszChain);
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -360,6 +366,12 @@ fwmgmt_delete_rule(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    dwError = validate_cmd(pszChain);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = validate_cmd(pszRuleSpec);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDAllocateStringWFromA(pszChain, &pwszChain);
     BAIL_ON_PMD_ERROR(dwError);
