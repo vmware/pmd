@@ -22,6 +22,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <termios.h>
+#include <sys/wait.h>
 
 #include <openssl/evp.h>
 #include <openssl/bio.h>

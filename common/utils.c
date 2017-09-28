@@ -502,6 +502,200 @@ error:
 }
 
 uint32_t
+get_word(
+    const char *pszInput,
+    int *pnStart,
+    int *pnLength
+    )
+{
+    uint32_t dwError = 0;
+    int nStart = 0;
+    int nLength = 0;
+    const char *pszCurrent = pszInput;
+
+    if(IsNullOrEmptyString(pszInput) || !pnStart || !pnLength)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    while(*pszCurrent && isspace(*pszCurrent))
+    {
+        ++pszCurrent;
+    }
+    nStart = pszCurrent - pszInput;
+
+    while(*pszCurrent && !isspace(*pszCurrent))
+    {
+        ++nLength;
+        ++pszCurrent;
+    }
+
+    if(!nLength)
+    {
+        dwError = ERROR_PMD_NO_DATA;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    *pnStart = nStart;
+    *pnLength = nLength;
+
+cleanup:
+    return dwError;
+
+error:
+    if(pnStart)
+    {
+        *pnStart = -1;
+    }
+    if(pnLength)
+    {
+        *pnLength = -1;
+    }
+    goto cleanup;
+}
+
+uint32_t
+count_argv(
+    const char *pszInput,
+    int *pnCount
+    )
+{
+    uint32_t dwError = 0;
+    int nCount = 0;
+    int nStart = 0;
+    int nLength = 0;
+    const char *pszCurrent = pszInput;
+
+    if(IsNullOrEmptyString(pszInput) || !pnCount)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    while(!get_word(pszCurrent, &nStart, &nLength))
+    {
+        pszCurrent += (nStart + nLength);
+        nCount++;
+    }
+
+    *pnCount = nCount;
+
+error:
+    return dwError;
+}
+
+uint32_t
+make_argv(
+    const char *pszCmd,
+    char ***pargv
+    )
+{
+    uint32_t dwError = 0;
+    char **argv = NULL;
+    int nCount = 0;
+    int nStart = 0;
+    int nLength = 0;
+    int i = 0;
+
+    if(IsNullOrEmptyString(pszCmd) || !pargv)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = count_argv(pszCmd, &nCount);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateMemory(sizeof(char *) * (nCount + 1), (void **)&argv);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    while(i < nCount && !get_word(pszCmd, &nStart, &nLength))
+    {
+        dwError = PMDAllocateMemory(sizeof(char) * (nLength + 1),
+                                    (void **)&argv[i]);
+        strncpy(argv[i], pszCmd+nStart, nLength);
+        pszCmd += (nStart + nLength);
+        i++;
+    }
+
+    *pargv = argv;
+
+cleanup:
+    return dwError;
+
+error:
+    if(pargv)
+    {
+        *pargv = NULL;
+    }
+    PMDFreeStringArray(argv);
+    goto cleanup;
+}
+
+uint32_t
+exec_cmd(
+    const char *pszCmd
+    )
+{
+    uint32_t dwError = 0;
+    pid_t pidChild = -1;
+    int ret = 0;
+    int nStatus = 0;
+    char **argv = NULL;
+    char *env[] = { NULL };
+
+    if(IsNullOrEmptyString(pszCmd))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = make_argv(pszCmd, &argv);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pidChild = fork();
+    if (pidChild == -1)
+    {
+        dwError = errno;
+        BAIL_ON_PMD_SYSTEM_ERROR(dwError);
+    }
+
+    if (pidChild != 0)
+    {
+        while ((ret = waitpid(pidChild, &nStatus, 0)) == -1)
+        {
+            if (errno != EINTR)
+            {
+                dwError = errno;
+                BAIL_ON_PMD_SYSTEM_ERROR(dwError);
+            }
+        }
+
+        if(WIFEXITED(nStatus))
+        {
+            dwError = WEXITSTATUS(nStatus);
+            BAIL_ON_PMD_SYSTEM_ERROR(dwError);
+        }
+    }
+    else //child
+    {
+        if (execve(argv[0], argv, env) == -1)
+        {
+            exit(127);
+        }
+    }
+
+cleanup:
+    PMDFreeStringArray(argv);
+    return dwError;
+
+error:
+    fprintf(stderr, "Error %d\n", dwError);
+    goto cleanup;
+}
+
+uint32_t
 run_cmd(
     const char *pszCmd,
     const char *pszCmdToLog
@@ -519,7 +713,7 @@ run_cmd(
 
     fprintf(stdout, "Executing command: %s\n", pszCmdToLog);
 
-    dwError = system(pszCmd);
+    dwError = exec_cmd(pszCmd);
     BAIL_ON_PMD_ERROR(dwError);
 
 cleanup:
