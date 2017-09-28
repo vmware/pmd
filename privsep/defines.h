@@ -22,3 +22,4 @@
 #define IPTABLES_CMD "iptables"
 #define IP6TABLES_CMD "ip6tables"
 #define IPTABLES_SCRIPT_PATH "/etc/systemd/scripts/iptables"
+#define SBIN_PATH "/usr/sbin"

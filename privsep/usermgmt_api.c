@@ -395,7 +395,11 @@ pmd_usermgmt_add_user(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = PMDAllocateStringPrintf(&pszCmd, "useradd %s", pszName);
+    dwError = PMDAllocateStringPrintf(
+                  &pszCmd,
+                  "%s/useradd %s",
+                  SBIN_PATH,
+                  pszName);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = run_cmd(pszCmd, pszCmd);
@@ -427,7 +431,11 @@ pmd_usermgmt_delete_user(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = PMDAllocateStringPrintf(&pszCmd, "userdel %s", pszName);
+    dwError = PMDAllocateStringPrintf(
+                  &pszCmd,
+                  "%s/userdel %s",
+                  SBIN_PATH,
+                  pszName);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = run_cmd(pszCmd, pszCmd);
@@ -458,7 +466,11 @@ pmd_usermgmt_add_group(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = PMDAllocateStringPrintf(&pszCmd, "groupadd %s", pszName);
+    dwError = PMDAllocateStringPrintf(
+                  &pszCmd,
+                  "%s/groupadd %s",
+                  SBIN_PATH,
+                  pszName);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = run_cmd(pszCmd, pszCmd);
@@ -489,7 +501,11 @@ pmd_usermgmt_delete_group(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = PMDAllocateStringPrintf(&pszCmd, "groupdel %s", pszName);
+    dwError = PMDAllocateStringPrintf(
+                  &pszCmd,
+                  "%s/groupdel %s",
+                  SBIN_PATH,
+                  pszName);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = run_cmd(pszCmd, pszCmd);

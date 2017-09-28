@@ -102,7 +102,8 @@ pmd_firewall_add_rules(
 
     dwError = PMDAllocateStringPrintf(
                   &pszCmd,
-                  "%s -A %s %s",
+                  "%s/%s -A %s %s",
+                  SBIN_PATH,
                   nIPV6 ? IP6TABLES_CMD : IPTABLES_CMD,
                   pszChain,
                   pszRuleSpec);
@@ -147,7 +148,8 @@ pmd_firewall_delete_rules(
 
     dwError = PMDAllocateStringPrintf(
                   &pszCmd,
-                  "%s -D %s %s",
+                  "%s/%s -D %s %s",
+                  SBIN_PATH,
                   nIPV6 ? IP6TABLES_CMD : IPTABLES_CMD,
                   pszChain,
                   pszRuleSpec);
