@@ -268,6 +268,12 @@ pkg_py_repos(
     char *ppszCmdsC[] = {"repolist"};
     int i = 0;
 
+    if(!self || !self->hHandle)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
     stArgs.nCmdCount = 1;
     stArgs.ppszCmds = ppszCmdsC;
 
@@ -327,6 +333,13 @@ pkg_py_count(
     PPKGHANDLE hPkgHandle = NULL;
     TDNF_CMD_ARGS stArgs = {0};
     char *ppszCmdsC[] = {"count"};
+
+    if(!self || !self->hHandle)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
     stArgs.nCmdCount = 1;
     stArgs.ppszCmds = ppszCmdsC;
 
