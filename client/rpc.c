@@ -166,7 +166,6 @@ get_client_rpc_binding(
      * resolve it into a full binding handle using the endpoint mapper.
      *  The binding handle resolution is handled by the runtime library
      */
-
     rpc_string_binding_compose(NULL,
 			       (unsigned char *) protocol,
 			       (unsigned char *) hostname,
@@ -414,7 +413,7 @@ rpc_open_privsep(
     dwError = get_client_rpc_binding(
               &hHandle->hRpc,
               spec,
-              NULL,
+              pszUser ? "localhost" : NULL,
               pszUser,
               pszDomain,
               pszPass,
