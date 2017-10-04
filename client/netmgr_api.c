@@ -1115,8 +1115,8 @@ netmgr_client_get_ipv4_addr_gateway(
     if(!hHandle ||
        IsNullOrEmptyString(pszIfname) ||
        !pMode ||
-       ppszIPv4AddrPrefix ||
-       ppszIPv4Gateway)
+       !ppszIPv4AddrPrefix ||
+       !ppszIPv4Gateway)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
@@ -2206,7 +2206,7 @@ netmgr_client_set_dns_servers_w(
 {
     uint32_t dwError = 0;
 
-    if(!hHandle || pwszDnsServers)
+    if(!hHandle || !pwszDnsServers)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);

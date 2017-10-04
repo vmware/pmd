@@ -3,6 +3,7 @@ ACLOCAL_AMFLAGS = -I m4
 APP_NAME=pmd
 CLEANFILES =
 EXTRA_DIST =
+noinst_DATA =
 conf_DATA = conf/pmd.conf
 pkginclude_HEADERS = include/pmd.h include/pmdtypes.h include/pmderror.h
 pkgconfigdir = $(libdir)/pkgconfig
@@ -20,6 +21,12 @@ if ENABLE_PYTHON
     SUBDIRS += python
 endif
 
+noinst_DATA += pmd.spec
+pmd.spec: $(top_srcdir)/pmd.spec.in
+	./config.status --file=${subdir}/pmd.spec:${subdir}/pmd.spec.in
+CLEANFILES += pmd.spec
+EXTRA_DIST += pmd.spec.in
+
 pkgconfig_DATA = pmdclient.pc
 pmdclient.pc: $(top_srcdir)/pmdclient.pc.in
 	./config.status --file=${subdir}/pmdclient.pc:${subdir}/pmdclient.pc.in
@@ -29,7 +36,7 @@ EXTRA_DIST += pmdclient.pc.in
 tar-src:
 	git archive --format=tar.gz --prefix=$(APP_NAME)-$(VERSION)/ -o $(APP_NAME)-$(VERSION).tar.gz HEAD
 
-rpm: tar-src
+rpm: tar-src pmd.spec
 	mkdir -p .rpm/SOURCES
 	mkdir -p .rpm/BUILD
 	mkdir -p .rpm/RPMS/x86_64

@@ -785,12 +785,13 @@ pkg_json_get_alter_args(
     int i = 0;
     int nCmdCount = 0;
 
-    if(IsNullOrEmptyString(pszAlterCmd) || nPkgCount <= 0 || !ppArgs)
+    if(IsNullOrEmptyString(pszAlterCmd) || !ppArgs)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
+    //For commands that does not require args, nPkgCount will be 0.
     nCmdCount = nPkgCount + 1;
     dwError = PMDAllocateMemory(sizeof(char **) * (nCmdCount),
                                 (void **)&ppszCmds);

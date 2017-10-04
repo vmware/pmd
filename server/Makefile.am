@@ -72,6 +72,7 @@ pmd_LDADD =  \
     @top_builddir@/server/extras/libpmdextras.la \
     @top_builddir@/server/security/libpmdsecurity.la \
     @top_builddir@/server/common/libsrvcommon.la \
+    @top_builddir@/client/libpmdclient.la \
     @DCERPC_LIBS@ \
     @JANSSON_LIBS@ \
     @CREST_LIBS@ \
@@ -83,7 +84,8 @@ pmd_LDADD =  \
     -lnetmgr \
     -lpthread \
     -lcrypt \
-    -lcrypto
+    -lcrypto \
+    -lgssapi_krb5
 
 pmd_LDFLAGS = \
     @VMAFD_LDFLAGS@ \
