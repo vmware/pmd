@@ -92,7 +92,6 @@ cmd_link_info(
     char *pszIfname = NULL, *pszLinkMode = NULL, *pszLinkState = NULL;
     char *pszMacAddr = NULL, *pszMtu = NULL, *pszEnd = NULL;
     NET_LINK_MODE linkMode = LINK_MODE_UNKNOWN;
-    NET_LINK_STATE linkState = LINK_STATE_UNKNOWN;
     NET_LINK_INFO *pLinkInfo = NULL, *cur = NULL;
 
     if(!hPMD || !pCmd)
@@ -171,10 +170,6 @@ cmd_link_info(
                 else if (!strcmp(pszLinkState, "down"))
                 {
                     dwError = netmgr_client_ifdown(hPMD, pszIfname);
-                }
-                if (linkState == LINK_STATE_UNKNOWN)
-                {
-                    dwError = EDOM;
                 }
                 BAIL_ON_CLI_ERROR(dwError);
             }
@@ -1384,30 +1379,6 @@ cleanup:
 
 error:
     netmgr_print_error(dwError);
-    goto cleanup;
-}
-
-uint32_t
-netmgr_version_cmd(
-    PPMDHANDLE hPMD,
-    PNET_CMD_ARGS pCmdArgs
-    )
-{
-    uint32_t dwError = 0;
-    char* pszVersion = NULL;
-
-    if(!hPMD || !pCmdArgs)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_CLI_ERROR(dwError);
-    }
-
-    fprintf(stdout, "netmgmt version: %s\n", pszVersion);
-
-cleanup:
-    PMD_CLI_SAFE_FREE_MEMORY(pszVersion);
-    return dwError;
-error:
     goto cleanup;
 }
 
