@@ -343,6 +343,28 @@
         "405":{"description":"Invalid input"}
     },
     "security":[]
+   },
+   "delete":
+   {
+    "tags":["net"],
+    "summary":"delete dns server",
+    "description":"delete dns server",
+    "operationId":"delete_dns_server",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"server",
+                  "in":"query",
+                  "description":"dns server",
+                  "required":true,
+                  "type":"string"
+                  }
+                  ],
+    "responses":{
+        "200":{"description":{"result":"success"}},
+        "405":{"description":"Invalid input"}
+    },
+    "security":[]
    }
   },
   "/net/dhcp/duid":

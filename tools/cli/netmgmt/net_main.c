@@ -17,13 +17,8 @@
 
 uint32_t
 netmgr_print_error(
+    PPMDHANDLE hPMD,
     uint32_t dwErrorCode
-    );
-
-uint32_t
-netmgr_get_error_string(
-    uint32_t dwErrorCode,
-    char** ppszError
     );
 
 static const char *
@@ -681,9 +676,11 @@ cmd_dns_servers(
     PNETMGR_CMD pCmd)
 {
     uint32_t dwError = 0, add = 0;
-    size_t dwCount = 0, i;
-    NET_DNS_MODE mode = DNS_MODE_INVALID;
-    char *pszMode = NULL, *pszDnsServers = NULL, **ppszDnsServers = NULL;
+    size_t dwCount = 0, i = 0;
+    NET_DNS_MODE dnsMode = DNS_MODE_INVALID;
+    char *pszIfname = NULL, *pszMode = NULL;
+    char *pszDnsServers = NULL, *pszNoRestart = NULL;
+    char *s1, *s2, *pszServers = NULL, **ppszDnsServersList = NULL;
 
     if(!hPMD || !pCmd)
     {
@@ -691,81 +688,144 @@ cmd_dns_servers(
         BAIL_ON_CLI_ERROR(dwError);
     }
 
-    if (pCmd->op == OP_SET)
-    {
-        dwError = netmgrcli_find_cmdopt(pCmd, "mode", &pszMode);
-        BAIL_ON_CLI_ERROR(dwError);
-        if (!strcmp(pszMode, "dhcp"))
-        {
-            mode = DHCP_DNS;
-        }
-        else if (!strcmp(pszMode, "static"))
-        {
-            mode = STATIC_DNS;
-        }
-        dwError = netmgrcli_find_cmdopt(pCmd, "servers", &pszDnsServers);
-        if (dwError == ENOENT)
-        {
-            dwError = 0;
-        }
-        BAIL_ON_CLI_ERROR(dwError);
+    netmgrcli_find_cmdopt(pCmd, "interface", &pszIfname);
 
-        if (mode == DNS_MODE_INVALID)
-        {
-            dwError = EDOM;
+    switch (pCmd->op)
+    {
+        case OP_SET:
+            dwError = netmgrcli_find_cmdopt(pCmd, "mode", &pszMode);
             BAIL_ON_CLI_ERROR(dwError);
-        }
+            if (!strcmp(pszMode, "dhcp"))
+            {
+                dnsMode = DHCP_DNS;
+            }
+            else if (!strcmp(pszMode, "static"))
+            {
+                dnsMode = STATIC_DNS;
+            }
+            /* fall through */
+        case OP_ADD:
+        case OP_DEL:
+            dwError = netmgrcli_find_cmdopt(pCmd, "servers", &pszDnsServers);
+            if (dwError == ENOENT)
+            {
+                dwError = 0;
+            }
+            BAIL_ON_CLI_ERROR(dwError);
 
-        if (pszDnsServers != NULL)
-        {
-            dwError = netmgr_parse_comma_sep_tokens(pszDnsServers,
-                                                    &add,
-                                                    &dwCount,
-                                                    &ppszDnsServers);
-            BAIL_ON_PMD_ERROR(dwError);
-        }
+            if (pszDnsServers != NULL)
+            {
+                dwError = PMDAllocateString(pszDnsServers, &pszServers);
+                BAIL_ON_CLI_ERROR(dwError);
+                if (strlen(pszServers) > 0)
+                {
+                    s2 = pszServers;
+                    do {
+                        s1 = strsep(&s2, ",");
+                        if (strlen(s1) > 0)
+                        {
+                            dwCount++;
+                        }
+                    } while (s2 != NULL);
+                }
+            }
+            if (!dwCount && (pCmd->op != OP_SET))
+            {
+                dwError = EDOM;
+                BAIL_ON_CLI_ERROR(dwError);
+            }
+            if (dwCount > 0)
+            {
+                dwError = PMDAllocateMemory(
+                              (dwCount * sizeof(char*)),
+                              (void **)&ppszDnsServersList);
+                BAIL_ON_CLI_ERROR(dwError);
+                strcpy(pszServers, pszDnsServers);
+                s2 = pszServers;
+                do {
+                    s1 = strsep(&s2, ",");
+                    if (strlen(s1) > 0)
+                    {
+                        dwError = PMDAllocateString(
+                                      s1,
+                                      &(ppszDnsServersList[i++]));
+                        BAIL_ON_CLI_ERROR(dwError);
+                    }
+                } while (s2 != NULL);
+            }
+            dwError = netmgrcli_find_cmdopt(pCmd, "norestart", &pszNoRestart);
+            if (dwError == ENOENT)
+            {
+                dwError = 0;
+            }
+            BAIL_ON_CLI_ERROR(dwError);
+            if ((pszNoRestart != NULL) && !strcmp(pszNoRestart, "true"))
+            {
+                //TODO: Handle norestart
+            }
+            if (pCmd->op == OP_SET)
+            {
+                dwError = netmgr_client_set_dns_servers(
+                              hPMD,
+                              pszIfname,
+                              dnsMode,
+                              dwCount,
+                              ppszDnsServersList);
+            }
+            else if (pCmd->op == OP_ADD)
+            {
+                dwError = netmgr_client_add_dns_server(
+                              hPMD,
+                              pszIfname,
+                              ppszDnsServersList[0]);
+            }
+            else if (pCmd->op == OP_DEL)
+            {
+                dwError = netmgr_client_delete_dns_server(
+                              hPMD,
+                              pszIfname,
+                              ppszDnsServersList[0]);
+            }
+            break;
 
-        dwError = netmgr_client_set_dns_servers(hPMD,
-                                                NULL,
-                                                mode,
-                                                dwCount,
-                                                ppszDnsServers);
-        BAIL_ON_CLI_ERROR(dwError);
+        case OP_GET:
+            dwError = netmgr_client_get_dns_servers(
+                          hPMD,
+                          pszIfname,
+                          &dnsMode,
+                          &dwCount,
+                          &ppszDnsServersList);
+            BAIL_ON_CLI_ERROR(dwError);
+
+            if (dnsMode == STATIC_DNS)
+            {
+                fprintf(stdout, "DNSMode=static\n");
+            }
+            else
+            {
+                fprintf(stdout, "DNSMode=dhcp\n");
+            }
+
+            fprintf(stdout, "DNSServers=");
+            for (i = 0; i < dwCount; i++)
+            {
+                fprintf(stdout, "%s ", ppszDnsServersList[i]);
+            }
+            fprintf(stdout, "\n");
+            break;
+
+        default:
+            dwError = EINVAL;
     }
-
-    if (pCmd->op == OP_GET)
-    {
-        dwError = netmgr_client_get_dns_servers(hPMD,
-                                                NULL,
-                                                &mode,
-                                                &dwCount,
-                                                &ppszDnsServers);
-        BAIL_ON_CLI_ERROR(dwError);
-
-        if (mode == STATIC_DNS)
-        {
-            fprintf(stdout, "DNSMode=static\n");
-        }
-        else
-        {
-            fprintf(stdout, "DNSMode=dhcp\n");
-        }
-
-        fprintf(stdout, "DNSServers=");
-        for (i = 0; i < dwCount; i++)
-        {
-            fprintf(stdout, "%s ", ppszDnsServers[i]);
-        }
-        fprintf(stdout, "\n");
-    }
+    BAIL_ON_CLI_ERROR(dwError);
 
 cleanup:
     /* Free allocated memory */
     for (i = 0; i < dwCount; i++)
     {
-        PMD_SAFE_FREE_MEMORY(ppszDnsServers[i]);
+        PMD_SAFE_FREE_MEMORY(ppszDnsServersList[i]);
     }
-    PMD_SAFE_FREE_MEMORY(ppszDnsServers);
+    PMD_SAFE_FREE_MEMORY(ppszDnsServersList);
     return dwError;
 error:
     goto cleanup;
@@ -1378,27 +1438,36 @@ cleanup:
     return dwError;
 
 error:
-    netmgr_print_error(dwError);
+    if(netmgr_print_error(hPMD, dwError) == 0)
+    {
+        dwError = ERROR_PMD_FAIL;//already handled
+    }
     goto cleanup;
 }
 
 uint32_t
 netmgr_print_error(
+    PPMDHANDLE hPMD,
     uint32_t dwErrorCode
     )
 {
     uint32_t dwError = 0;
     char* pszError = NULL;
 
-    if(dwErrorCode < ERROR_PMD_BASE)
+    if(dwErrorCode >= ERROR_PMD_NET_BASE)
     {
-        dwError = netmgr_get_error_string(dwErrorCode, &pszError);
+        if(!hPMD)
+        {
+            dwError = ERROR_PMD_INVALID_PARAMETER;
+            BAIL_ON_CLI_ERROR(dwError);
+        }
+        dwError = netmgr_client_get_error_info(hPMD, dwErrorCode, &pszError);
         BAIL_ON_CLI_ERROR(dwError);
     }
     else
     {
-        dwError = netmgr_get_error_string(dwErrorCode, &pszError);
-        BAIL_ON_CLI_ERROR(dwError);
+        dwError = dwErrorCode;
+        goto cleanup;//let the super main handle
     }
     printf("Error(%d) : %s\n", dwErrorCode, pszError);
 
@@ -1413,36 +1482,3 @@ error:
         dwError);
     goto cleanup;
 }
-
-uint32_t
-netmgr_get_error_string(
-    uint32_t dwErrorCode,
-    char** ppszError
-    )
-{
-    uint32_t dwError = 0;
-    char* pszError = NULL;
-    int i = 0;
-    int nCount = 0;
-
-    PMD_ERROR_DESC arErrorDesc[] = PMD_CLI_ERROR_TABLE;
-
-    nCount = sizeof(arErrorDesc)/sizeof(arErrorDesc[0]);
-
-    for(i = 0; i < nCount; i++)
-    {
-        if (dwErrorCode == arErrorDesc[i].nCode)
-        {
-            dwError = PMDAllocateString(arErrorDesc[i].pszDesc, &pszError);
-            BAIL_ON_CLI_ERROR(dwError);
-            break;
-        }
-    }
-    *ppszError = pszError;
-cleanup:
-    return dwError;
-error:
-    PMD_CLI_SAFE_FREE_MEMORY(pszError);
-    goto cleanup;
-}
-

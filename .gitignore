@@ -3,6 +3,7 @@
 Makefile
 Makefile.in
 pmdclient.pc
+pmd.spec
 
 *.guess
 *.sub

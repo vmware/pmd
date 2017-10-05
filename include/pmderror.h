@@ -62,8 +62,11 @@ extern "C" {
 #define ERROR_PMD_MISSING_PKG_ARGS     (ERROR_PMD_PKG_BASE + 1)
 #define ERROR_PMD_ALTER_MODE_INVALID   (ERROR_PMD_PKG_BASE + 2)
 
-//usermgmt errors 4100 and up
-#define ERROR_PMD_USER_BASE            4100
+//netmgmt errors 4096 and up
+#define ERROR_PMD_NET_BASE             4096
+
+//netmgmt errors 4300 and up
+#define ERROR_PMD_USR_BASE             4300
 
 #ifdef __cplusplus
 }
