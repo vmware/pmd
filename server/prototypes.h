@@ -33,6 +33,12 @@ net_rest_put_dns_domains(
     );
 
 uint32_t
+net_rest_delete_dns_server(
+    void *pInputJson,
+    void **ppOutputJson
+    );
+
+uint32_t
 net_rest_put_dns_servers(
     void *pInputJson,
     void **ppOutputJson
@@ -489,6 +495,20 @@ netmgr_client_get_static_ip_routes_w(
     PPMDHANDLE hHandle,
     wstring_t pwszIfname,
     PNET_RPC_IP_ROUTE_ARRAY *ppIpRouteArray
+    );
+
+uint32_t
+netmgr_client_add_dns_server_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    wstring_t pwszDnsServer
+    );
+
+uint32_t
+netmgr_client_delete_dns_server_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    wstring_t pwszDnsServer
     );
 
 uint32_t

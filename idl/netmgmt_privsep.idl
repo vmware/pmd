@@ -212,6 +212,20 @@ interface netmgmt_privsep
      * DNS configuration APIs
      */
     unsigned32
+    netmgr_privsep_rpc_add_dns_server(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszInterfaceName,
+        [in] wstring_t pwszDnsServer
+    );
+
+    unsigned32
+    netmgr_privsep_rpc_delete_dns_server(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszInterfaceName,
+        [in] wstring_t pwszDnsServer
+    );
+
+    unsigned32
     netmgr_privsep_rpc_set_dns_servers(
         [in] handle_t hBinding,
         [in] wstring_t pwszInterfaceName,

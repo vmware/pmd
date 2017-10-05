@@ -189,6 +189,20 @@ netmgr_client_get_static_ip_routes(
 );
 
 uint32_t
+netmgr_client_add_dns_server(
+    PPMDHANDLE hHandle,
+    char *pszIfname,
+    char *pszDnsServer
+    );
+
+uint32_t
+netmgr_client_delete_dns_server(
+    PPMDHANDLE hHandle,
+    char *pszIfname,
+    char *pszDnsServer
+    );
+
+uint32_t
 netmgr_client_set_dns_servers(
     PPMDHANDLE hHandle,
     char *pszIfname,

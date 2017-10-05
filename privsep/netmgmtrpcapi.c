@@ -1217,6 +1217,88 @@ error:
  * DNS configuration APIs
  */
 unsigned32
+netmgr_privsep_rpc_add_dns_server(
+    handle_t hBinding,
+    wstring_t pwszInterfaceName,
+    wstring_t pwszDnsServer
+)
+{
+    uint32_t i, dwError = 0;
+    char *pszIfName = NULL;
+    char *pszDnsServer = NULL;
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (!pwszDnsServer)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if (pwszInterfaceName)
+    {
+        dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateStringAFromW(pwszDnsServer, &pszDnsServer);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = nm_add_dns_server(pszIfName, pszDnsServer);
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pszIfName);
+    PMD_SAFE_FREE_MEMORY(pszDnsServer);
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+unsigned32
+netmgr_privsep_rpc_delete_dns_server(
+    handle_t hBinding,
+    wstring_t pwszInterfaceName,
+    wstring_t pwszDnsServer
+)
+{
+    uint32_t i, dwError = 0;
+    char *pszIfName = NULL;
+    char *pszDnsServer = NULL;
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (!pwszDnsServer)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if (pwszInterfaceName)
+    {
+        dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateStringAFromW(pwszDnsServer, &pszDnsServer);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = nm_delete_dns_server(pszIfName, pszDnsServer);
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pszIfName);
+    PMD_SAFE_FREE_MEMORY(pszDnsServer);
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+unsigned32
 netmgr_privsep_rpc_set_dns_servers(
     handle_t hBinding,
     wstring_t pwszInterfaceName,

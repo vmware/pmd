@@ -2309,6 +2309,168 @@ error:
 }
 
 uint32_t
+netmgr_client_add_dns_server_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    wstring_t pwszDnsServer
+    )
+{
+    uint32_t dwError = 0;
+
+    if(!hHandle || !pwszDnsServer)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(netmgr_privsep_rpc_add_dns_server(
+                   hHandle->hRpc,
+                   pwszIfname,
+                   pwszDnsServer),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(netmgr_rpc_add_dns_server(
+                   hHandle->hRpc,
+                   pwszIfname,
+                   pwszDnsServer),
+                   dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+uint32_t
+netmgr_client_add_dns_server(
+    PPMDHANDLE hHandle,
+    char *pszIfname,
+    char *pszDnsServer
+    )
+{
+    uint32_t dwError = 0;
+    wstring_t pwszIfname = NULL;
+    wstring_t pwszDnsServer = NULL;
+
+    if(!hHandle || IsNullOrEmptyString(pszDnsServer))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if (pszIfname)
+    {
+        dwError = PMDAllocateStringWFromA(pszIfname, &pwszIfname);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateStringWFromA(pszDnsServer, &pwszDnsServer);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_add_dns_server_w(
+                  hHandle,
+                  pwszIfname,
+                  pwszDnsServer);
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    PMDFreeMemory(pwszDnsServer);
+    PMDFreeMemory(pwszIfname);
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+uint32_t
+netmgr_client_delete_dns_server_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    wstring_t pwszDnsServer
+    )
+{
+    uint32_t dwError = 0;
+
+    if(!hHandle || !pwszDnsServer)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(netmgr_privsep_rpc_delete_dns_server(
+                   hHandle->hRpc,
+                   pwszIfname,
+                   pwszDnsServer),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(netmgr_rpc_delete_dns_server(
+                   hHandle->hRpc,
+                   pwszIfname,
+                   pwszDnsServer),
+                   dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+uint32_t
+netmgr_client_delete_dns_server(
+    PPMDHANDLE hHandle,
+    char *pszIfname,
+    char *pszDnsServer
+    )
+{
+    uint32_t dwError = 0;
+    wstring_t pwszIfname = NULL;
+    wstring_t pwszDnsServer = NULL;
+
+    if(!hHandle || IsNullOrEmptyString(pszDnsServer))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if (pszIfname)
+    {
+        dwError = PMDAllocateStringWFromA(pszIfname, &pwszIfname);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateStringWFromA(pszDnsServer, &pwszDnsServer);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_delete_dns_server_w(
+                  hHandle,
+                  pwszIfname,
+                  pwszDnsServer);
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    PMDFreeMemory(pwszDnsServer);
+    PMDFreeMemory(pwszIfname);
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+uint32_t
 netmgr_client_get_dns_servers_w(
     PPMDHANDLE hHandle,
     wstring_t pwszIfname,

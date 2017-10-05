@@ -1071,6 +1071,82 @@ error:
 }
 
 static PyObject *
+add_dns_server(
+    PPY_NET self,
+    PyObject *arg,
+    PyObject *kwds
+    )
+{
+    uint32_t dwError = 0;
+    size_t i = 0, count = 0;
+    char *pszInterfaceName = NULL;
+    char *pszServer = NULL;
+    static char *kwlist[] = {"server", "ifname", NULL};
+    PyObject *pyRes = Py_None;
+
+    if (!PyArg_ParseTupleAndKeywords(arg,
+                                     kwds,
+                                     "s|s",
+                                     kwlist,
+                                     &pszServer,
+                                     &pszInterfaceName))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = netmgr_client_add_dns_server(self->hHandle,
+                                           pszInterfaceName,
+                                           pszServer);
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    pyRes = Py_BuildValue("i", dwError);
+    return pyRes;
+error:
+    raise_netmgr_exception(self, dwError);
+    goto cleanup;
+}
+
+static PyObject *
+delete_dns_server(
+    PPY_NET self,
+    PyObject *arg,
+    PyObject *kwds
+    )
+{
+    uint32_t dwError = 0;
+    size_t i = 0, count = 0;
+    char *pszInterfaceName = NULL;
+    char *pszServer = NULL;
+    static char *kwlist[] = {"server", "ifname", NULL};
+    PyObject *pyRes = Py_None;
+
+    if (!PyArg_ParseTupleAndKeywords(arg,
+                                     kwds,
+                                     "s|s",
+                                     kwlist,
+                                     &pszServer,
+                                     &pszInterfaceName))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = netmgr_client_delete_dns_server(self->hHandle,
+                                              pszInterfaceName,
+                                              pszServer);
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    pyRes = Py_BuildValue("i", dwError);
+    return pyRes;
+error:
+    raise_netmgr_exception(self, dwError);
+    goto cleanup;
+}
+
+static PyObject *
 set_dns_servers(
     PPY_NET self,
     PyObject *arg,
@@ -2543,6 +2619,14 @@ static PyMethodDef net_methods[] =
      "net.get_ipv6_gateway(ifname = interfacename) \n\
      get the IPv6 gateway for the interface. "
      "returns IPv6 gateway if successful, exception on failure.\n"},
+    {"add_dns_server", (PyCFunction)add_dns_server,
+     METH_VARARGS|METH_KEYWORDS,
+     "net.add_dns_server(server = \"10.20.30.40\", ifname = interfacename) \n\
+     add dns server. returns 0 if successful, exception on failure.\n"},
+    {"delete_dns_server", (PyCFunction)delete_dns_server,
+     METH_VARARGS|METH_KEYWORDS,
+     "net.delete_dns_servers(server = \"10.20.30.40\", ifname = interfacename) \n\
+     delete dns server. returns 0 if successful, exception on failure.\n"},
     {"set_dns_servers", (PyCFunction)set_dns_servers,
      METH_VARARGS|METH_KEYWORDS,
      "net.set_dns_servers(dns_mode = [dhcp, static], "
