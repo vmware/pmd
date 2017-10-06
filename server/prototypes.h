@@ -21,6 +21,18 @@ net_rest_get_registration(
     );
 
 uint32_t
+net_rest_add_dns_domain(
+    void *pInputJson,
+    void **ppOutputJson
+    );
+
+uint32_t
+net_rest_delete_dns_domain(
+    void *pInputJson,
+    void **ppOutputJson
+    );
+
+uint32_t
 net_rest_get_dns_domains(
     void *pInputJson,
     void **ppOutputJson
@@ -28,6 +40,12 @@ net_rest_get_dns_domains(
 
 uint32_t
 net_rest_put_dns_domains(
+    void *pInputJson,
+    void **ppOutputJson
+    );
+
+uint32_t
+net_rest_add_dns_server(
     void *pInputJson,
     void **ppOutputJson
     );
@@ -525,6 +543,20 @@ netmgr_client_get_dns_servers_w(
     wstring_t pwszIfname,
     NET_RPC_DNS_MODE *pMode,
     PPMD_WSTRING_ARRAY *ppwszDnsServers
+    );
+
+uint32_t
+netmgr_client_add_dns_domain_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    wstring_t pwszDnsDomain
+    );
+
+uint32_t
+netmgr_client_delete_dns_domain_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    wstring_t pwszDnsDomain
     );
 
 uint32_t

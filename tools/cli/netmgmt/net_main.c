@@ -837,8 +837,9 @@ cmd_dns_domains(
     PNETMGR_CMD pCmd)
 {
     uint32_t dwError = 0, add = 0;
-    size_t dwCount = 0, i;
+    size_t dwCount = 0, i = 0;
     char *pszDnsDomains = NULL, **ppszDnsDomains = NULL;
+    char *pszDomains = NULL, *pszIfname = NULL, *pszNoRestart = NULL;
 
     if(!hPMD || !pCmd)
     {
@@ -846,43 +847,87 @@ cmd_dns_domains(
         BAIL_ON_CLI_ERROR(dwError);
     }
 
-    if (pCmd->op == OP_SET)
-    {
-        dwError = netmgrcli_find_cmdopt(pCmd, "domains", &pszDnsDomains);
-        BAIL_ON_CLI_ERROR(dwError);
+    netmgrcli_find_cmdopt(pCmd, "interface", &pszIfname);
 
-        if (pszDnsDomains != NULL)
-        {
-            dwError = netmgr_parse_comma_sep_tokens(pszDnsDomains,
-                                                    &add,
-                                                    &dwCount,
-                                                    &ppszDnsDomains);
+    switch (pCmd->op)
+    {
+        case OP_SET:
+        case OP_ADD:
+        case OP_DEL:
+            dwError = netmgrcli_find_cmdopt(pCmd, "domains", &pszDnsDomains);
+            if (dwError == ENOENT)
+            {
+                dwError = 0;
+            }
+            BAIL_ON_CLI_ERROR(dwError);
+
+            dwError = netmgr_parse_comma_sep_tokens(
+                          pszDnsDomains,
+                          &add,
+                          &dwCount,
+                          &ppszDnsDomains);
             BAIL_ON_PMD_ERROR(dwError);
-        }
 
-        dwError = netmgr_client_set_dns_domains(hPMD,
-                                                NULL,
-                                                dwCount,
-                                                ppszDnsDomains);
-        BAIL_ON_CLI_ERROR(dwError);
+            if (!dwCount && (pCmd->op != OP_SET))
+            {
+                dwError = EDOM;
+                BAIL_ON_CLI_ERROR(dwError);
+            }
+            dwError = netmgrcli_find_cmdopt(pCmd, "norestart", &pszNoRestart);
+            if (dwError == ENOENT)
+            {
+                dwError = 0;
+            }
+            BAIL_ON_CLI_ERROR(dwError);
+            if ((pszNoRestart != NULL) && !strcmp(pszNoRestart, "true"))
+            {
+                //TODO: Handle
+            }
+            if (pCmd->op == OP_SET)
+            {
+                dwError = netmgr_client_set_dns_domains(
+                              hPMD,
+                              pszIfname,
+                              dwCount,
+                              ppszDnsDomains);
+            }
+            else if (pCmd->op == OP_ADD)
+            {
+                dwError = netmgr_client_add_dns_domain(
+                              hPMD,
+                              pszIfname,
+                              ppszDnsDomains[0]);
+            }
+            else if (pCmd->op == OP_DEL)
+            {
+                dwError = netmgr_client_delete_dns_domain(
+                              hPMD,
+                              pszIfname,
+                              ppszDnsDomains[0]);
+                BAIL_ON_CLI_ERROR(dwError);
+            }
+            BAIL_ON_CLI_ERROR(dwError);
+            break;
+
+        case OP_GET:
+            dwError = netmgr_client_get_dns_domains(
+                          hPMD,
+                          pszIfname,
+                          &dwCount,
+                          &ppszDnsDomains);
+            BAIL_ON_CLI_ERROR(dwError);
+
+            fprintf(stdout, "Domains=");
+            for (i = 0; i < dwCount; i++)
+            {
+                fprintf(stdout, "%s ", ppszDnsDomains[i]);
+            }
+            fprintf(stdout, "\n");
+            break;
+
+        default:
+            dwError = EINVAL;
     }
-
-    if (pCmd->op == OP_GET)
-    {
-        dwError = netmgr_client_get_dns_domains(hPMD,
-                                                NULL,
-                                                &dwCount,
-                                                &ppszDnsDomains);
-        BAIL_ON_CLI_ERROR(dwError);
-
-        fprintf(stdout, "DNSDomains=");
-        for (i = 0; i < dwCount; i++)
-        {
-            fprintf(stdout, "%s ", ppszDnsDomains[i]);
-        }
-        fprintf(stdout, "\n");
-    }
-
 cleanup:
     /* Free allocated memory */
     for (i = 0; i < dwCount; i++)
