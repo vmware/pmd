@@ -1087,6 +1087,76 @@ error:
 }
 
 unsigned32
+netmgr_rpc_add_dns_domain(
+    handle_t hBinding,
+    wstring_t pwszIfname,
+    wstring_t pwszDnsDomain
+)
+{
+    uint32_t i, dwError = 0;
+    PPMDHANDLE hPMD = NULL;
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
+    if (!pwszDnsDomain)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_add_dns_domain_w(
+                  hPMD,
+                  pwszIfname,
+                  pwszDnsDomain);
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    rpc_free_handle(hPMD);
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+unsigned32
+netmgr_rpc_delete_dns_domain(
+    handle_t hBinding,
+    wstring_t pwszIfname,
+    wstring_t pwszDnsDomain
+)
+{
+    uint32_t i, dwError = 0;
+    PPMDHANDLE hPMD = NULL;
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
+    if (!pwszDnsDomain)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_delete_dns_domain_w(
+                  hPMD,
+                  pwszIfname,
+                  pwszDnsDomain);
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    rpc_free_handle(hPMD);
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+unsigned32
 netmgr_rpc_set_dns_domains(
     handle_t hBinding,
     wstring_t pwszIfname,

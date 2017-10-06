@@ -221,6 +221,20 @@ netmgr_client_get_dns_servers(
     );
 
 uint32_t
+netmgr_client_add_dns_domain(
+    PPMDHANDLE hHandle,
+    char *pszIfname,
+    char *pszDnsDomain
+    );
+
+uint32_t
+netmgr_client_delete_dns_domain(
+    PPMDHANDLE hHandle,
+    char *pszIfname,
+    char *pszDnsDomain
+    );
+
+uint32_t
 netmgr_client_set_dns_domains(
     PPMDHANDLE hHandle,
     char *pszIfname,
