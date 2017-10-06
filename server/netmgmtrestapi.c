@@ -20,14 +20,19 @@ REST_MODULE _net_rest_module[] =
 {
     {
         "/v1/net/dns/domains",
-        {net_rest_get_dns_domains, net_rest_put_dns_domains, NULL, NULL}
+        {
+            net_rest_get_dns_domains,
+            net_rest_put_dns_domains,
+            net_rest_add_dns_domain,
+            net_rest_delete_dns_domain
+        }
     },
     {
         "/v1/net/dns/servers",
         {
             net_rest_get_dns_servers,
             net_rest_put_dns_servers,
-            NULL,
+            net_rest_add_dns_server,
             net_rest_delete_dns_server
         }
     },
@@ -322,6 +327,68 @@ netmgmt_free_iproutes(
 }
 
 uint32_t
+net_rest_add_dns_server(
+    void *pInput,
+    void **ppOutputJson
+    )
+{
+    uint32_t dwError = 0;
+    int i = 0;
+    int nCount = 0;
+    json_t *pJson = NULL, *pRoot = NULL;
+    char *pszIfName = NULL;
+    char *pszOutputJson = NULL;
+    char *pszDnsServer = NULL;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
+
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    pszInputJson = pArgs->pszInputJson;
+
+    dwError = get_json_object_from_string(pszInputJson, &pJson);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = json_get_string_value(pJson, "server", &pszDnsServer);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_add_dns_server(
+                  hPMD,
+                  pszIfName,
+                  pszDnsServer);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pRoot = json_object();
+    pszOutputJson = json_dumps(pRoot, 0);
+
+    *ppOutputJson = pszOutputJson;
+
+cleanup:
+    if(pRoot)
+    {
+        json_decref(pRoot);
+    }
+    PMD_SAFE_FREE_MEMORY(pszDnsServer);
+    rpc_free_handle(hPMD);
+    return dwError;
+
+error:
+    if(ppOutputJson != NULL)
+    {
+        *ppOutputJson = NULL;
+    }
+    goto cleanup;
+}
+
+uint32_t
 net_rest_delete_dns_server(
     void *pInput,
     void **ppOutputJson
@@ -574,6 +641,10 @@ net_rest_get_dns_domains(
         BAIL_ON_PMD_ERROR(dwError);
 
         dwError = json_get_string_value(pJson, "interface", &pszIfName);
+        if(dwError == ENOENT)
+        {
+            dwError = 0;
+        }
         BAIL_ON_PMD_ERROR(dwError);
     }
 
@@ -660,6 +731,10 @@ net_rest_put_dns_domains(
         BAIL_ON_PMD_ERROR(dwError);
 
         dwError = json_get_string_value(pJson, "interface", &pszIfName);
+        if(dwError == ENOENT)
+        {
+            dwError = 0;
+        }
         BAIL_ON_PMD_ERROR(dwError);
 
         dwError = json_get_string_array(pJson,
@@ -692,6 +767,148 @@ cleanup:
     PMD_SAFE_FREE_MEMORY(pszIfName);
     PMDFreeStringArrayWithCount(ppszDnsDomains, nCount);
     rpc_free_handle(hPMD);
+    return dwError;
+
+error:
+    if(ppOutputJson)
+    {
+        *ppOutputJson = NULL;
+    }
+    PMD_SAFE_FREE_MEMORY(pszOutputJson);
+    goto cleanup;
+}
+
+uint32_t
+net_rest_add_dns_domain(
+    void *pInput,
+    void **ppOutputJson
+    )
+{
+    uint32_t dwError = 0;
+    char *pszOutputJson = NULL;
+    char *pszIfName = NULL;
+    char *pszDnsDomain = NULL;
+    json_t *pJson = NULL;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
+
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    pszInputJson = pArgs->pszInputJson;
+
+    if(!IsNullOrEmptyString(pszInputJson))
+    {
+        dwError = get_json_object_from_string(pszInputJson, &pJson);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        dwError = json_get_string_value(pJson, "interface", &pszIfName);
+        if(dwError == ENOENT)
+        {
+            dwError = 0;
+        }
+        BAIL_ON_PMD_ERROR(dwError);
+
+        dwError = json_get_string_value(pJson, "server", &pszDnsDomain);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_add_dns_domain(
+                  hPMD,
+                  pszIfName,
+                  pszDnsDomain);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = json_make_result_success(&pszOutputJson);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppOutputJson = pszOutputJson;
+
+cleanup:
+    if(pJson)
+    {
+        json_decref(pJson);
+    }
+    PMD_SAFE_FREE_MEMORY(pszIfName);
+    PMD_SAFE_FREE_MEMORY(pszDnsDomain);
+    return dwError;
+
+error:
+    if(ppOutputJson)
+    {
+        *ppOutputJson = NULL;
+    }
+    PMD_SAFE_FREE_MEMORY(pszOutputJson);
+    goto cleanup;
+}
+
+uint32_t
+net_rest_delete_dns_domain(
+    void *pInput,
+    void **ppOutputJson
+    )
+{
+    uint32_t dwError = 0;
+    char *pszOutputJson = NULL;
+    char *pszIfName = NULL;
+    char *pszDnsDomain = NULL;
+    json_t *pJson = NULL;
+    const char *pszInputJson = NULL;
+    PPMDHANDLE hPMD = NULL;
+    PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
+
+    if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    pszInputJson = pArgs->pszInputJson;
+
+    if(!IsNullOrEmptyString(pszInputJson))
+    {
+        dwError = get_json_object_from_string(pszInputJson, &pJson);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        dwError = json_get_string_value(pJson, "interface", &pszIfName);
+        if(dwError == ENOENT)
+        {
+            dwError = 0;
+        }
+        BAIL_ON_PMD_ERROR(dwError);
+
+        dwError = json_get_string_value(pJson, "server", &pszDnsDomain);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_delete_dns_domain(
+                  hPMD,
+                  pszIfName,
+                  pszDnsDomain);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = json_make_result_success(&pszOutputJson);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppOutputJson = pszOutputJson;
+
+cleanup:
+    if(pJson)
+    {
+        json_decref(pJson);
+    }
+    PMD_SAFE_FREE_MEMORY(pszIfName);
+    PMD_SAFE_FREE_MEMORY(pszDnsDomain);
     return dwError;
 
 error:

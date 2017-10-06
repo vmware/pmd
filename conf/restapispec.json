@@ -294,6 +294,50 @@
                   }],
     "responses":{"405":{"description":"Invalid input"}},
     "security":[]
+   },
+   "post":
+   {
+    "tags":["net"],
+    "summary":"add dns domain",
+    "description":"add dns domain",
+    "operationId":"add_dns_domain",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"server",
+                  "in":"query",
+                  "description":"dns domain",
+                  "required":true,
+                  "type":"string"
+                  }
+                  ],
+    "responses":{
+        "200":{"description":{"result":"success"}},
+        "405":{"description":"Invalid input"}
+    },
+    "security":[]
+   },
+   "delete":
+   {
+    "tags":["net"],
+    "summary":"delete dns domain",
+    "description":"delete dns domain",
+    "operationId":"delete_dns_domain",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"server",
+                  "in":"query",
+                  "description":"dns domain",
+                  "required":true,
+                  "type":"string"
+                  }
+                  ],
+    "responses":{
+        "200":{"description":{"result":"success"}},
+        "405":{"description":"Invalid input"}
+    },
+    "security":[]
    }
   },
   "/net/dns/servers":
@@ -338,6 +382,28 @@
                   "type":"array",
                   "items": {"type":"string"}
                   }],
+    "responses":{
+        "200":{"description":{"result":"success"}},
+        "405":{"description":"Invalid input"}
+    },
+    "security":[]
+   },
+   "post":
+   {
+    "tags":["net"],
+    "summary":"add dns server",
+    "description":"add dns server",
+    "operationId":"add_dns_server",
+    "consumes":["application/json"],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"server",
+                  "in":"query",
+                  "description":"dns server",
+                  "required":true,
+                  "type":"string"
+                  }
+                  ],
     "responses":{
         "200":{"description":{"result":"success"}},
         "405":{"description":"Invalid input"}

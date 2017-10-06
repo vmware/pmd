@@ -242,6 +242,20 @@ interface netmgmt
     );
 
     unsigned32
+    netmgr_rpc_add_dns_domain(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszInterfaceName,
+        [in] wstring_t pwszDnsDomain
+    );
+
+    unsigned32
+    netmgr_rpc_delete_dns_domain(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszInterfaceName,
+        [in] wstring_t pwszDnsDomain
+    );
+
+    unsigned32
     netmgr_rpc_set_dns_domains(
         [in] handle_t hBinding,
         [in] wstring_t pwszInterfaceName,
