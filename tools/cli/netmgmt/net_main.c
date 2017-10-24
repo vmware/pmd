@@ -985,7 +985,7 @@ cmd_dhcp_duid(
     PNETMGR_CMD pCmd)
 {
     uint32_t dwError = 0;
-    char *pszDuid = NULL;
+    char *pszDuid = NULL, *pszIfName = NULL;
 
     if(!hPMD || !pCmd)
     {
@@ -993,19 +993,21 @@ cmd_dhcp_duid(
         BAIL_ON_CLI_ERROR(dwError);
     }
 
+    netmgrcli_find_cmdopt(pCmd, "interface", &pszIfName);
+
     if (pCmd->op == OP_SET)
     {
         dwError = netmgrcli_find_cmdopt(pCmd, "duid", &pszDuid);
         BAIL_ON_CLI_ERROR(dwError);
 
-        dwError = netmgr_client_set_duid(hPMD, NULL, pszDuid);
+        dwError = netmgr_client_set_duid(hPMD, pszIfName, pszDuid);
         pszDuid = NULL;
         BAIL_ON_CLI_ERROR(dwError);
     }
 
     if (pCmd->op == OP_GET)
     {
-        dwError = netmgr_client_get_duid(hPMD, NULL, &pszDuid);
+        dwError = netmgr_client_get_duid(hPMD, pszIfName, &pszDuid);
         BAIL_ON_CLI_ERROR(dwError);
         fprintf(stdout, "DUID=%s\n", pszDuid);
     }
