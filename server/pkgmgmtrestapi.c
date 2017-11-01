@@ -480,6 +480,71 @@ error:
     goto cleanup;
 }
 
+
+uint32_t
+make_processed_pkgs_result(
+    const char *pszAlterCmd,
+    char **ppszPackages,
+    int nPkgCount,
+    char **ppszOutputJson
+    )
+{
+    uint32_t dwError = 0;
+    json_t *pRoot = NULL;
+    json_t *pRequestArray = NULL;
+    char *pszOutputJson = NULL;
+    char *pszOutputKey = NULL;
+    int i = 0;
+
+    if(IsNullOrEmptyString(pszAlterCmd) ||
+       !ppszPackages ||
+       !nPkgCount ||
+       !ppszOutputJson)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    pRoot = json_object();
+    if(!pRoot)
+    {
+        dwError = ERROR_PMD_OUT_OF_MEMORY;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    pRequestArray = json_array();
+    if(!pRequestArray)
+    {
+        dwError = ERROR_PMD_OUT_OF_MEMORY;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    for(i = 0; i < nPkgCount; ++i)
+    {
+        json_array_append_new(pRequestArray, json_string(ppszPackages[i]));
+    }
+
+    dwError = PMDAllocateStringPrintf(&pszOutputKey, "%srequest", pszAlterCmd);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    json_object_set_new(pRoot, pszOutputKey, pRequestArray);
+
+    pszOutputJson = json_dumps(pRoot, 0);
+
+    *ppszOutputJson = pszOutputJson;
+
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pszOutputKey);
+    return dwError;
+
+error:
+    if(ppszOutputJson)
+    {
+        *ppszOutputJson = NULL;
+    }
+    goto cleanup;
+}
+
 uint32_t
 pkg_rest_alter(
     TDNF_ALTERTYPE nAlterType,
@@ -490,16 +555,14 @@ pkg_rest_alter(
     uint32_t dwError = 0;
     char *pszOutputJson = NULL;
     char *pszAlterCmd = NULL;
-    char *pszOutputKey = NULL;
     char **ppszPackages = NULL;
-    json_t *pRoot = NULL;
-    json_t *pRequestArray = NULL;
     PTDNF_CMD_ARGS pArgs = NULL;
     int nPkgCount = 0;
     int i = 0;
     const char *pszInputJson = NULL;
     PPMDHANDLE hPMD = NULL;
     PPKGHANDLE hPkgHandle = NULL;
+    int nNothingToDo = 0;
 
     if(!pRestArgs || !ppOutputJson)
     {
@@ -546,33 +609,30 @@ pkg_rest_alter(
 
     //server will call resolve and alter - hence null for solvedinfo
     dwError = pkg_alter(hPMD, hPkgHandle, nAlterType, NULL);
+    if(dwError == ERROR_PMD_FAIL)
+    {
+        dwError = 0;
+        nNothingToDo = 1;
+    }
     BAIL_ON_PMD_ERROR(dwError);
 
-    pRoot = json_object();
-    if(!pRoot)
+    if(nNothingToDo)
     {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
+        dwError = json_string_from_key_value(
+                      "result",
+                      "Nothing to do.",
+                      &pszOutputJson);
         BAIL_ON_PMD_ERROR(dwError);
     }
-
-    pRequestArray = json_array();
-    if(!pRequestArray)
+    else
     {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
+        dwError = make_processed_pkgs_result(
+                      pszAlterCmd,
+                      ppszPackages,
+                      nPkgCount,
+                      &pszOutputJson);
         BAIL_ON_PMD_ERROR(dwError);
     }
-
-    for(i = 0; i < nPkgCount; ++i)
-    {
-        json_array_append_new(pRequestArray, json_string(ppszPackages[i]));
-    }
-
-    dwError = PMDAllocateStringPrintf(&pszOutputKey, "%srequest", pszAlterCmd);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    json_object_set_new(pRoot, pszOutputKey, pRequestArray);
-
-    pszOutputJson = json_dumps(pRoot, 0);
 
     *ppOutputJson = pszOutputJson;
 
@@ -583,7 +643,6 @@ cleanup:
     }
     pkg_free_cmd_args(pArgs);
     PMD_SAFE_FREE_MEMORY(pszAlterCmd);
-    PMD_SAFE_FREE_MEMORY(pszOutputKey);
     rpc_free_handle(hPMD);
     return dwError;
 
