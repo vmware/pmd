@@ -19,7 +19,7 @@ void
 fwmgmt_cli_show_help(
     )
 {
-    printf("usage: pmd-cli [connection options] fwmgmt <command> [command options]\n");
+    printf("usage: pmd-cli [connection options] firewall <command> [command options]\n");
     printf("\n");
 
     printf("List of Main Commands\n");

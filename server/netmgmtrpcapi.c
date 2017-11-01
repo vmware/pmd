@@ -1286,6 +1286,9 @@ netmgr_rpc_get_iaid(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
+    dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
     dwError = netmgr_client_get_iaid_w(hPMD, pwszIfname, &iaid);
     BAIL_ON_PMD_ERROR(dwError);
 
