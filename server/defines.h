@@ -33,6 +33,11 @@ typedef struct _PMDHANDLE_* PPMDHANDLE;
 #define PMD_CONFIG_KEY_REST_PORT    "port"
 #define PMD_CONFIG_KEY_REST_APISPEC "apispec"
 #define PMD_CONFIG_KEY_REST_AUTH    "authenticate"
+#define PMD_CONFIG_KEY_REST_SSL_CERT "sslcert"
+#define PMD_CONFIG_KEY_REST_SSL_KEY "sslkey"
+#define PMD_CONFIG_KEY_REST_WORKER_THREAD_COUNT "worker-thread-count"
+#define PMD_CONFIG_KEY_REST_CLIENT_COUNT "client-count"
+#define PMD_CONFIG_KEY_REST_LOG_FILE "logfile"
 
 #define PMD_CONFIG_KEY_SERVERTYPE "servertype"
 #define PMD_CONFIG_KEY_CURRENTHASH "currenthash"
@@ -51,3 +56,10 @@ typedef struct _PMDHANDLE_* PPMDHANDLE;
 #define PKG_PRIVSEP "pkg_privsep"
 #define NET_PRIVSEP "net_privsep"
 #define USERMGMT_PRIVSEP "usermgmt_privsep"
+
+#define VMREST_STOP_TIMEOUT_SECS       2
+#define PMD_REST_DEFAULT_WORKER_THREAD 5
+#define PMD_REST_DEFAULT_CLIENTS       5
+#define PMD_REST_DEFAULT_LOG_FILE      "/var/log/pmd/restServer.log"
+#define PMD_REST_DEFAULT_SSL_CERT      "/etc/pmd/server.crt"
+#define PMD_REST_DEFAULT_SSL_KEY       "/etc/pmd/server.key"
