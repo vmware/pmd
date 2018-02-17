@@ -93,6 +93,7 @@ pmd_firewall_add_rules(
 {
     uint32_t dwError = 0;
     char *pszCmd = NULL;
+    char *pszCmdPersist = NULL;
 
     if(IsNullOrEmptyString(pszChain) || IsNullOrEmptyString(pszRuleSpec))
     {
@@ -114,12 +115,21 @@ pmd_firewall_add_rules(
 
     if(nPersist)
     {
-        dwError = add_firewall_rule_to_script(pszCmd);
+        dwError = PMDAllocateStringPrintf(
+                      &pszCmdPersist,
+                      "%s -A %s %s",
+                      nIPV6 ? IP6TABLES_CMD : IPTABLES_CMD,
+                      pszChain,
+                      pszRuleSpec);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        dwError = add_firewall_rule_to_script(pszCmdPersist);
         BAIL_ON_PMD_ERROR(dwError);
     }
 
 cleanup:
     PMD_SAFE_FREE_MEMORY(pszCmd);
+    PMD_SAFE_FREE_MEMORY(pszCmdPersist);
     return dwError;
 
 error:
