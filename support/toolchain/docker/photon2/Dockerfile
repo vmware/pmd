@@ -42,6 +42,7 @@ RUN tdnf update -qy  tdnf  && \
         openssl-devel \
         procps-ng-3.3.12 \
         python2-devel-2.7.13 \
+        python3-devel-3.6.1 \
         rpm-4.13.0.1 \
         rpm-build-4.13.0.1 \
         rpm-devel-4.13.0.1 \

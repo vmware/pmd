@@ -13,6 +13,7 @@ pmd.spec
 *_sstub.c
 .deps
 .libs
+.rpm
 
 .hmake
 
@@ -30,6 +31,8 @@ pmd.spec
 ltmain.sh
 libtool
 ar-lib
+
+rpms
 
 #pmd-autoconf
 /pmd/autom4te.cache
