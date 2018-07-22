@@ -1,0 +1,79 @@
+---
+format: hypermake.v0
+
+name: pmd
+description: PMD
+
+targets:
+  rebuild-toolchain-photon2:
+    description: build toolchain image for Photon OS 2.0
+    watches:
+      - support/toolchain/docker/photon2
+    build: support/toolchain/docker/photon2
+    image: 'vmware/pmd-toolchain-photon2:1.0.0'
+    cache: false
+
+  toolchain-[osver:photon2]:
+    description: place-holder for future dependencies
+
+  bootstrap-photon2:
+    description: Bootstraps build
+    after:
+      - toolchain-photon2
+    watches:
+      - '**/**/*.am'
+      - '**/**/*.ac'
+    cmds:
+      - ./support/scripts/bootstrap.sh
+    image: 'vmware/pmd-toolchain-photon2:1.0.0'
+
+  build-pmd-photon2:
+    description: build Lightwave source code for linux
+    after:
+      - bootstrap-photon2
+    watches:
+      - support/scripts/build.sh
+    cmds:
+      - ./support/scripts/build.sh
+    image: 'vmware/pmd-toolchain-photon2:1.0.0'
+
+  build-[osver:photon2]:
+    description: build source code
+    after:
+      - 'build-pmd-$[osver]'
+
+  build:
+    description: build source code
+    after:
+      - 'build-*-photon2'
+
+  pack-photon2:
+    description: Create RPM Package
+    after:
+      - build-photon2
+    cmds:
+      - ./support/scripts/pack.sh
+    image: 'vmware/pmd-toolchain-photon2:1.0.0'
+
+  pack:
+    description: Create RPM Package
+    after:
+      - pack-photon2
+
+  clean-photon2:
+    description: Cleanup
+    always: true
+    cmds:
+      - ./support/scripts/clean.sh
+    image: 'vmware/pmd-toolchain-photon2:1.0.0'
+
+  clean:
+    description: Cleanup
+    after:
+      - clean-photon2
+    always: true
+
+settings:
+  default-targets:
+    - build
+    - pack
