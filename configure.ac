@@ -99,19 +99,21 @@ AC_SUBST(CREST_LIBS)
 saved_CPPFLAGS="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS $LW_INCLUDES"
 AC_CHECK_HEADERS(lw/base.h lw/types.h uuid/uuid.h lwrpcrt/lwrpcrt.h dce/rpc.h)
+
 CPPFLAGS="$saved_CPPFLAGS"
+LIBS="$saved_LIBS"
 
 AC_ARG_WITH([vmdirclient],
     [AC_HELP_STRING([--with-vmdirclient=<dir>], [use rest binaries rooted at prefix <dir> ])],
     [
         VMDIRCLI_BASE_PATH="$withval"
         VMDIRCLI_INCLUDES="-I$withval/include"
-        VMDIRCLI_LDFLAGS="-L$withval/lib64"
+        VMDIRCLI_LDFLAGS="-L$withval/lib64 -Wl,-rpath,$withval/lib64 -Wl,-rpath-link,$withval/lib64"
     ],
     [
         VMDIRCLI_BASE_PATH="/opt/vmware/"
         VMDIRCLI_INCLUDES="-I/opt/vmware/include/"
-        VMDIRCLI_LDFLAGS="-L/opt/vmware/lib64/"
+        VMDIRCLI_LDFLAGS="-L/opt/vmware/lib64 -Wl,-rpath,/opt/vmware/lib64 -Wl,-rpath-link,/opt/vmware/lib64"
     ])
 
 AC_SUBST(VMDIRCLI_BASE_PATH)
@@ -125,7 +127,7 @@ AC_CHECK_HEADERS(vmdirclient.h)
 #vmrest lib
 AC_CHECK_LIB(
     [vmdirclient],
-    [VmDirOpenServerConnection],
+    [VmDirConnectionOpen],
     [VMDIRCLI_LIBS="-lvmdirclient"],
     [],
     [$VMDIRCLI_LDFLAGS])
@@ -133,24 +135,23 @@ AC_CHECK_LIB(
 AC_SUBST(VMDIRCLI_LIBS)
 
 CPPFLAGS="$saved_CPPFLAGS"
+LIBS="$saved_LIBS"
 
 AC_ARG_WITH([vmafdclient],
     [AC_HELP_STRING([--with-vmafdclient=<dir>], [use rest binaries rooted at prefix <dir> ])],
     [
         VMAFD_BASE_PATH="$withval"
         VMAFD_INCLUDES="-I$withval/include"
-        VMAFD_LDFLAGS="-L$withval/lib64"
+        VMAFD_LDFLAGS="-L$withval/lib64 -Wl,-rpath,$withval/lib64 -Wl,-rpath-link,$withval/lib64"
     ],
     [
         VMAFD_BASE_PATH="/opt/vmware/"
         VMAFD_INCLUDES="-I/opt/vmware/include/"
-        VMAFD_LDFLAGS="-L/opt/vmware/lib64/"
+        VMAFD_LDFLAGS="-L/opt/vmware/lib64 -Wl,-rpath,/opt/vmware/lib64 -Wl,-rpath-link,/opt/vmware/lib64"
     ])
 
 AC_SUBST(VMAFD_BASE_PATH)
 AC_SUBST(VMAFD_INCLUDES)
-AC_SUBST(VMAFD_LDFLAGS)
-
 AC_SUBST(VMAFD_LDFLAGS)
 
 saved_CPPFLAGS="$CPPFLAGS"
@@ -204,6 +205,19 @@ AC_ARG_ENABLE([demo],
       fi
     ])
 AM_CONDITIONAL(ENABLE_DEMO, [test "$WITH_DEMO" = 1])
+
+AC_ARG_ENABLE([rpcprivsep],
+    [AS_HELP_STRING([--enable-rpcprivsep], [enable rpcprivsep (default: enabled)])],
+    [
+      if test x"$enableval" = x"yes"
+      then
+        [WITH_RPCPRIVSEP=1]
+        AC_DEFINE(RPCPRIVSEP_ENABLED)
+      else
+        [WITH_RPCPRIVSEP=0]
+      fi
+    ])
+AM_CONDITIONAL(ENABLE_RPCPRIVSEP, [test "$WITH_RPCPRIVSEP" = 1])
 
 AC_CHECK_LIB(
     [lwbase],

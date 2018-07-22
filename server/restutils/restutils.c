@@ -387,7 +387,7 @@ get_uri_from_request(
     char *pszURI = NULL;
     char *pszTempURI = NULL;
 
-    dwError = VmRESTGetHttpURI(pRequest, &pszRealURI);
+    dwError = VmRESTGetHttpURI(pRequest, TRUE, &pszRealURI);
     BAIL_ON_PMD_ERROR(dwError);
 
     pszTempURI = strchr(pszRealURI, '?');
@@ -501,6 +501,21 @@ rest_method(
     stArgs.pszInputJson = pszJsonIn;
 
     dwError = pMethod->pFnImpl(&stArgs, (void **)&pszJsonOut);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = VmRESTSetHttpHeader(
+                  ppResponse,
+                  "Access-Control-Allow-Methods",
+                  "POST, GET, OPTIONS, PUT"
+                  );
+    BAIL_ON_PMD_ERROR(dwError);
+
+
+    dwError = VmRESTSetHttpHeader(
+                  ppResponse,
+                  "Access-Control-Allow-Origin",
+                  "*"
+                  );
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = VmRESTSetSuccessResponse(pRequest, ppResponse);

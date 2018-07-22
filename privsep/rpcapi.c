@@ -13,6 +13,9 @@
  */
 
 #include "includes.h"
+
+#ifdef RPCPRIVSEP_ENABLED
+
 #include <gssapi_creds_plugin.h>
 #include <dlfcn.h>
 
@@ -122,3 +125,17 @@ error:
     PMD_SAFE_FREE_MEMORY(pwszB64VValue);
     goto cleanup;
 }
+#else //RPCPRIVSEP_ENABLED
+
+unsigned32
+privsepd_rpc_unix_auth(
+    handle_t hBinding,
+    wstring_t pwszUser,
+    wstring_t *ppwszSalt,
+    wstring_t *ppwszB64SValue,
+    wstring_t *ppwszB64VValue
+    )
+{
+    return 0;
+}
+#endif//RPCPRIVSEP_ENABLED

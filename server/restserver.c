@@ -22,6 +22,7 @@ StartRestServer(
     PREST_API_DEF pApiDef = NULL;
     PREST_PROCESSOR pRestProcessor = NULL;
     PPMD_REST_CONFIG pRestConfig = NULL;
+    REST_CONF config = {0};
 
     MODULE_REG_MAP stRegMap[] =
     {
@@ -46,9 +47,19 @@ StartRestServer(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
+    config.serverPort = 2081;
+    config.nWorkerThr = 5;
+    config.nClientCnt = 5;
+    config.SSLCtxOptionsFlag = 0;
+    config.pszSSLCertificate = "/etc/pmd/server.crt";
+    config.pszSSLKey = "/etc/pmd/server.key";
+    config.pszSSLCipherList = NULL;
+    config.pszDebugLogFile = NULL;
+    config.pszDaemonName = "pmd";
+    config.isSecure = TRUE;
+    config.useSysLog = TRUE;
     dwError =  VmRESTInit(
-                   NULL,
-                   "/etc/pmd/restconfig.txt",
+                   &config,
                    &gpServerEnv->pRestHandle);
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -90,13 +101,14 @@ error:
 void
 StopRestServer()
 {
+    uint32_t nWaitSeconds = 2;
     fprintf(stdout, "Stopping rest server.\n");
     if(!gpServerEnv || !gpServerEnv->pRestHandle)
     {
         fprintf(stdout, "rest server not started. skipping stop.\n");
         return;
     }
-    VmRESTStop(gpServerEnv->pRestHandle);
+    VmRESTStop(gpServerEnv->pRestHandle, nWaitSeconds);
     gpServerEnv->pRestHandle = NULL;
     fprintf(stdout, "stopped rest server.\n");
 }

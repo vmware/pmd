@@ -60,4 +60,7 @@
 
 #include <netmgmt/netmgr.h>
 #include "pmd_netmgr.h"
+
+#ifdef RPCPRIVSEP_ENABLED
 #include <gssapi_creds_plugin.h>
+#endif

@@ -5,7 +5,8 @@ AM_CFLAGS += $(COPENAPI_CFLAGS)
 
 librestutils_la_CPPFLAGS = \
     -I$(top_srcdir)/include \
-    @LW_INCLUDES@
+    @LW_INCLUDES@ \
+    @VMDIRCLI_INCLUDES@
     
 librestutils_la_SOURCES = \
     global.c \

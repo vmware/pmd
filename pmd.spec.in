@@ -14,7 +14,7 @@ Requires:       netmgmt
 Requires:	systemd
 Requires:	tdnf >= 1.2.0
 Requires:	c-rest-engine
-Requires:       lightwave-client-libs
+Requires:       lightwave-client
 Requires:       jansson
 Requires:       copenapi
 Requires:       %{name}-libs = %{version}-%{release}
@@ -93,7 +93,8 @@ autoreconf -mif
     --sysconfdir=/etc \
     --with-likewise=/opt/likewise \
     --enable-python=no \
-    --enable-demo=yes \
+    --enable-demo=no \
+    --enable-rpcprivsep=no \
     --disable-static
 make
 
@@ -146,13 +147,14 @@ fi
 
     # Add libgssapi_unix.so to GSSAPI plugin directory
     if [ ! -h %{_libdir}/gss/libgssapi_unix.so ]; then
-        /bin/ln -sf %{_libdir}/libgssapi_unix.so %{_libdir}/gss/libgssapi_unix.so
+        /bin/ln -sf /opt/vmware/lib64/libgssapi_unix.so %{_libdir}/gss/libgssapi_unix.so
     fi
     # Add gssapi_unix plugin configuration to GSS mech file
     if [ -f "%{_mech_file}" ]; then
         if [ `grep -c "%{_mech_id}" "%{_mech_file}"` -lt 1 ]; then
             echo "unix %{_mech_id} libgssapi_unix.so" >> "%{_mech_file}"
         fi
+        sed -i 's|^#unix|unix|' /etc/gss/mech
     fi
 
     if [ "$1" = 1 ]; then

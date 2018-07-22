@@ -80,7 +80,8 @@ pmd_LDADD =  \
     @VMAFD_LIBS@ \
     @COPENAPI_LIBS@ \
     @LWBASE_LIBS@ \
-    -lvmdirclient \
+    @VMAFD_LIBS@ \
+    @VMDIRCLI_LIBS@ \
     -lnetmgr \
     -lpthread \
     -lcrypt \

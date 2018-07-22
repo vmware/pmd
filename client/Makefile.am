@@ -6,7 +6,6 @@ libpmdclient_la_CPPFLAGS = \
     @LW_INCLUDES@
 
 libpmdclient_la_SOURCES = \
-    gssapi_creds_plugin.c \
     fwmgmt_api.c \
     fwmgmt_cstub.c \
     pkgmgmt_api.c \
@@ -26,6 +25,10 @@ libpmdclient_la_SOURCES = \
     netmgmt_privsep_cstub.c \
     fwmgmt_privsep_cstub.c \
     usermgmt_privsep_cstub.c
+
+if ENABLE_RPCPRIVSEP
+    libpmdclient_la_SOURCES += gssapi_creds_plugin.c
+endif
 
 if ENABLE_DEMO
 demo_cstub.c:
