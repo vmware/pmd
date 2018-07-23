@@ -2,4 +2,4 @@
 
 PROJECT_ROOT=$(pwd)
 
-cd $PROJECT_ROOT && make clean && make disclean
+cd $PROJECT_ROOT && make clean && make distclean

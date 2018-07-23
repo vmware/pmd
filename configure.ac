@@ -14,7 +14,7 @@ AC_PROG_LIBTOOL
 
 CPPFLAGS="$CPPFLAGS -D_REENTRANT -D_GNU_SOURCE -fPIC"
 
-AM_CPPFLAGS="$AM_CPPFLAGS -I${top_srcdir}/include" 
+AM_CPPFLAGS="$AM_CPPFLAGS -I${top_srcdir}/include"
 AM_CFLAGS="$AM_CFLAGS -Wall -Werror -Wno-unused-variable -fno-strict-aliasing"
 
 AC_SUBST(AM_CPPFLAGS)
@@ -121,9 +121,17 @@ AC_SUBST(VMDIRCLI_INCLUDES)
 AC_SUBST(VMDIRCLI_LDFLAGS)
 
 saved_CPPFLAGS="$CPPFLAGS"
-CPPFLAGS="$CPPFLAGS $VMDIRCLI_INCLUDES $DCERPC_INCLUDES"
+CPPFLAGS="$CPPFLAGS $VMDIRCLI_INCLUDES $DCERPC_INCLUDES $LW_INCLUDES"
 echo "Looking for vmdir cli headers"
-AC_CHECK_HEADERS(vmdirclient.h)
+AC_CHECK_HEADERS(
+    [vmdirclient.h],
+    [],
+    [],
+    [#ifdef HAVE_LW_BASE_H
+     #include <lw/base.h>
+     # endif
+     #include <stdio.h>
+    ])
 #vmrest lib
 AC_CHECK_LIB(
     [vmdirclient],
