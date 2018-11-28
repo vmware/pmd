@@ -416,14 +416,11 @@ pkg_alter_s(
     dwError = TDNFResolve(pTdnf, nAlterType, &pSolvedInfo);
     BAIL_ON_PMD_ERROR(dwError);
 
-    if(!pSolvedInfo->nNeedAction)
+    if(pSolvedInfo->nNeedAction)
     {
-        dwError = ERROR_PMD_FAIL;
+        dwError = TDNFAlterCommand(pTdnf, nAlterType, pSolvedInfo);
         BAIL_ON_PMD_ERROR(dwError);
     }
-
-    dwError = TDNFAlterCommand(pTdnf, nAlterType, pSolvedInfo);
-    BAIL_ON_PMD_ERROR(dwError);
 
     pthread_mutex_unlock(&gpServerEnv->mutexPkgMgmtApi);
     nLocked = 0;
