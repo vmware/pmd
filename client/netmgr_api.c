@@ -1,4 +1,4 @@
-/*
+a/*
  * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -2595,7 +2595,7 @@ cleanup:
 error:
     if (pMode)
     {
-        *pMode = DNS_MODE_INVALID;
+        *pMode = DNS_MODE_UNKNOWN;
     }
     if (pCount)
     {
