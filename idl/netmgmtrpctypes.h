@@ -135,7 +135,7 @@ typedef struct _NET_RPC_IP_ROUTE_ARRAY
 
 typedef enum _NET_RPC_DNS_MODE
 {
-    RPC_DNS_MODE_INVALID = 0,
+    RPC_DNS_MODE_UNKNOWN = 0,
     RPC_STATIC_DNS,
     RPC_DHCP_DNS,
     RPC_DNS_MODE_MAX

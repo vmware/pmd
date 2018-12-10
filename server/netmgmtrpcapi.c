@@ -1047,7 +1047,7 @@ netmgr_rpc_get_dns_servers(
     uint32_t dwError = 0;
     PPMD_WSTRING_ARRAY pwszDnsServers = NULL;
     PPMDHANDLE hPMD = NULL;
-    NET_RPC_DNS_MODE mode = RPC_DNS_MODE_INVALID;
+    NET_RPC_DNS_MODE mode = RPC_DNS_MODE_UNKNOWN;
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
@@ -1077,7 +1077,7 @@ cleanup:
 error:
     if (pdwMode)
     {
-        *pdwMode = RPC_DNS_MODE_INVALID;
+        *pdwMode = RPC_DNS_MODE_UNKNOWN;
     }
     if (ppwszDnsServers)
     {

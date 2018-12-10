@@ -1,4 +1,5 @@
-/*
+
+a/*
  * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -2479,7 +2480,7 @@ netmgr_client_get_dns_servers_w(
     )
 {
     uint32_t dwError = 0;
-    NET_RPC_DNS_MODE dwMode = RPC_DNS_MODE_INVALID;
+    NET_RPC_DNS_MODE dwMode = RPC_DNS_MODE_UNKNOWN;
     PPMD_WSTRING_ARRAY pwszDnsServers = NULL;
 
     if(!hHandle || !pMode || !ppwszDnsServers)
@@ -2517,7 +2518,7 @@ cleanup:
 error:
     if (pMode)
     {
-        *pMode = RPC_DNS_MODE_INVALID;
+        *pMode = RPC_DNS_MODE_UNKNOWN;
     }
     if (ppwszDnsServers)
     {
@@ -2538,7 +2539,7 @@ netmgr_client_get_dns_servers(
     uint32_t dwError = 0;
     size_t i;
     wstring_t pwszIfname = NULL;
-    NET_RPC_DNS_MODE dwMode = RPC_DNS_MODE_INVALID;
+    NET_RPC_DNS_MODE dwMode = RPC_DNS_MODE_UNKNOWN;
     PPMD_WSTRING_ARRAY pwszDnsServers = NULL;
     char **ppszDnsServers = NULL;
 
@@ -2595,7 +2596,7 @@ cleanup:
 error:
     if (pMode)
     {
-        *pMode = DNS_MODE_INVALID;
+        *pMode = DNS_MODE_UNKNOWN;
     }
     if (pCount)
     {

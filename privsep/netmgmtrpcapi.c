@@ -1427,7 +1427,7 @@ cleanup:
 error:
     if (pdwMode)
     {
-        *pdwMode = RPC_DNS_MODE_INVALID;
+        *pdwMode = RPC_DNS_MODE_UNKNOWN;
     }
     if (ppwszDnsServers)
     {
