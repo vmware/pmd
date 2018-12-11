@@ -23,7 +23,12 @@ typedef struct _PMD_REST_CONFIG_
     int nEnabled;
     int nPort;
     int nUseKerberos;
+    int nWorkerThreadCount;
+    int nClientCount;
     char *pszApiSpec;
+    char *pszSSLCert;
+    char *pszSSLKey;
+    char *pszLogFile;
 }PMD_REST_CONFIG, *PPMD_REST_CONFIG;
 
 typedef struct _PMD_CONFIG_
