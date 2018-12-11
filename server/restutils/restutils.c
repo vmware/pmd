@@ -387,7 +387,7 @@ get_uri_from_request(
     char *pszURI = NULL;
     char *pszTempURI = NULL;
 
-    dwError = VmRESTGetHttpURI(pRequest, &pszRealURI);
+    dwError = VmRESTGetHttpURI(pRequest, 1, &pszRealURI);
     BAIL_ON_PMD_ERROR(dwError);
 
     pszTempURI = strchr(pszRealURI, '?');
