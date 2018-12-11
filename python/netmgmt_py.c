@@ -1222,7 +1222,7 @@ get_dns_servers(
 {
     uint32_t dwError = 0;
     size_t i = 0, count = 0;
-    NET_DNS_MODE dnsMode = DNS_MODE_INVALID;
+    NET_DNS_MODE dnsMode = DNS_MODE_UNKNOWN;
     char *pszInterfaceName = NULL;
     char *pszDnsMode = NULL;
     char **ppszDnsServers = NULL;
@@ -1254,7 +1254,7 @@ get_dns_servers(
         }
     }
 
-    if (dnsMode == DNS_MODE_INVALID)
+    if (dnsMode == DNS_MODE_UNKNOWN)
     {
         pszDnsMode = "invalid";
     }
@@ -1731,7 +1731,7 @@ fill_link_info(
     size_t i = 0, j = 0;
     NET_LINK_MODE linkMode = LINK_MODE_UNKNOWN;
     NET_LINK_STATE linkState = LINK_STATE_UNKNOWN;
-    NET_DNS_MODE dnsMode = DNS_MODE_INVALID;
+    NET_DNS_MODE dnsMode = DNS_MODE_UNKNOWN;
     NET_IPV4_ADDR_MODE addrMode = IPV4_ADDR_MODE_NONE;
     char *pszDuid = 0, *pszIfName = NULL, *pszAddrMode = NULL;
     char *pszMacAddress = NULL, *pszIpv4Addr =NULL, *pszDnsMode = NULL;
@@ -1830,7 +1830,7 @@ fill_link_info(
     }
     BAIL_ON_PMD_ERROR(dwError);
 
-    if (dnsMode == DNS_MODE_INVALID)
+    if (dnsMode == DNS_MODE_UNKNOWN)
     {
         pszDnsMode = "invalid";
     }
@@ -2056,7 +2056,7 @@ get_system_network_info(
     uint32_t dwError = 0;
     size_t j = 0;
     size_t countDnsServers = 0, countDnsDomains = 0, countNtpServers = 0;
-    NET_DNS_MODE dnsMode = DNS_MODE_INVALID;
+    NET_DNS_MODE dnsMode = DNS_MODE_UNKNOWN;
     PPY_SYSTEM pPySystemObject = NULL;
     char *pszDuid = 0, *pszDnsMode = NULL;
     char **ppszDnsServers = NULL, **ppszDnsDomains = NULL;
@@ -2085,7 +2085,7 @@ get_system_network_info(
     }
     BAIL_ON_PMD_ERROR(dwError);
 
-    if (dnsMode == DNS_MODE_INVALID)
+    if (dnsMode == DNS_MODE_UNKNOWN)
     {
         pszDnsMode = "invalid";
     }

@@ -2595,7 +2595,7 @@ cleanup:
 error:
     if (pMode)
     {
-        *pMode = DNS_MODE_INVALID;
+        *pMode = DNS_MODE_UNKNOWN;
     }
     if (pCount)
     {
