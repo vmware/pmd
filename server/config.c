@@ -44,6 +44,21 @@ pmd_get_rest_config(
                                (void **)&pRestConfig);
     BAIL_ON_PMD_ERROR(dwError);
 
+    //set defaults
+    pRestConfig->nWorkerThreadCount = PMD_REST_DEFAULT_WORKER_THREAD;
+    pRestConfig->nClientCount = PMD_REST_DEFAULT_CLIENTS;
+    dwError = PMDAllocateString(PMD_REST_DEFAULT_SSL_CERT,
+                                &pRestConfig->pszSSLCert);
+    BAIL_ON_PMD_ERROR(dwError);
+    dwError = PMDAllocateString(PMD_REST_DEFAULT_SSL_KEY,
+                                &pRestConfig->pszSSLKey);
+
+    BAIL_ON_PMD_ERROR(dwError);
+    dwError = PMDAllocateString(PMD_REST_DEFAULT_LOG_FILE,
+                                &pRestConfig->pszLogFile);
+    BAIL_ON_PMD_ERROR(dwError);
+
+
     pKeyValues = pSection->pKeyValues;
     for(; pKeyValues; pKeyValues = pKeyValues->pNext)
     {
@@ -55,10 +70,38 @@ pmd_get_rest_config(
         {
             pRestConfig->nPort = atoi(pKeyValues->pszValue);
         }
+	else if(!strcmp(PMD_CONFIG_KEY_REST_WORKER_THREAD_COUNT,
+                        pKeyValues->pszKey))
+        {
+            pRestConfig->nWorkerThreadCount = atoi(pKeyValues->pszValue);
+        }
+        else if(!strcmp(PMD_CONFIG_KEY_REST_CLIENT_COUNT,
+                        pKeyValues->pszKey))
+        {
+            pRestConfig->nClientCount = atoi(pKeyValues->pszValue);
+        }
         else if(!strcmp(PMD_CONFIG_KEY_REST_APISPEC, pKeyValues->pszKey))
         {
             dwError = PMDAllocateString(pKeyValues->pszValue,
                                         &pRestConfig->pszApiSpec);
+            BAIL_ON_PMD_ERROR(dwError);
+        }
+	else if(!strcmp(PMD_CONFIG_KEY_REST_SSL_CERT, pKeyValues->pszKey))
+        {
+            dwError = PMDAllocateString(pKeyValues->pszValue,
+                                        &pRestConfig->pszSSLCert);
+            BAIL_ON_PMD_ERROR(dwError);
+        }
+        else if(!strcmp(PMD_CONFIG_KEY_REST_SSL_KEY, pKeyValues->pszKey))
+        {
+            dwError = PMDAllocateString(pKeyValues->pszValue,
+                                        &pRestConfig->pszSSLKey);
+            BAIL_ON_PMD_ERROR(dwError);
+        }
+        else if(!strcmp(PMD_CONFIG_KEY_REST_LOG_FILE, pKeyValues->pszKey))
+        {
+            dwError = PMDAllocateString(pKeyValues->pszValue,
+                                        &pRestConfig->pszLogFile);
             BAIL_ON_PMD_ERROR(dwError);
         }
         else if(!strcmp(PMD_CONFIG_KEY_REST_AUTH, pKeyValues->pszKey))
@@ -171,6 +214,9 @@ pmd_free_rest_config(
         return;
     }
     PMD_SAFE_FREE_MEMORY(pRestConf->pszApiSpec);
+    PMD_SAFE_FREE_MEMORY(pRestConf->pszLogFile);
+    PMD_SAFE_FREE_MEMORY(pRestConf->pszSSLCert);
+    PMD_SAFE_FREE_MEMORY(pRestConf->pszSSLKey);
     PMD_SAFE_FREE_MEMORY(pRestConf);
 }
 
