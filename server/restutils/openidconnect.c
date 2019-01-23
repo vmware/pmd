@@ -481,7 +481,7 @@ validate_jwt(
     //this server should be in audience
     dwError = find_in_array(pJWT->pClaims->pAudienceArray->ppszValues,
                      pJWT->pClaims->pAudienceArray->nCount,
-                     JAVELIN_OAUTH_AUD);
+                     PMD_OAUTH_AUD);
     if(dwError == ENOENT)
     {
         pError->nStatus = HTTP_FORBIDDEN;

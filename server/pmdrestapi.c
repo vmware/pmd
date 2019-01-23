@@ -18,7 +18,7 @@
 REST_MODULE _pmd_rest_module[] =
 {
     {
-        "/v1/javelin.json",
+        "/v1/pmd.json",
         {pmd_rest_api_spec, NULL, NULL, NULL}
     },
     {

@@ -40,5 +40,5 @@ setup (name = '@PACKAGE_NAME@-python',
        version = '@VERSION@',
        description = 'Python bindings for @PACKAGE_NAME@',
        packages = ['@PACKAGE_NAME@'],
-       url='https://github.com/vmware/javelin',
+       url='https://github.com/vmware/pmd',
        ext_modules = [pmdmodule])

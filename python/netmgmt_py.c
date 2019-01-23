@@ -75,7 +75,7 @@ error:
 }
 
 static void
-raise_javelin_exception(
+raise_pmd_exception(
     PPY_NET self,
     uint32_t dwPmdErrCode
     )
@@ -84,7 +84,7 @@ raise_javelin_exception(
     char szErrMsg[MAX_LINE_LENGTH];
 
     // TODO: Improve this - get PMD err string
-    sprintf(szErrMsg, "javelin error code=%u", dwPmdErrCode);
+    sprintf(szErrMsg, "pmd error code=%u", dwPmdErrCode);
     PyErr_SetString(PyExc_Exception, szErrMsg);
     return;
 }
@@ -114,7 +114,7 @@ raise_netmgr_exception(
     }
     else
     {
-        raise_javelin_exception(self, dwNmErrCode);
+        raise_pmd_exception(self, dwNmErrCode);
     }
 
 cleanup:
@@ -122,7 +122,7 @@ cleanup:
     return;
 error:
     sprintf(szErrMsg,
-            "javelin error code=%u raising netmgr exception for code=%u",
+            "pmd error code=%u raising netmgr exception for code=%u",
             dwError,
             dwNmErrCode);
     PyErr_SetString(PyExc_Exception, szErrMsg);

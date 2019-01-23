@@ -20,7 +20,7 @@
 #define AUTH_BASIC "Basic "
 #define AUTH_NEGOTIATE "Negotiate "
 #define AUTH_BEARER "Bearer "
-#define JAVELIN_OAUTH_AUD "rs_javelin_server"
+#define PMD_OAUTH_AUD "rs_pmd_server"
 #define LW_ADMIN_GROUP_NAME "Administrators"
 
 typedef enum
