@@ -677,7 +677,7 @@ cmd_dns_servers(
 {
     uint32_t dwError = 0, add = 0;
     size_t dwCount = 0, i = 0;
-    NET_DNS_MODE dnsMode = DNS_MODE_INVALID;
+    NET_DNS_MODE dnsMode = DNS_MODE_UNKNOWN;
     char *pszIfname = NULL, *pszMode = NULL;
     char *pszDnsServers = NULL, *pszNoRestart = NULL;
     char *s1, *s2, *pszServers = NULL, **ppszDnsServersList = NULL;
