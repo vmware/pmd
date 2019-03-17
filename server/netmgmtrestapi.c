@@ -212,7 +212,7 @@ net_str_to_dns_mode(
     )
 {
     uint32_t dwError = 0;
-    NET_DNS_MODE nMode = DNS_MODE_INVALID;
+    NET_DNS_MODE nMode = DNS_MODE_UNKNOWN;
 
     if (!pMode)
     {
@@ -230,7 +230,7 @@ net_str_to_dns_mode(
     }
     else
     {
-        nMode = DNS_MODE_INVALID;
+        nMode = DNS_MODE_UNKNOWN;
     }
 
     *pMode = nMode;
