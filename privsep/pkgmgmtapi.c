@@ -260,7 +260,6 @@ pkg_info_s(
 unsigned32
 pkg_updateinfo_s(
     PTDNF pTdnf,
-    TDNF_AVAIL nAvail,
     char **ppszPackageNameSpecs,
     PTDNF_UPDATEINFO_SUMMARY* ppUpdateInfoSummary
     )
@@ -283,7 +282,6 @@ pkg_updateinfo_s(
 
     dwError = TDNFUpdateInfoSummary(
                   pTdnf,
-                  nAvail,
                   ppszPackageNameSpecs,
                   &pUpdateInfoSummary);
     BAIL_ON_PMD_ERROR(dwError);

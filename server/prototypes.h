@@ -794,7 +794,6 @@ uint32_t
 pkg_updateinfo_summary_w(
     PPMDHANDLE hHandle,
     PPKGHANDLE hPkgHandle,
-    TDNF_AVAIL nAvail,
     PTDNF_RPC_UPDATEINFO_SUMMARY_ARRAY *ppRpcSummary
     );
 

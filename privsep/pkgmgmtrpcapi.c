@@ -298,7 +298,6 @@ pkg_privsep_rpc_updateinfo_summary(
 
     dwError = pkg_updateinfo_s(
                   hPkgHandle,
-                  0,
                   &pszPackageNameSpecs,
                   &pUpdateInfoSummary);
     BAIL_ON_PMD_ERROR(dwError);

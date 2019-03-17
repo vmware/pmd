@@ -63,7 +63,6 @@ pkg_info_s(
 unsigned32
 pkg_updateinfo_s(
     PTDNF pTdnf,
-    TDNF_AVAIL nAvail,
     char **ppszPackageNameSpecs,
     PTDNF_UPDATEINFO_SUMMARY* ppUpdateInfoSummary
     );
