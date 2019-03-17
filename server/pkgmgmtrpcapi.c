@@ -265,7 +265,6 @@ pkg_rpc_updateinfo_summary(
     dwError = pkg_updateinfo_summary_w(
                   hPMD,
                   hPkgHandle,
-                  AVAIL_AVAILABLE,
                   &pRpcUpdateInfoArray);
     BAIL_ON_PMD_ERROR(dwError);
 

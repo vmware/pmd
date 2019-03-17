@@ -267,7 +267,6 @@ pkg_invoke_updateinfo_summary(
     return pkg_updateinfo_summary(
                pLocalContext->hPMD,
                pLocalContext->hPkgHandle,
-               nAvail,
                pInfoArgs->ppszPackageNameSpecs,
                ppSummary);
 }

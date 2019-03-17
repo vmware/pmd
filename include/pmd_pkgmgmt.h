@@ -72,7 +72,6 @@ uint32_t
 pkg_updateinfo_summary(
     PPMDHANDLE hHandle,
     PPKGHANDLE phPkgHandle,
-    TDNF_AVAIL nAvail,
     char **ppszPackageNameSpecs,
     PTDNF_UPDATEINFO_SUMMARY *ppSummary
     );
