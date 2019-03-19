@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 #include <pmd_netmgr.h>
 

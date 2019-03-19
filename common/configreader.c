@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 uint32_t conf_section_default(
@@ -207,6 +206,7 @@ free_config_data(
         return;
     }
     free_config_sections(pData->pSections);
+    PMD_SAFE_FREE_MEMORY(pData->pszConfFile);
     PMD_SAFE_FREE_MEMORY(pData);
 }
 
@@ -356,6 +356,7 @@ process_config_line(
 {
     uint32_t dwError = 0;
     int nSection = 0;
+    char *pszSection = NULL;
 
     if(IsNullOrEmptyString(pszLine) || !pData)
     {
@@ -369,7 +370,6 @@ process_config_line(
     if(nSection && pfnConfSectionCB)
     {
         char *pszSection = NULL;
-
         dwError = get_section(pszLine, &pszSection);
         BAIL_ON_PMD_ERROR(dwError);
 
@@ -386,6 +386,7 @@ process_config_line(
     }
 
 cleanup:
+    PMD_SAFE_FREE_MEMORY(pszSection);
     return dwError;
 
 error:
@@ -418,9 +419,11 @@ read_config_file(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    pData = calloc(sizeof(CONF_DATA), 1);
-    pData->pszConfFile = calloc(strlen(pszFile) + 1, sizeof(char));
-    strcpy(pData->pszConfFile, pszFile);
+    dwError = PMDAllocateMemory(sizeof(CONF_DATA), (void **)&pData);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateString(pszFile, &pData->pszConfFile);
+    BAIL_ON_PMD_ERROR(dwError);
 
     nMaxLineLength = nLineLength > MAX_CONFIG_LINE_LENGTH ?
                   nLineLength : MAX_CONFIG_LINE_LENGTH;

@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 uint32_t
@@ -78,7 +77,7 @@ rolemgmt_main(
 cleanup:
     if(hPMD)
     {
-        PMDFreeHandle(hPMD);
+        rpc_free_handle(hPMD);
     }
     if(pCmdArgs)
     {
@@ -89,6 +88,34 @@ cleanup:
 error:
     goto cleanup;
 }
+
+uint32_t
+print_task_logs(
+    PPMD_ROLEMGMT_TASK_LOG pTaskLogs,
+    uint32_t dwTaskLogCount
+    )
+{
+    uint32_t dwError = 0;
+    uint32_t i = 0;
+
+    if(!pTaskLogs || dwTaskLogCount == 0)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+
+    for(i = 0; i < dwTaskLogCount; ++i)
+    {
+        fprintf(stdout, "%s\n", pTaskLogs[i].pszLog);
+    }
+
+cleanup:
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
 
 uint32_t
 rolemgmt_cli_show_version_cmd(
@@ -137,12 +164,41 @@ rolemgmt_cli_roles_cmd(
             dwError = rolemgmt_cli_get_roles_cmd(hPMD, pCmdArgs);
             BAIL_ON_CLI_ERROR(dwError);
         break;
-        case ROLEMGMT_OPERATION_SET:
-            //dwError = fwmgmt_cli_add_rules_cmd(hPMD, pCmdArgs);
+        case ROLEMGMT_OPERATION_VERSION:
+            dwError = rolemgmt_cli_get_version_cmd(hPMD, pCmdArgs);
             BAIL_ON_CLI_ERROR(dwError);
         break;
-        case ROLEMGMT_OPERATION_DELETE:
-            //dwError = fwmgmt_cli_delete_rules_cmd(hPMD, pCmdArgs);
+        case ROLEMGMT_OPERATION_LOGS:
+            dwError = rolemgmt_cli_get_logs_cmd(hPMD, pCmdArgs);
+            BAIL_ON_CLI_ERROR(dwError);
+        break;
+        case ROLEMGMT_OPERATION_PREREQS:
+            dwError = rolemgmt_cli_get_prereqs_cmd(hPMD, pCmdArgs);
+            BAIL_ON_CLI_ERROR(dwError);
+        break;
+        case ROLEMGMT_OPERATION_STATUS:
+            dwError = rolemgmt_cli_get_status_cmd(hPMD, pCmdArgs);
+            BAIL_ON_CLI_ERROR(dwError);
+        break;
+        case ROLEMGMT_OPERATION_ENABLE:
+            dwError = rolemgmt_cli_alter_cmd(
+                          hPMD,
+                          pCmdArgs,
+                          ROLE_OPERATION_ENABLE);
+            BAIL_ON_CLI_ERROR(dwError);
+        break;
+        case ROLEMGMT_OPERATION_REMOVE:
+            dwError = rolemgmt_cli_alter_cmd(
+                          hPMD,
+                          pCmdArgs,
+                          ROLE_OPERATION_REMOVE);
+            BAIL_ON_CLI_ERROR(dwError);
+        break;
+        case ROLEMGMT_OPERATION_UPDATE:
+            dwError = rolemgmt_cli_alter_cmd(
+                          hPMD,
+                          pCmdArgs,
+                          ROLE_OPERATION_UPDATE);
             BAIL_ON_CLI_ERROR(dwError);
         break;
         default:
@@ -177,10 +233,296 @@ rolemgmt_cli_get_roles_cmd(
     for(pRole = pRoles; pRole; pRole = pRole->pNext)
     {
         fprintf(stdout, "%s\n", pRole->pszRole);
+        fprintf(stdout, "Id          : %s\n", pRole->pszId);
+        fprintf(stdout, "Name        : %s\n", pRole->pszName);
+        fprintf(stdout, "Description : %s\n", pRole->pszDescription);
+        fprintf(stdout, "\n");
     }
 
 cleanup:
     rolemgmt_free_roles(pRoles);
+    return dwError;
+
+error:
+    if(dwError == ERROR_PMD_NO_DATA)
+    {
+        fprintf(stderr, "There are no roles configured. Role configuration is read from \".role\" files under /etc/javelin.roles.d or from a directory configured under the \"roles\" section in /etc/pmd/pmd.conf.\n");
+    }
+    goto cleanup;
+}
+
+uint32_t
+rolemgmt_cli_get_logs_cmd(
+    PPMDHANDLE hPMD,
+    PROLEMGMT_CMD_ARGS pCmdArgs
+    )
+{
+    uint32_t dwError = 0;
+    PPMD_ROLEMGMT_TASK_LOG pTaskLogs = NULL;
+    uint32_t dwOffset = 0;
+    uint32_t dwTaskLogCount = 0;
+    PMD_ROLE_STATUS nStatus = ROLE_STATUS_NONE;
+
+    if(!hPMD || !pCmdArgs || IsNullOrEmptyString(pCmdArgs->pszTaskUUID))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+
+    do
+    {
+        dwError = rolemgmt_get_log(
+                      hPMD,
+                      pCmdArgs->pszTaskUUID,
+                      dwOffset,
+                      1,
+                      &pTaskLogs,
+                      &dwTaskLogCount);
+
+        if(dwError == ERROR_PMD_ROLE_TASK_NO_LOGS)
+        {
+            dwError = rolemgmt_get_status(
+                          hPMD,
+                          pCmdArgs->pszName,
+                          pCmdArgs->pszTaskUUID,
+                          &nStatus);
+            BAIL_ON_CLI_ERROR(dwError);
+
+            if(nStatus == ROLE_STATUS_IN_PROGRESS)
+            {
+                fprintf(stdout, "Task is in progress. Waiting for more logs..\n");
+                dwError = 0;
+                sleep(1);
+                continue;
+            }
+        }
+        BAIL_ON_CLI_ERROR(dwError);
+
+        if(pTaskLogs)
+        {
+            dwError = print_task_logs(pTaskLogs, dwTaskLogCount);
+            BAIL_ON_CLI_ERROR(dwError);
+        }
+
+        //wait a bit
+        sleep(1);
+        dwOffset += dwTaskLogCount;
+    }while(dwTaskLogCount > 0);
+
+cleanup:
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+
+uint32_t
+rolemgmt_cli_get_version_cmd(
+    PPMDHANDLE hPMD,
+    PROLEMGMT_CMD_ARGS pCmdArgs
+    )
+{
+    uint32_t dwError = 0;
+    char *pszVersion = NULL;
+
+    if(!hPMD || !pCmdArgs || IsNullOrEmptyString(pCmdArgs->pszRole))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+
+    dwError = rolemgmt_get_role_version(hPMD, pCmdArgs->pszRole, &pszVersion);
+    BAIL_ON_CLI_ERROR(dwError);
+
+    fprintf(stdout, "Version of %s : %s\n", pCmdArgs->pszRole, pszVersion);
+
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pszVersion);
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+uint32_t
+rolemgmt_cli_get_prereqs_cmd(
+    PPMDHANDLE hPMD,
+    PROLEMGMT_CMD_ARGS pCmdArgs
+    )
+{
+    uint32_t dwError = 0;
+    uint32_t dwPrereqCount = 0;
+    uint32_t i = 0;
+    char *pszVersion = NULL;
+    PPMD_ROLE_PREREQ pPrereqs = NULL;
+    PMD_ROLE_OPERATION nOperation = ROLE_OPERATION_NONE;
+
+    if(!hPMD || !pCmdArgs || IsNullOrEmptyString(pCmdArgs->pszRole))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+
+    dwError = rolemgmt_get_prereqs(hPMD,
+                                   pCmdArgs->pszRole,
+                                   nOperation,
+                                   &pPrereqs,
+                                   &dwPrereqCount);
+    BAIL_ON_CLI_ERROR(dwError);
+
+    if(dwPrereqCount == 0)
+    {
+        fprintf(stdout, "There are no prereqs for %s\n", pCmdArgs->pszRole);
+    }
+    else
+    {
+        fprintf(stdout, "Prereqs for %s\n", pCmdArgs->pszRole);
+
+        for(i = 0; i < dwPrereqCount; ++i)
+        {
+            fprintf(stdout, "  %d. %s - %s\n",
+                    i+1,
+                    pPrereqs[i].pszName,
+                    pPrereqs[i].pszDescription);
+        }
+    }
+cleanup:
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+uint32_t
+rolemgmt_cli_get_status_cmd(
+    PPMDHANDLE hPMD,
+    PROLEMGMT_CMD_ARGS pCmdArgs
+    )
+{
+    uint32_t dwError = 0;
+    PMD_ROLE_STATUS nStatus = ROLE_STATUS_NONE;
+    char* pszStatus = NULL;
+
+    if(!hPMD ||
+       !pCmdArgs ||
+       IsNullOrEmptyString(pCmdArgs->pszRole) ||
+       IsNullOrEmptyString(pCmdArgs->pszTaskUUID))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+
+    dwError = rolemgmt_get_status(
+                  hPMD,
+                  pCmdArgs->pszRole,
+                  pCmdArgs->pszTaskUUID,
+                  &nStatus);
+    BAIL_ON_CLI_ERROR(dwError);
+
+    dwError = rolemgmt_status_to_string(nStatus, &pszStatus);
+    BAIL_ON_CLI_ERROR(dwError);
+
+    fprintf(stdout, "Status: %s\n", pszStatus);
+
+cleanup:
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+uint32_t
+rolemgmt_cli_alter_cmd(
+    PPMDHANDLE hPMD,
+    PROLEMGMT_CMD_ARGS pCmdArgs,
+    PMD_ROLE_OPERATION nOperation
+    )
+{
+    uint32_t dwError = 0;
+    char *pszConfigJson = NULL;
+    char *pszTaskUUID = NULL;
+    uint32_t dwOffset = 0;
+    uint32_t dwEntriesToFetch = 1;
+    PPMD_ROLEMGMT_TASK_LOG pTaskLogs = NULL;
+    uint32_t dwTaskLogCount = 0;
+    PMD_ROLE_STATUS nStatus = ROLE_STATUS_NONE;
+
+    if(!hPMD ||
+       !pCmdArgs ||
+       IsNullOrEmptyString(pCmdArgs->pszRole)) 
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+
+    if(nOperation == ROLE_OPERATION_ENABLE &&
+       IsNullOrEmptyString(pCmdArgs->pszConfigFile))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+
+    if(!IsNullOrEmptyString(pCmdArgs->pszConfigFile))
+    {
+        dwError = file_read_all_text(pCmdArgs->pszConfigFile, &pszConfigJson);
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+
+    dwError = rolemgmt_alter(
+                  hPMD,
+                  pCmdArgs->pszRole,
+                  nOperation,
+                  pszConfigJson,
+                  &pszTaskUUID);
+    BAIL_ON_CLI_ERROR(dwError);
+
+    fprintf(stdout,
+            "Add role task for %s is queued with id: %s\n",
+            pCmdArgs->pszRole,
+            pszTaskUUID);
+
+    nStatus = ROLE_STATUS_IN_PROGRESS;
+    while(nStatus == ROLE_STATUS_IN_PROGRESS)
+    {
+        dwError = rolemgmt_get_status(
+                      hPMD,
+                      pCmdArgs->pszRole,
+                      pszTaskUUID,
+                      &nStatus);
+        BAIL_ON_CLI_ERROR(dwError);
+
+        dwError = rolemgmt_get_log(
+                      hPMD,
+                      pszTaskUUID,
+                      dwOffset,
+                      dwEntriesToFetch,
+                      &pTaskLogs,
+                      &dwTaskLogCount);
+        if(dwError == ERROR_PMD_ROLE_TASK_NO_LOGS || dwError == ERROR_PMD_NO_DATA)
+        {
+            dwError = 0;
+        }
+        else if(!dwError && pTaskLogs)
+        {
+            dwError = print_task_logs(pTaskLogs, dwTaskLogCount);
+            BAIL_ON_CLI_ERROR(dwError);
+        }
+        BAIL_ON_CLI_ERROR(dwError);
+
+        //wait a bit
+        sleep(1);
+        dwOffset += dwTaskLogCount;
+    }
+
+    if(pTaskLogs != NULL)
+    {
+        fprintf(stdout, "log = %s\n", pTaskLogs[0].pszLog);
+    }
+
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pszConfigJson);
+    PMD_SAFE_FREE_MEMORY(pszTaskUUID);
     return dwError;
 
 error:

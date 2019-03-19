@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 //netmgmtrestapi.c
 uint32_t
@@ -851,6 +850,11 @@ pkg_get_scope_from_string(
     TDNF_SCOPE *pnScope
     );
 
+uint32_t
+rolemgmt_rest_get_registration(
+    PREST_MODULE *ppRestModule
+    );
+
 void
 TDNFFreeCmdArgs(
     PTDNF_CMD_ARGS pCmdArgs
@@ -998,6 +1002,17 @@ usermgmt_get_groupid_w(
     uint32_t *pnGID
     );
 
+void
+pmd_free_rest_config(
+    PPMD_REST_CONFIG pRestConf
+    );
+
+void
+pmd_free_roles_config(
+    PPMD_ROLES_CONFIG pRolesConf
+    );
+
+//utils.c
 uint32_t
 usermgmt_get_users_w(
     PPMDHANDLE hHandle,
@@ -1022,6 +1037,16 @@ usermgmt_delete_user_w(
     const wstring_t pwszName
     );
 
+//rolemgmt_api.c
+uint32_t
+pmd_rolemgmt_load(
+    );
+
+uint32_t
+pmd_rolemgmt_unload(
+    );
+
+//restserver.c
 uint32_t
 usermgmt_add_group_w(
     PPMDHANDLE hHandle,

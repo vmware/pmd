@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 [
     uuid (5775ec92-176c-414c-b40d-e24b00904ff7),
     version(1.0),
@@ -35,5 +34,46 @@ interface rolemgmt
     rolemgmt_rpc_get_roles(
         [in] handle_t hBinding,
         [out] PPMD_RPC_ROLEMGMT_ROLE_ARRAY *ppRoleArray
+        );
+
+    unsigned32
+    rolemgmt_rpc_role_version(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszName,
+        [out] wstring_t* ppwszVersion
+        );
+
+    unsigned32
+    rolemgmt_rpc_role_get_status(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszName,
+        [in] wstring_t pwszTaskUUID,
+        [out] RPC_ROLE_STATUS *pnStatus
+        );
+
+    unsigned32
+    rolemgmt_rpc_role_get_prereqs(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszName,
+        [in] RPC_ROLE_OPERATION nOperation,
+        [out] PPMD_RPC_ROLEMGMT_PREREQ_ARRAY *ppPrereqArray
+        );
+
+    unsigned32
+    rolemgmt_rpc_role_alter(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszName,
+        [in] RPC_ROLE_OPERATION nOperation,
+        [in] wstring_t pwszConfigJson,
+        [out] wstring_t *pszTaskUUID
+        );
+
+    unsigned32
+    rolemgmt_rpc_role_get_log(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszTaskUUID,
+        [in] unsigned32 nOffset,
+        [in] unsigned32 nEntriesToFetch,
+        [out] PPMD_RPC_ROLEMGMT_TASK_LOG_ARRAY *ppTaskLogArray
         );
 }

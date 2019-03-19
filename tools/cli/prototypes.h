@@ -11,8 +11,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-
-
 #pragma once
 
 //component main functions
@@ -172,6 +170,7 @@ free_cmd_args(
     );
 
 //utils.c
+
 int
 PMDIsSystemError(
     uint32_t dwError
