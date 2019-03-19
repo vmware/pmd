@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 static char pmd__doc__[] = "";
@@ -31,6 +30,10 @@ prepareInitModule(
     if (PyType_Ready(&repodataType) < 0) return 0;
     if (PyType_Ready(&packageType) < 0) return 0;
     if (PyType_Ready(&solvedInfoType) < 0) return 0;
+    if (PyType_Ready(&rolemgmtType) < 0) return 0;
+    if (PyType_Ready(&rolemgmt_roleType) < 0) return 0;
+    if (PyType_Ready(&rolemgmt_prereqType) < 0) return 0;
+    if (PyType_Ready(&rolemgmt_logentryType) < 0) return 0;
 
     return 1;
 }

@@ -234,6 +234,10 @@ AM_CONDITIONAL([LIBCURL],  [test "$have_libcurl" = "yes"])
 PKG_CHECK_MODULES([COPENAPI], [copenapi], [have_libcopenapi=yes], [have_libcopenapi=no])
 AM_CONDITIONAL([COPENAPI],  [test "$have_libcopenapi" = "yes"])
 
+#uuid
+PKG_CHECK_MODULES([UUID], [uuid], [have_libuuid=yes], [have_libuuid=no])
+AM_CONDITIONAL([UUID],  [test "$have_libuuid" = "yes"])
+
 #makefiles
 AC_CONFIG_FILES([Makefile
                  common/Makefile
@@ -244,6 +248,7 @@ AC_CONFIG_FILES([Makefile
                  server/demo/Makefile
                  server/extras/Makefile
                  server/restutils/Makefile
+                 server/rolemgmt/Makefile
                  server/security/Makefile
                  privsep/Makefile
                  privsep/demo/Makefile
@@ -257,6 +262,8 @@ AC_CONFIG_FILES([Makefile
                  tools/cli/pkgmgmt/Makefile
                  tools/cli/netmgmt/Makefile
                  tools/cli/usermgmt/Makefile
+                 tools/cli/rolemgmt/Makefile
+                 tools/pmd.spec
                 ])
 
 #pmd conf dir

@@ -125,7 +125,7 @@ file_read_all_text(
     if(!fp)
     {
         dwError = ENOENT;
-        BAIL_ON_PMD_ERROR(dwError);
+        BAIL_ON_PMD_SYSTEM_ERROR(dwError);
     }
     fseek(fp, 0, SEEK_END);
     nLength = ftell(fp);
@@ -1189,5 +1189,14 @@ error:
     }
     PMD_SAFE_FREE_MEMORY(pszUser);
     PMD_SAFE_FREE_MEMORY(pszPass);
+=======
+    if(!strncmp(pszString, pszPrefix, nPrefixLen))
+    {
+        *pnResult = 1;
+    }
+cleanup:
+    return dwError;
+error:
+>>>>>>> origin/rolemgmt
     goto cleanup;
 }

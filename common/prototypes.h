@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 
 uint32_t
@@ -31,6 +30,12 @@ uint32_t
 PMDAllocateStringWFromA(
     const char* pszSrc,
     wstring_t* ppwszDst
+    );
+
+uint32_t
+PMDSafeAllocateString(
+    const char* pszSrc,
+    char** ppszDest
     );
 
 uint32_t
@@ -242,6 +247,13 @@ uint32_t
 validate_cmd(
     const char *pszCmd
     );
+uint32_t
+isStringPrefix(
+        char *pszString,
+        char *pszPrefix,
+        int *result
+   );
+
 //rpcsrvutils.c
 uint32_t
 PMDRpcServerAllocateMemory(

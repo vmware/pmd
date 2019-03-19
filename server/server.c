@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 void
@@ -64,6 +63,11 @@ start_rpc_server(
         pkg_v1_0_s_ifspec,
         pmd_v1_0_s_ifspec,
         netmgmt_v1_0_s_ifspec,
+<<<<<<< HEAD
+=======
+        rolemgmt_v1_0_s_ifspec,
+        rpmostree_v1_0_s_ifspec,
+>>>>>>> origin/rolemgmt
         usermgmt_v1_0_s_ifspec
     };
     int nInterfaces = sizeof(interface_spec)/sizeof(*interface_spec);
@@ -93,7 +97,7 @@ start_rpc_server(
      * Register the Interface with the local endpoint mapper (rpcd)
      */
 
-    printf ("Registering server.... \n");
+    fprintf (stdout, "Registering server.... \n");
     while(nInterfaces)
     {
         rpc_server_register_if(interface_spec[--nInterfaces],
@@ -132,18 +136,23 @@ int main(int argc, char *argv[])
                   &gpServerEnv->pConfig);
     if(dwError > 0)
     {
+<<<<<<< HEAD
         fprintf(stderr, "Error reading config: %s\n", PMD_CONFIG_FILE_NAME);
+=======
+        fprintf(stderr, "missing or invalid config file: /etc/pmd/pmd.conf\n");
+>>>>>>> origin/rolemgmt
     }
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = init_security_config(gpServerEnv->pConfig->pszApiSecurityConf,
-                                &gpServerEnv->pSecurityContext);
+    dwError = init_security_config(
+                  gpServerEnv->pConfig->pszApiSecurityConf,
+                  &gpServerEnv->pSecurityContext);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = StartRestServer();
     if (dwError)
     {
-        printf("start_rest_server: failed 0x%x : %d\n", dwError, dwError);
+        fprintf(stderr, "start_rest_server: failed 0x%x : %d\n", dwError, dwError);
         BAIL_ON_PMD_ERROR(dwError);
     }
     nRestServerStarted = 1;
@@ -151,7 +160,7 @@ int main(int argc, char *argv[])
     dwError = start_rpc_server(&hRpc);
     if (dwError)
     {
-        printf("start_rpc_server: failed 0x%x : %d\n", dwError, dwError);
+        fprintf(stderr, "start_rpc_server: failed 0x%x : %d\n", dwError, dwError);
         BAIL_ON_PMD_ERROR(dwError);
     }
     print_endpoints(hRpc);
@@ -159,14 +168,14 @@ int main(int argc, char *argv[])
     /*
      * Begin listening for calls
      */
-    printf ("listening for calls....\n");
+    fprintf (stdout, "listening for calls....\n");
     DCETHREAD_TRY
     {
         rpc_server_listen(rpc_c_listen_max_calls_default, &dwError);
     }
     DCETHREAD_CATCH_ALL(THIS_CATCH)
     {
-        printf ("Server stoppped listening\n");
+        fprintf (stdout, "Server stoppped listening\n");
     }
     DCETHREAD_ENDTRY;
 
@@ -180,6 +189,11 @@ cleanup:
     }
     pmd_free_server_env(gpServerEnv);
 
+<<<<<<< HEAD
+=======
+    uninit_modules();
+
+>>>>>>> origin/rolemgmt
     return dwError;
 
 error:

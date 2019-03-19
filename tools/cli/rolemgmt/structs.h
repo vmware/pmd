@@ -12,14 +12,18 @@
  * under the License.
  */
 
-
 #pragma once
 
 typedef enum _ROLEMGMT_OPERATION
 {
-    ROLEMGMT_OPERATION_LIST   = 0x1,
-    ROLEMGMT_OPERATION_SET    = 0x2,
-    ROLEMGMT_OPERATION_DELETE = 0x4
+    ROLEMGMT_OPERATION_LIST    = 1,
+    ROLEMGMT_OPERATION_VERSION,
+    ROLEMGMT_OPERATION_PREREQS,
+    ROLEMGMT_OPERATION_STATUS,
+    ROLEMGMT_OPERATION_ENABLE,
+    ROLEMGMT_OPERATION_REMOVE,
+    ROLEMGMT_OPERATION_UPDATE,
+    ROLEMGMT_OPERATION_LOGS,
 }ROLEMGMT_OPERATION;
 
 typedef struct _ROLEMGMT_CMD_ARGS_
@@ -29,6 +33,9 @@ typedef struct _ROLEMGMT_CMD_ARGS_
     int nCmdCount;
     ROLEMGMT_OPERATION nOperation;
     char *pszRole;
+    char *pszName;
+    char *pszTaskUUID;
+    char *pszConfigFile;
     char **ppszCmds;
 }ROLEMGMT_CMD_ARGS, *PROLEMGMT_CMD_ARGS; 
 
