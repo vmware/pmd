@@ -5,7 +5,7 @@ CLEANFILES =
 EXTRA_DIST =
 noinst_DATA =
 conf_DATA = conf/pmd.conf
-pkginclude_HEADERS = include/pmd.h include/pmdtypes.h include/pmderror.h
+pkginclude_HEADERS = include/pmd.h include/pmdtypes.h include/pmderror.h include/roleplugin.h
 pkgconfigdir = $(libdir)/pkgconfig
 
 SUBDIRS = \

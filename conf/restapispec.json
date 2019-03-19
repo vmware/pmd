@@ -61,6 +61,15 @@
     "description":"Find out more",
     "url":"http://wiki.eng.vmware.com/Photon/Javelin"
    }
+  },
+  {
+   "name":"rolemgmt",
+   "description":"role management module",
+   "externalDocs":
+   {
+    "description":"Find out more",
+    "url":"http://wiki.eng.vmware.com/Photon/Javelin"
+   }
   }
  ],
  "paths":
@@ -1862,6 +1871,226 @@
     "responses":{"200":{"result":"success"}},
     "security":[]
     }
+   },
+   "/rolemgmt/version":
+   {
+   "get":
+   {
+    "tags":["rolemgmt"],
+    "summary":"get rolemgmt version",
+    "description":"get rolemgmt version",
+    "operationId":"get_rolemgmt_version",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[],
+    "responses":{"200":{"result":"success"}},
+    "security":[]
+    }
+   },
+   "/rolemgmt/role/version":
+   {
+   "get":
+   {
+    "tags":["rolemgmt"],
+    "summary":"get rolemgmt role version",
+    "description":"get rolemgmt role version",
+    "operationId":"get_rolemgmt_role_version",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"name",
+                  "in":"query",
+                  "description":"role name",
+                  "required":true,
+                  "type":"string"
+                  }],
+    "responses":{"200":{"result":"success"}},
+    "security":[]
+    }
+   },
+   "/rolemgmt/roles":
+   {
+   "get":
+   {
+    "tags":["rolemgmt"],
+    "summary":"get roles",
+    "description":"get roles",
+    "operationId":"get_rolemgmt_roles",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[],
+    "responses":{
+        "200":{"description":"available roles",
+            "schema": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/Role"
+                }
+            },
+        "400":{"description":"no roles configured"}
+        }
+      },
+    "security":[]
+    }
+   },
+   "/rolemgmt/role/status":
+   {
+   "get":
+   {
+    "tags":["rolemgmt"],
+    "summary":"get roles",
+    "description":"get roles",
+    "operationId":"get_rolemgmt_roles",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"name",
+                  "in":"query",
+                  "description":"role name",
+                  "required":true,
+                  "type":"string"
+                  },
+                  {
+                  "name":"taskid",
+                  "in":"query",
+                  "description":"taskid",
+                  "required":true,
+                  "type":"string"
+                  }
+                  ],
+    "responses":{
+        "200":{"description":{"status":"status"}},
+        "400":{"description":"task not found"}
+      },
+    "security":[]
+    }
+   },
+   "/rolemgmt/role/logs":
+   {
+   "get":
+   {
+    "tags":["rolemgmt"],
+    "summary":"get logs",
+    "description":"get logs",
+    "operationId":"get_rolemgmt_logs",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[
+                  {
+                  "name":"taskid",
+                  "in":"query",
+                  "description":"taskid",
+                  "required":true,
+                  "type":"string"
+                  },
+                  {
+                  "name":"startat",
+                  "in":"query",
+                  "description":"start at",
+                  "required":true,
+                  "type":"integer"
+                  },
+                  {
+                  "name":"count",
+                  "in":"query",
+                  "description":"count",
+                  "required":true,
+                  "type":"integer"
+                  }
+                  ],
+    "responses":{
+        "200":{"description":{"status":"status"}},
+        "400":{"description":"task not found"}
+      },
+    "security":[]
+    }
+   },
+   "/rolemgmt/role/alter":
+   {
+   "put":
+   {
+    "tags":["rolemgmt"],
+    "summary":"enable role",
+    "description":"enable a role",
+    "operationId":"role_alter_put",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"name",
+                  "in":"query",
+                  "description":"role name",
+                  "required":true,
+                  "type":"string"
+                  },
+                  {
+                  "name":"config",
+                  "in":"body",
+                  "description":"config",
+                  "required":true,
+                  "type":"string"
+                  }],
+    "responses":{
+        "200":{"description":{"taskid":"new task id"}},
+        "400":{"description":"alter failed"}
+    },
+    "security":[]
+    },
+   "patch":
+   {
+    "tags":["rolemgmt"],
+    "summary":"update role",
+    "description":"update a role",
+    "operationId":"role_alter_patch",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"name",
+                  "in":"query",
+                  "description":"role name",
+                  "required":true,
+                  "type":"string"
+                  },
+                  {
+                  "name":"config",
+                  "in":"body",
+                  "description":"config",
+                  "required":false,
+                  "type":"string"
+                  }],
+    "responses":{
+        "200":{"description":{"taskid":"new task id"}},
+        "400":{"description":"alter failed"}
+    },
+    "security":[]
+    },
+   "delete":
+   {
+    "tags":["rolemgmt"],
+    "summary":"remove role",
+    "description":"remove a role",
+    "operationId":"role_alter_delete",
+    "consumes":[],
+    "produces":["application/json"],
+    "parameters":[{
+                  "name":"name",
+                  "in":"query",
+                  "description":"role name",
+                  "required":true,
+                  "type":"string"
+                  },
+                  {
+                  "name":"config",
+                  "in":"body",
+                  "description":"config",
+                  "required":false,
+                  "type":"string"
+                  }],
+    "responses":{
+        "200":{"description":{"taskid":"new task id"}},
+        "400":{"description":"alter failed"}
+    },
+    "security":[]
+    }
    }
  },
  "securityDefinitions": {
@@ -2059,6 +2288,14 @@
              "interface": {"type": "string"},
              "addr_type": {"type": "string"},
              "prefix": {"type": "string"}
+         }
+     },
+     "Role": {
+         "type": "object",
+         "properties":  {
+             "id": {"type": "string"},
+             "name": {"type": "string"},
+             "description": {"type": "string"}
          }
      }
   }

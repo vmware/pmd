@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 PREST_API_DEF gpApiDef = NULL;
@@ -30,7 +29,7 @@ rest_register_api_spec(
     PREST_API_MODULE pModule = NULL;
     PREST_PROCESSOR pRestProcessor = NULL;
 
-    if(!pRestHandle || !pApiDef || !ppRestProcessor)
+    if(!pApiDef || !ppRestProcessor || !pRestHandle)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
@@ -52,10 +51,10 @@ rest_register_api_spec(
         for(; pEndPoint; pEndPoint = pEndPoint->pNext)
         {
             dwError = VmRESTRegisterHandler(
-                          pRestHandle,
-                          pEndPoint->pszName,
-                          pRestProcessor,
-                          NULL);
+					    pRestHandle,
+					    pEndPoint->pszName,
+                                            pRestProcessor,
+                                            NULL);
             BAIL_ON_PMD_ERROR(dwError);
         }
     }
@@ -375,7 +374,6 @@ error:
     goto cleanup;
 }
 
-
 uint32_t
 get_uri_from_request(
     PREST_REQUEST pRequest,
@@ -457,6 +455,51 @@ error:
     {
         *ppMethod = NULL;
     }
+    goto cleanup;
+}
+
+uint32_t
+populate_error(
+    PVMREST_HANDLE pRestHandle,
+    PREST_RESPONSE* ppResponse,
+    PJWT_ERROR pError
+    )
+{
+    uint32_t dwError = 0;
+    char *pszCode = NULL;
+    uint32_t temp = 0;
+
+    if(!pRestHandle || !ppResponse || !pError)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+    dwError = PMDAllocateStringPrintf(&pszCode, "%d", pError->nStatus);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = VmRESTSetHttpStatusVersion(ppResponse, "HTTP/1.1");
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = VmRESTSetHttpStatusCode(ppResponse, pszCode);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = VmRESTSetHttpReasonPhrase(ppResponse, pError->pszError);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = VmRESTSetHttpHeader(ppResponse, "Connection", "close");
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = VmRESTSetHttpHeader(ppResponse, "Content-Length", "0");
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = VmRESTSetHttpPayload(pRestHandle, ppResponse, "", 0, &temp);
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pszCode);
+    return dwError;
+
+error:
     goto cleanup;
 }
 

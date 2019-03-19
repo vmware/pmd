@@ -32,6 +32,8 @@ pmd_SOURCES = \
     pmd_sstub.c \
     netmgmt_sstub.c \
     privsephandlelist.c \
+    rolemgmt_sstub.c \
+    rpmostree_sstub.c \
     utils.c
 
 fwmgmt_sstub.c:
@@ -48,18 +50,26 @@ netmgmt_sstub.c:
 
 usermgmt_sstub.c:
 	cp ../idl/usermgmt_sstub.c .
+rolemgmt_sstub.c:
+	cp ../idl/rolemgmt_sstub.c .
+
+rpmostree_sstub.c:
+	cp ../idl/rpmostree_sstub.c .
 
 CLEANFILES = \
     fwmgmt_sstub.c \
     pkgmgmt_sstub.c \
     pmd_sstub.c \
     netmgmt_sstub.c \
-    usermgmt_sstub.c
+    usermgmt_sstub.c \
+    rolemgmt_sstub.c \
+    rpmostree_sstub.c
 
 SUBDIRS = common \
-          security \
-          restutils \
-          extras
+    rolemgmt \
+    security \
+    restutils \
+    extras
 
 if ENABLE_DEMO
     SUBDIRS += demo
@@ -73,6 +83,7 @@ pmd_LDADD =  \
     @top_builddir@/server/security/libpmdsecurity.la \
     @top_builddir@/server/common/libsrvcommon.la \
     @top_builddir@/client/libpmdclient.la \
+    @top_builddir@/server/rolemgmt/librolemgmt.la \
     @DCERPC_LIBS@ \
     @JANSSON_LIBS@ \
     @CREST_LIBS@ \

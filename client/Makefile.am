@@ -17,6 +17,8 @@ libpmdclient_la_SOURCES = \
     pmd_cstub.c \
     netmgmt_cstub.c \
     netmgr_api.c \
+    rolemgmt_api.c \
+    rolemgmt_cstub.c \
     usermgmt_api.c \
     usermgmt_cstub.c \
     usermgmt_rpc_misc.c \
@@ -50,6 +52,9 @@ netmgmt_cstub.c:
 	cp ../idl/netmgmt_cstub.c .
 
 
+rolemgmt_cstub.c:
+	cp ../idl/rolemgmt_cstub.c .
+
 usermgmt_cstub.c:
 	cp ../idl/usermgmt_cstub.c .
 
@@ -80,14 +85,17 @@ CLEANFILES = \
     pkgmgmt_privsep_cstub.c \
     netgmgmt_privsep_cstub.c \
     fwgmgmt_privsep_cstub.c \
-    usergmgmt_privsep_cstub.c
+    usergmgmt_privsep_cstub.c \
+    rolemgmt_cstub.c \
+    rpmostree_cstub.c
 
 libpmdclient_la_LIBADD =  \
     @top_builddir@/common/libcommon.la \
     @DCERPC_LIBS@ \
     @LWBASE_LIBS@ \
-    -lpthread
+    -lpthread \
+    -llwbase_nothr
 
 libpmdclient_la_LDFLAGS= \
-    @DCERPC_LDFLAGS@ \
-    @LW_LDFLAGS@
+    @LW_LDFLAGS@ \
+    @DCERPC_LDFLAGS@
