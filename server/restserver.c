@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2019 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -35,6 +35,7 @@ StartRestServer(
         {"net",     net_rest_get_registration},
         {"pkg",     pkg_rest_get_registration},
         {"pmd",     pmd_rest_get_registration},
+        {"rolemgmt",rolemgmt_rest_get_registration},
         {"usrmgmt", usrmgmt_rest_get_registration},
 
         {NULL, NULL}

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2019 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -11,7 +11,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-
 
 #include "includes.h"
 
@@ -64,6 +63,7 @@ route_cmd(
         {"firewall", "firewall management", fwmgmt_main},
         {"net", "network management", netmgr_main},
         {"pkg", "package management", pkg_main},
+        {"rolemgmt", "role management", rolemgmt_main},
         {"usr", "user management", usermgmt_main},
         {NULL, NULL, NULL}
     };
@@ -121,6 +121,7 @@ error:
     {
         ShowRegisteredComponents(arKnownComps);
         show_usage();
+	dwError = 0;
     }
     if(dwError == ESRCH)
     {

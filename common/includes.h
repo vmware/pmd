@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2019 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -35,11 +35,11 @@
 #include <dce/dce_error.h>
 
 #include <curl/curl.h>
-
+#include <roleplugin.h>
 #include "defines.h"
 #include "structs.h"
 #include "prototypes.h"
-
+#include "../server/defines.h"
 #include <pmd_fwmgmt_types.h>
 #include <pmd_rolemgmt_types.h>
 #include <pmd_usermgmt_types.h>

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2019 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -11,7 +11,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-
 
 #include "includes.h"
 
@@ -144,7 +143,35 @@ py_string_as_string(
     *ppString = pString;
 cleanup:
     return dwError;
+error:
+    goto cleanup;
+}
 
+void
+raise_exception(
+    uint32_t dwErrorCode
+    )
+{
+    uint32_t dwError = 0;
+    char *pszError = NULL;
+    char *pszMessage = NULL;
+
+    dwError = PMDGetErrorString(dwErrorCode, &pszError);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateStringPrintf(&pszMessage,
+                                      "Error = %d: %s",
+                                      dwErrorCode,
+                                      pszError);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    PyErr_SetString(PyExc_Exception, pszMessage);
+
+cleanup:
+
+    PMD_SAFE_FREE_MEMORY(pszMessage);
+    PMD_SAFE_FREE_MEMORY(pszError);
+    return;
 error:
     goto cleanup;
 }

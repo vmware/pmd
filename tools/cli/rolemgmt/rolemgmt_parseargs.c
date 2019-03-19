@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2019 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #include "includes.h"
 
 static ROLEMGMT_CMD_ARGS _opt = {0};
@@ -24,8 +23,18 @@ static struct option pstOptions[] =
     {OPT_DOMAINNAME,  required_argument, 0, 0},//--domain
     {OPT_PASSWORD,    required_argument, 0, 0},//--pass
     {OPT_SPN,         required_argument, 0, 0},//--spn
+    {"config",        required_argument, 0, 0},
+    {"enable",        no_argument, 0, 0},
+    {"update",        no_argument, 0, 0},
+    {"remove",        no_argument, 0, 0},
     {"list",          no_argument, 0, 0},
+    {"logs",          no_argument, 0, 0},
+    {"prereqs",       no_argument, 0, 0},
+    {"name",          required_argument, 0, 0},
+    {"status",        no_argument, 0, 0},
+    {"taskid",        required_argument, 0, 0},
     {"version",       no_argument, &_opt.nShowVersion, 1}, //--version
+    {"help",          no_argument, &_opt.nShowHelp, 1},
     {0, 0, 0, 0}
 };
 
@@ -91,6 +100,10 @@ rolemgmt_parse_args(
 
     pCmdArgs->nShowHelp = _opt.nShowHelp;
     pCmdArgs->nShowVersion = _opt.nShowVersion;
+    if(_opt.nShowVersion)
+    {
+        pCmdArgs->nOperation = ROLEMGMT_OPERATION_VERSION;
+    }
 
     dwError = collect_extra_args(
                                  optind+1,//Move index up to start after component id
@@ -104,6 +117,9 @@ rolemgmt_parse_args(
     {
         pCmdArgs->nShowHelp = 1;
     }
+
+    dwError = rolemgmt_validate_options(pCmdArgs);
+    BAIL_ON_CLI_ERROR(dwError);
 
     *ppCmdArgs = pCmdArgs;
 
@@ -124,16 +140,99 @@ error:
 
 uint32_t
 rolemgmt_validate_options(
-    const char *pszName,
-    const char *pszArg,
     PROLEMGMT_CMD_ARGS pCmdArgs
     )
 {
     uint32_t dwError = 0;
 
-    if(!pszName || !pCmdArgs)
+    if(!pCmdArgs)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+
+    if(pCmdArgs->nOperation == ROLEMGMT_OPERATION_VERSION &&
+       IsNullOrEmptyString(pCmdArgs->pszRole))
+    {
+        fprintf(stderr,
+                "Specify a role name with --name to do this operation\n");
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+    else if(pCmdArgs->nOperation == ROLEMGMT_OPERATION_PREREQS)
+    {
+        if(IsNullOrEmptyString(pCmdArgs->pszRole))
+        {
+            fprintf(stderr,
+                    "Specify a role name with --name to do this operation\n");
+            dwError = ERROR_PMD_INVALID_PARAMETER;
+        }
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+    else if(pCmdArgs->nOperation == ROLEMGMT_OPERATION_ENABLE)
+    {
+        if(IsNullOrEmptyString(pCmdArgs->pszRole))
+        {
+            fprintf(stderr,
+                    "Specify a role name with --name to do this operation\n");
+            dwError = ERROR_PMD_INVALID_PARAMETER;
+        }
+        else if(IsNullOrEmptyString(pCmdArgs->pszConfigFile))
+        {
+            fprintf(stderr,
+                    "Specify a config file name with --config to do this operation\n");
+            dwError = ERROR_PMD_INVALID_PARAMETER;
+        }
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+    else if(pCmdArgs->nOperation == ROLEMGMT_OPERATION_REMOVE)
+    {
+        if(IsNullOrEmptyString(pCmdArgs->pszRole))
+        {
+            fprintf(stderr,
+                    "Specify a role name with --name to do this operation\n");
+            fprintf(stderr,
+                    "--config might be required. Please refer to your role docs.\n");
+            dwError = ERROR_PMD_INVALID_PARAMETER;
+        }
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+    else if(pCmdArgs->nOperation == ROLEMGMT_OPERATION_UPDATE)
+    {
+        if(IsNullOrEmptyString(pCmdArgs->pszRole))
+        {
+            fprintf(stderr,
+                    "Specify a role name with --name to do this operation\n");
+            fprintf(stderr,
+                    "--config might be required. Please refer to your role docs.\n");
+            dwError = ERROR_PMD_INVALID_PARAMETER;
+        }
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+    else if(pCmdArgs->nOperation == ROLEMGMT_OPERATION_STATUS)
+    {
+        if(IsNullOrEmptyString(pCmdArgs->pszRole))
+        {
+            fprintf(stderr,
+                    "Specify a role name with --name to do this operation\n");
+            dwError = ERROR_PMD_INVALID_PARAMETER;
+        }
+        else if(IsNullOrEmptyString(pCmdArgs->pszTaskUUID))
+        {
+            fprintf(stderr,
+                    "Specify a task id with --taskid to do this operation\n");
+            dwError = ERROR_PMD_INVALID_PARAMETER;
+        }
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+    else if(pCmdArgs->nOperation == ROLEMGMT_OPERATION_LOGS)
+    {
+        if(IsNullOrEmptyString(pCmdArgs->pszTaskUUID))
+        {
+            fprintf(stderr,
+                    "Specify a task id with --taskid to do this operation\n");
+            dwError = ERROR_PMD_INVALID_PARAMETER;
+        }
         BAIL_ON_CLI_ERROR(dwError);
     }
 
@@ -151,6 +250,8 @@ rolemgmt_options_error(
     )
 {
     uint32_t dwError = 0;
+    int nNumOptions = 0;
+    int nFound = 0;
 
     if(!pszName)
     {
@@ -158,17 +259,41 @@ rolemgmt_options_error(
         BAIL_ON_CLI_ERROR(dwError);
     }
 
-    if((!strcmp(pszName, "--add") ||
-        !strcmp(pszName, "--delete") ||
-        !strcmp(pszName, "--configure"))
-       && IsNullOrEmptyString(pszArg))
+    nNumOptions = sizeof(pstOptions) / sizeof(pstOptions[0]) - 1;
+    while(nNumOptions)
+    {
+        --nNumOptions;
+        if(pstOptions[nNumOptions].name &&
+           !strcmp(pszName, pstOptions[nNumOptions].name))
+        {
+            nFound = 1;
+            break;
+        }
+    }
+
+    if(!nFound)
+    {
+        fprintf(stderr, "There is no such option: %s\n", pszName);
+        dwError = ERROR_PMD_CLI_NO_SUCH_OPTION;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+
+    if(!strcmp(pszName, "--name") &&
+       IsNullOrEmptyString(pszArg))
     {
         fprintf(stderr, "Option %s requires an argument\n", pszName);
 
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_CLI_ERROR(dwError);
     }
+    else if(!strcmp(pszName, "--config") &&
+            IsNullOrEmptyString(pszArg))
+    {
+        fprintf(stderr, "Option %s requires an argument\n", pszName);
 
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
 cleanup:
     return dwError;
 
@@ -191,25 +316,51 @@ rolemgmt_parse_option(
         BAIL_ON_CLI_ERROR(dwError);
     }
 
-    dwError = rolemgmt_validate_options(pszName, pszArg, pCmdArgs);
-    BAIL_ON_CLI_ERROR(dwError);
-
     if(!strcasecmp(pszName, "list"))
     {
         pCmdArgs->nOperation = ROLEMGMT_OPERATION_LIST;
     }
-    else if(!strcasecmp(pszName, "add"))
+    else if(!strcasecmp(pszName, "logs"))
     {
-        pCmdArgs->nOperation = ROLEMGMT_OPERATION_SET;
-
+        pCmdArgs->nOperation = ROLEMGMT_OPERATION_LOGS;
+    }
+    else if(!strcasecmp(pszName, "version"))
+    {
+        pCmdArgs->nOperation = ROLEMGMT_OPERATION_VERSION;
+    }
+    else if(!strcasecmp(pszName, "name"))
+    {
         dwError = PMDAllocateString(pszArg, &pCmdArgs->pszRole);
         BAIL_ON_CLI_ERROR(dwError);
     }
-    else if(!strcasecmp(pszName, "delete"))
+    else if(!strcasecmp(pszName, "prereqs"))
     {
-        pCmdArgs->nOperation = ROLEMGMT_OPERATION_DELETE;
-
-        dwError = PMDAllocateString(pszArg, &pCmdArgs->pszRole);
+        pCmdArgs->nOperation = ROLEMGMT_OPERATION_PREREQS;
+    }
+    else if(!strcasecmp(pszName, "enable"))
+    {
+        pCmdArgs->nOperation = ROLEMGMT_OPERATION_ENABLE;
+    }
+    else if(!strcasecmp(pszName, "config"))
+    {
+        dwError = PMDAllocateString(pszArg, &pCmdArgs->pszConfigFile);
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+    else if(!strcasecmp(pszName, "remove"))
+    {
+        pCmdArgs->nOperation = ROLEMGMT_OPERATION_REMOVE;
+    }
+    else if(!strcasecmp(pszName, "update"))
+    {
+        pCmdArgs->nOperation = ROLEMGMT_OPERATION_UPDATE;
+    }
+    else if(!strcasecmp(pszName, "status"))
+    {
+        pCmdArgs->nOperation = ROLEMGMT_OPERATION_STATUS;
+    }
+    else if(!strcasecmp(pszName, "taskid"))
+    {
+        dwError = PMDAllocateString(pszArg, &pCmdArgs->pszTaskUUID);
         BAIL_ON_CLI_ERROR(dwError);
     }
 cleanup:

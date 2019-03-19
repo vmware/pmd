@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2019 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -11,7 +11,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-
 
 #pragma once
 
@@ -28,6 +27,16 @@ typedef struct _PMDHANDLE_* PPMDHANDLE;
 #define PMD_CONFIG_MAIN_GROUP "main"
 #define PMD_CONFIG_REST_GROUP "rest-server"
 #define PMD_CONFIG_PRIVSEP_GROUP "privsep"
+#define BAIL_ON_PMD_SYSTEM_ERROR(dwError) \
+    do {                                                           \
+        if (dwError)                                               \
+        {                                                          \
+            dwError = ERROR_PMD_SYSTEM_BASE + dwError;             \
+            goto error;                                            \
+        }                                                          \
+    } while(0)
+
+#define PMD_CONFIG_ROLES_GROUP "roles"
 
 #define PMD_CONFIG_KEY_REST_ENABLED "enabled"
 #define PMD_CONFIG_KEY_REST_PORT    "port"
@@ -39,11 +48,14 @@ typedef struct _PMDHANDLE_* PPMDHANDLE;
 #define PMD_CONFIG_KEY_REST_CLIENT_COUNT "client-count"
 #define PMD_CONFIG_KEY_REST_LOG_FILE "logfile"
 
-#define PMD_CONFIG_KEY_SERVERTYPE "servertype"
-#define PMD_CONFIG_KEY_CURRENTHASH "currenthash"
-#define PMD_CONFIG_KEY_SERVERURL "serverurl"
-#define PMD_CONFIG_KEY_COMPOSESERVER "composeserver"
-#define PMD_CONFIG_KEY_API_SECURITY "apisecurity"
+#define PMD_CONFIG_KEY_SERVERTYPE      "servertype"
+#define PMD_CONFIG_KEY_CURRENTHASH     "currenthash"
+#define PMD_CONFIG_KEY_SERVERURL       "serverurl"
+#define PMD_CONFIG_KEY_COMPOSESERVER   "composeserver"
+#define PMD_CONFIG_KEY_API_SECURITY    "apisecurity"
+
+#define PMD_CONFIG_KEY_ROLES_DIR        "dir"
+#define PMD_CONFIG_KEY_ROLES_PLUGINSDIR "pluginsdir"
 
 #define PMD_CONFIG_KEY_PRIVSEP_PUBKEY "pubkey"
 #define PMD_CONFIG_KEY_PRIVSEP_PRIVKEY "privkey"

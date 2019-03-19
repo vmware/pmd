@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2019 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -12,8 +12,21 @@
  * under the License.
  */
 
-
 #include "includes.h"
+
+uint32_t
+PMDSafeAllocateString(
+    const char *pszSrc,
+    char **ppszDest
+    )
+{
+    if(!pszSrc && ppszDest)
+    {
+        *ppszDest = NULL;
+        return 0;
+    }
+    return PMDAllocateString(pszSrc, ppszDest);
+}
 
 uint32_t
 PMDGetStringLengthW(

@@ -1,0 +1,51 @@
+/*
+ * Copyright © 2019 VMware, Inc.  All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License.  You may obtain a copy
+ * of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, without
+ * warranties or conditions of any kind, EITHER EXPRESS OR IMPLIED.  See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ */
+
+
+[
+    uuid (e8e49806-5a88-11e6-8a22-000c297d36e2),
+    version(1.0),
+    pointer_default(unique)
+]
+
+interface rpmostree
+{
+#include <lw/types.h>
+#include "pmdrpctypes.h"
+#include "rpmostreerpctypes.h"
+
+    unsigned32
+    rpmostree_rpc_version(
+        [in] handle_t hBinding,
+        [out] wstring_t* ppwszVersion
+        );
+
+    unsigned32
+    rpmostree_rpc_server_info(
+        [in] handle_t hBinding,
+        [out] PPMD_RPMOSTREE_SERVER_INFO* ppInfo
+        );
+
+    unsigned32
+    rpmostree_rpc_client_info(
+        [in] handle_t hBinding,
+        [out] PPMD_RPMOSTREE_CLIENT_INFO* ppInfo
+        );
+
+    unsigned32
+    rpmostree_rpc_client_syncto(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszHash
+        );
+}

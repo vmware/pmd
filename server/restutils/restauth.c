@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2019 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -46,52 +46,6 @@ request_basic_auth(
     return dwError;
 }
 
-//this path is not in rest basic auth anymore
-uint32_t
-populate_error(
-    PVMREST_HANDLE pRestHandle,
-    PREST_RESPONSE* ppResponse,
-    PJWT_ERROR pError
-    )
-{
-    uint32_t dwError = 0;
-    char *pszCode = NULL;
-    uint32_t temp = 0;
-
-    if(!pRestHandle || !ppResponse || !pError)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringPrintf(&pszCode, "%d", pError->nStatus);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = VmRESTSetHttpStatusVersion(ppResponse, "HTTP/1.1");
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = VmRESTSetHttpStatusCode(ppResponse, pszCode);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = VmRESTSetHttpReasonPhrase(ppResponse, pError->pszError);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = VmRESTSetHttpHeader(ppResponse, "Connection", "close");
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = VmRESTSetHttpHeader(ppResponse, "Content-Length", "0");
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = VmRESTSetHttpPayload(pRestHandle, ppResponse, "", 0, &temp);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszCode);
-    return dwError;
-
-error:
-    goto cleanup;
-}
 
 uint32_t
 pre_process_auth(

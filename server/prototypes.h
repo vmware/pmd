@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2019 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -11,7 +11,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-
 
 #pragma once
 //netmgmtrestapi.c
@@ -851,6 +850,11 @@ pkg_get_scope_from_string(
     TDNF_SCOPE *pnScope
     );
 
+uint32_t
+rolemgmt_rest_get_registration(
+    PREST_MODULE *ppRestModule
+    );
+
 void
 TDNFFreeCmdArgs(
     PTDNF_CMD_ARGS pCmdArgs
@@ -998,6 +1002,17 @@ usermgmt_get_groupid_w(
     uint32_t *pnGID
     );
 
+void
+pmd_free_rest_config(
+    PPMD_REST_CONFIG pRestConf
+    );
+
+void
+pmd_free_roles_config(
+    PPMD_ROLES_CONFIG pRolesConf
+    );
+
+//utils.c
 uint32_t
 usermgmt_get_users_w(
     PPMDHANDLE hHandle,
@@ -1022,6 +1037,16 @@ usermgmt_delete_user_w(
     const wstring_t pwszName
     );
 
+//rolemgmt_api.c
+uint32_t
+pmd_rolemgmt_load(
+    );
+
+uint32_t
+pmd_rolemgmt_unload(
+    );
+
+//restserver.c
 uint32_t
 usermgmt_add_group_w(
     PPMDHANDLE hHandle,

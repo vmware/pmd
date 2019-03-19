@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2016-2017 VMware, Inc.  All Rights Reserved.
+# Copyright (c) 2016-2019 VMware, Inc.  All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License.  You may obtain a copy
@@ -10,7 +10,6 @@
 # warranties or conditions of any kind, EITHER EXPRESS OR IMPLIED.  See the
 # License for the specific language governing permissions and limitations
 # under the License.
-
 
 from distutils.core import setup, Extension
 import os
@@ -28,8 +27,10 @@ pmdmodule = Extension('pmd._pmd',
                                'netmgmt_py.c', 'netmgmt_link_py.c',
                                'netmgmt_route_py.c', 'netmgmt_system_py.c',
                                'pkgmgmt_py.c', 'pkgmgmt_repodata_py.c',
-                               'pkgmgmt_package_py.c', 'pkgmgmt_solvedinfo_py.c',
-                               'pkgmgmt_utils.c',
+                               'pkgmgmt_solvedinfo_py.c',
+                               'pkgmgmt_package_py.c', 'pkgmgmt_utils.c',
+                               'rolemgmt_py.c', 'rolemgmt_prereq_py.c',
+                               'rolemgmt_logentry_py.c', 'rolemgmt_role_py.c',
                                'pmdmodule.c', 'server_py.c',
                                'utils.c'],
 

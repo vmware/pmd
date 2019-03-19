@@ -13,6 +13,8 @@ pmd.spec
 *_sstub.c
 .deps
 .libs
+.rpm
+rpms
 
 
 # autoconf
@@ -46,6 +48,7 @@ ar-lib
 /server/pmd
 /tools/cli/pmd-cli
 /privsep/pmdprivsepd
+/tools/pmd.spec
 build/*
 
 # Object files

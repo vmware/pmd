@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2019 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -12,14 +12,15 @@
  * under the License.
  */
 
-
 #pragma once
 
 #include <stdio.h>
 #include <stdint.h>
+#include <unistd.h>
 
 #include "../includes.h"
 #include <pmd_rolemgmt.h>
+#include <roleplugin.h>
 
 #include "structs.h"
 #include "prototypes.h"

@@ -24,6 +24,12 @@ CLEANFILES = \
     netmgmt_h.h \
     netmgmt_cstub.c \
     netmgmt_sstub.c \
+    rolemgmt_h.h \
+    rolemgmt_cstub.c \
+    rolemgmt_sstub.c \
+    rpmostree_h.h \
+    rpmostree_cstub.c \
+    rpmostree_sstub.c \
     usermgmt_h.h \
     usermgmt_cstub.c \
     usermgmt_sstub.c \
@@ -54,7 +60,9 @@ BUILT_SOURCES = demo_h.h \
                 pkgmgmt_privsep_h.h \
                 netmgmt_privsep_h.h \
                 fwmgmt_privsep_h.h \
-                usermgmt_privsep_h.h
+                usermgmt_privsep_h.h \
+                rolemgmt_h.h \
+                rpmostree_h.h
 
 demo_h.h demo_cstub.c: $(idl_srcdir)/demo.idl
 	$(DCEIDL) $(IDLFLAGS) -keep c_source -header demo_h.h -I$(idl_srcdir) $<
@@ -68,6 +76,10 @@ pmd_h.h pmd_cstub.c: $(idl_srcdir)/pmd.idl
 	$(DCEIDL) $(IDLFLAGS) -keep c_source -header pmd_h.h -I$(idl_srcdir) $<
 netmgmt_h.h netmgmt_cstub.c: $(idl_srcdir)/netmgmt.idl
 	$(DCEIDL) $(IDLFLAGS) -keep c_source -header netmgmt_h.h -I$(idl_srcdir) $<
+rolemgmt_h.h rolemgmt_cstub.c: $(idl_srcdir)/rolemgmt.idl
+	$(DCEIDL) $(IDLFLAGS) -keep c_source -header rolemgmt_h.h -I$(idl_srcdir) $<
+rpmostree_h.h rpmostree_cstub.c: $(idl_srcdir)/rpmostree.idl
+	$(DCEIDL) $(IDLFLAGS) -keep c_source -header rpmostree_h.h -I$(idl_srcdir) $<
 usermgmt_h.h usermgmt_cstub.c: $(idl_srcdir)/usermgmt.idl
 	$(DCEIDL) $(IDLFLAGS) -keep c_source -header usermgmt_h.h -I$(idl_srcdir) $<
 

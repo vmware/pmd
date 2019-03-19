@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2019 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -11,7 +11,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-
 #pragma once
 
 #include <lw/base.h>
@@ -20,7 +19,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
- 
 #include <dce/rpc.h>
 #include <dce/dcethread.h>
 #include <dce/dce_error.h>
@@ -32,6 +30,8 @@
 #include "../idl/pkgmgmt_h.h"
 #include "../idl/pmd_h.h"
 #include "../idl/netmgmt_h.h"
+#include "../idl/rolemgmt_h.h"
+#include "../idl/rpmostree_h.h"
 #include "../idl/usermgmt_h.h"
 
 #include "../idl/privsepd_h.h"
