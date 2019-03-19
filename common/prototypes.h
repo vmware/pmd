@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2019 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -11,7 +11,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-
 
 #pragma once
 
@@ -31,6 +30,12 @@ uint32_t
 PMDAllocateStringWFromA(
     const char* pszSrc,
     wstring_t* ppwszDst
+    );
+
+uint32_t
+PMDSafeAllocateString(
+    const char* pszSrc,
+    char** ppszDest
     );
 
 uint32_t
@@ -242,6 +247,13 @@ uint32_t
 validate_cmd(
     const char *pszCmd
     );
+uint32_t
+isStringPrefix(
+        char *pszString,
+        char *pszPrefix,
+        int *result
+   );
+
 //rpcsrvutils.c
 uint32_t
 PMDRpcServerAllocateMemory(

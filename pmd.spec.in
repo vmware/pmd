@@ -5,7 +5,7 @@
 Summary:	Photon Management Daemon
 Name:		pmd
 Version:	@VERSION@
-Release:	1%{?dist}
+Release:	2%{?dist}
 License:	Apache 2.0
 URL:            https://www.github.com/vmware/pmd
 Group:		Applications/System
@@ -121,6 +121,8 @@ install -D -m 444 conf/api_sddl.conf %{buildroot}/etc/pmd/api_sddl.conf
 install -D -m 444 conf/restconfig.txt %{buildroot}/etc/pmd/restconfig.txt
 install -d -m 0755 %{buildroot}/usr/lib/tmpfiles.d/
 install -m 0644 conf/pmd-tmpfiles.conf %{buildroot}/usr/lib/tmpfiles.d/%{name}.conf
+install -d -m 0755 %{buildroot}/etc/pmd.roles.d/
+install -d -m 0755 %{buildroot}/etc/pmd.roles.plugins.d/
 
 # Pre-install
 %pre
@@ -277,6 +279,8 @@ rm -rf %{buildroot}/*
     /etc/pmd/restapispec.json
     /etc/pmd/restconfig.txt
     %attr(0766, %{name}, %{name}) %dir /var/log/%{name}
+    %dir /etc/pmd.roles.plugins.d/
+    %dir /etc/pmd.roles.d/
     %_tmpfilesdir/%{name}.conf
 
 %files libs
@@ -298,5 +302,7 @@ rm -rf %{buildroot}/*
     %{_python3_sitearch}/%{name}_python-*.egg-info
 
 %changelog
+*       Thu Jul 18 2019 Tapas Kundu <tkundu@vmware.com> 0.1-2
+-       Updated the spec for including role mgmt changes.
 *       Thu May 04 2017 Priyesh Padmavilasom <ppadmavilasom@vmware.com> 0.1-1
 -       Initial build.  First version

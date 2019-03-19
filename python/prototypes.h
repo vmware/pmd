@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2019 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -11,7 +11,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-
 
 #pragma once
 //pkgmgmt_utils.c
@@ -58,6 +57,11 @@ string_from_py_string(
     PyObject *pyString
     );
 
+void
+raise_exception(
+    uint32_t dwErrorCode
+    );
+
 //pkgmgmt_repodata.c
 uint32_t
 py_make_repodata(
@@ -78,3 +82,24 @@ py_make_solvedinfo(
    PTDNF_SOLVED_PKG_INFO pSolvedInfo,
    PyObject **ppPySolvedInfo
    );
+
+//rolemgmt_role_py.c
+uint32_t
+rolemgmt_role_py_make(
+    PPMD_ROLEMGMT_ROLE pRole,
+    PyObject **ppPyRole
+    );
+
+//rolemgmt_prereq_py.c
+uint32_t
+rolemgmt_prereq_py_make(
+    PPMD_ROLE_PREREQ pPrereq,
+    PPY_ROLEMGMT_PREREQ *ppPyPrereq
+    );
+
+//rolemgmt_logentry_py.c
+uint32_t
+rolemgmt_logentry_py_make(
+    PPMD_ROLEMGMT_TASK_LOG pLogEntry,
+    PPY_ROLEMGMT_LOG_ENTRY *ppPyLogEntry
+    );

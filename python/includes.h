@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2019 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -15,10 +15,12 @@
 
 #pragma once
 #include <Python.h>
+#include <datetime.h>
 #include <structmember.h>
 #include <pmd.h>
 #include <pmd_fwmgmt.h>
 #include <pmd_pkgmgmt.h>
+#include <pmd_rolemgmt.h>
 #include <netmgmt/netmgr.h>
 #include "../common/defines.h"
 #include "../common/structs.h"
@@ -29,6 +31,10 @@
 #include "fwmgmt_py.h"
 #include "netmgmt_py.h"
 #include "pkgmgmt_py.h"
+#include "rolemgmt_py.h"
+#include "rolemgmt_prereq_py.h"
+#include "rolemgmt_role_py.h"
+#include "rolemgmt_logentry_py.h"
 #include "netmgmt_link_py.h"
 #include "netmgmt_route_py.h"
 #include "netmgmt_system_py.h"

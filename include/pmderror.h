@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2019 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -12,7 +12,6 @@
  * under the License.
  */
 
-
 #pragma once
 
 #ifdef __cplusplus
@@ -20,22 +19,37 @@ extern "C" {
 #endif
 
 //PMD specific errors(3000 to 3999)
-#define ERROR_PMD_BASE                3000
-#define ERROR_PMD_FAIL                (ERROR_PMD_BASE + 1)
-#define ERROR_PMD_CONF_FILE_LOAD      (ERROR_PMD_BASE + 2)
-#define ERROR_PMD_BASE64_ENCODE       (ERROR_PMD_BASE + 3)
-#define ERROR_PMD_BASE64_DECODE       (ERROR_PMD_BASE + 4)
-#define ERROR_PMD_USER_PASS_FORMAT    (ERROR_PMD_BASE + 5)
-#define ERROR_PMD_JSON_SET_VALUE      (ERROR_PMD_BASE + 6)
+#define ERROR_PMD_BASE                  3000
+#define ERROR_PMD_FAIL                  (ERROR_PMD_BASE + 1)
+#define ERROR_PMD_NOTHING_TO_DO         (ERROR_PMD_BASE + 2)
+#define ERROR_PMD_CONF_FILE_LOAD        (ERROR_PMD_BASE + 3)
+#define ERROR_PMD_BASE64_ENCODE         (ERROR_PMD_BASE + 4)
+#define ERROR_PMD_BASE64_DECODE         (ERROR_PMD_BASE + 5)
+#define ERROR_PMD_USER_PASS_FORMAT      (ERROR_PMD_BASE + 6)
+#define ERROR_PMD_JSON_SET_VALUE        (ERROR_PMD_BASE + 7)
+#define ERROR_PMD_ROLES_DIR_OPEN        (ERROR_PMD_BASE + 21)
+#define ERROR_PMD_ROLES_NO_SUCH_ROLE    (ERROR_PMD_BASE + 22)
+#define ERROR_PMD_ROLES_PLUGIN_NOT_SET  (ERROR_PMD_BASE + 23)
+#define ERROR_PMD_ROLE_CONFIG_NO_PARENT (ERROR_PMD_BASE + 24)
+#define ERROR_PMD_ROLE_UNMAPPED_FN      (ERROR_PMD_BASE + 25)
+#define ERROR_PMD_ROLE_UNMAPPED_LOAD    (ERROR_PMD_BASE + 26)
+#define ERROR_PMD_ROLE_PLUGIN_BAD       (ERROR_PMD_BASE + 27)
+#define ERROR_PMD_ROLE_PLUGIN_DISABLED  (ERROR_PMD_BASE + 28)
+#define ERROR_PMD_ROLE_PLUGIN_HAS_TASKS (ERROR_PMD_BASE + 29)
+#define ERROR_PMD_ROLE_TASK_NOT_FOUND   (ERROR_PMD_BASE + 30)
+#define ERROR_PMD_ROLE_TASK_NO_LOGS     (ERROR_PMD_BASE + 31)
+#define ERROR_PMD_ROLE_PATH_MISMATCH    (ERROR_PMD_BASE + 32)
+#define ERROR_PMD_ROLE_BAD_STATUS       (ERROR_PMD_BASE + 33)
+#define ERROR_PMD_ROLE_BAD_OPERATION    (ERROR_PMD_BASE + 34)
 
 //REST specific errors (3500 to 3600)
-#define ERROR_PMD_REST_BASE                3600
+#define ERROR_PMD_REST_BASE                3500
 #define ERROR_PMD_REST_AUTH_REQUIRED       (ERROR_PMD_REST_BASE + 1)
 #define ERROR_PMD_REST_AUTH_BASIC_MIN      (ERROR_PMD_REST_BASE + 2)
 #define ERROR_INVALID_REST_AUTH            (ERROR_PMD_REST_BASE + 3)
 
 //System errors 3600 and up
-#define ERROR_PMD_SYSTEM_BASE          3600
+#define ERROR_PMD_SYSTEM_BASE           3600
 // No search results found
 #define ERROR_PMD_NO_SEARCH_RESULTS    3601
 #define ERROR_PMD_INVALID_PARAMETER    (ERROR_PMD_SYSTEM_BASE + EINVAL)
@@ -56,17 +70,22 @@ extern "C" {
 #define ERROR_PMD_IS_DAEMON_USER_GROUP ERROR_PMD_SYSTEM_BASE + 136
 #define ERROR_PMD_INVALID_CMD          ERROR_PMD_SYSTEM_BASE + 137
 #define ERROR_PMD_CMD_UNEXPECTED_EXIT  ERROR_PMD_SYSTEM_BASE + 138
+#define ERROR_PMD_LIBACC                (ERROR_PMD_SYSTEM_BASE + ELIBACC)
+#define ERROR_PMD_ALREADY               (ERROR_PMD_SYSTEM_BASE + EALREADY)
 
 //pkgmgmt errors 4000 and up
-#define ERROR_PMD_PKG_BASE             4000
-#define ERROR_PMD_MISSING_PKG_ARGS     (ERROR_PMD_PKG_BASE + 1)
-#define ERROR_PMD_ALTER_MODE_INVALID   (ERROR_PMD_PKG_BASE + 2)
+#define ERROR_PMD_PKG_BASE              4000
+#define ERROR_PMD_MISSING_PKG_ARGS      (ERROR_PMD_PKG_BASE + 1)
+#define ERROR_PMD_ALTER_MODE_INVALID    (ERROR_PMD_PKG_BASE + 2)
 
 //netmgmt errors 4096 and up
 #define ERROR_PMD_NET_BASE             4096
 
 //netmgmt errors 4300 and up
 #define ERROR_PMD_USR_BASE             4300
+
+//usermgmt errors 4100 and up
+#define ERROR_PMD_USER_BASE             4100
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2019 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -11,7 +11,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-
 
 #include "includes.h"
 
@@ -31,6 +30,10 @@ prepareInitModule(
     if (PyType_Ready(&repodataType) < 0) return 0;
     if (PyType_Ready(&packageType) < 0) return 0;
     if (PyType_Ready(&solvedInfoType) < 0) return 0;
+    if (PyType_Ready(&rolemgmtType) < 0) return 0;
+    if (PyType_Ready(&rolemgmt_roleType) < 0) return 0;
+    if (PyType_Ready(&rolemgmt_prereqType) < 0) return 0;
+    if (PyType_Ready(&rolemgmt_logentryType) < 0) return 0;
 
     return 1;
 }
