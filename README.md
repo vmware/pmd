@@ -81,4 +81,4 @@ questions about the CLA process, please refer to our [FAQ](https://cla.vmware.co
 refer to [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
-pmd is available under the [Apache 2 license](LICENSE).
+pmd is available under the [Apache 2 license](LICENSE.txt).
