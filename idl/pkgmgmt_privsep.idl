@@ -47,6 +47,15 @@ typedef [context_handle] void *pkg_privsep_handle_t;
         );
 
     unsigned32
+    pkg_privsep_rpc_search(
+        [in] handle_t hHandle,
+        [in] pkg_privsep_handle_t hPkgHandle,
+        [in] PTDNF_RPC_CMD_ARGS pCmdArgs,
+        [out] PTDNF_RPC_PKGINFO_ARRAY* ppPkgInfo,
+        [out] unsigned32 *punCount
+    );
+
+    unsigned32
     pkg_privsep_rpc_count(
         [in] handle_t hBinding,
         [in] pkg_privsep_handle_t hPkgHandle,

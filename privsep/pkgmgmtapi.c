@@ -93,6 +93,61 @@ error:
 }
 
 unsigned32
+pkg_search_s(
+    PTDNF pTdnf,
+    PTDNF_CMD_ARGS pCmdArgs,
+    PTDNF_PKG_INFO *ppPkgInfo,
+    uint32_t* punCount
+    )
+{
+    uint32_t dwError = 0;
+    int nLocked = 0;
+    PTDNF_PKG_INFO pPkgInfo;
+    uint32_t dwCount = 0;
+
+    if(!pTdnf || !pCmdArgs || !ppPkgInfo)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    pthread_mutex_lock(&gpServerEnv->mutexPkgMgmtApi);
+    nLocked = 1;
+
+    dwError = TDNFSearchCommand(pTdnf, pCmdArgs, &pPkgInfo, &dwCount);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pthread_mutex_unlock(&gpServerEnv->mutexPkgMgmtApi);
+    nLocked = 0;
+
+    *ppPkgInfo = pPkgInfo;
+    *punCount = dwCount;
+cleanup:
+    if(nLocked)
+    {
+        pthread_mutex_unlock(&gpServerEnv->mutexPkgMgmtApi);
+        nLocked = 0;
+    }
+    return dwError;
+error:
+    if(ppPkgInfo)
+    {
+        *ppPkgInfo = NULL;
+    }
+    if(punCount)
+    {
+        *punCount = 0;
+    }
+    if(pPkgInfo)
+    {
+        TDNFFreePackageInfoArray(pPkgInfo, dwCount);
+    }
+    goto cleanup;
+}
+
+
+
+unsigned32
 pkg_count_s(
     PTDNF pTdnf,
     unsigned32* pdwCount

@@ -24,6 +24,10 @@ pkg_main(
     PTDNF_CMD_ARGS pCmdArgs = NULL;
     TDNF_CLI_CMD_MAP arCmdMap[] =
     {
+        {"autoerase",          TDNFCliAutoEraseCommand},
+        {"autoremove",         TDNFCliAutoEraseCommand},
+        {"check",              TDNFCliCheckCommand},
+        {"check-local",        TDNFCliCheckLocalCommand},
         {"check-update",       TDNFCliCheckUpdateCommand},
         {"clean",              TDNFCliCleanCommand},
         {"count",              TDNFCliCountCommand},
@@ -64,6 +68,7 @@ pkg_main(
     stContext.pFnRepoList   = pkg_invoke_repolist;
     stContext.pFnResolve    = pkg_invoke_resolve;
     stContext.pFnUpdateInfo = pkg_invoke_updateinfo;
+    stContext.pFnSearch     = pkg_invoke_search;
     stContext.pFnUpdateInfoSummary = pkg_invoke_updateinfo_summary;
 
     dwError = pkg_parse_args(argc, argv, &pCmdArgs);
@@ -139,6 +144,22 @@ error:
         dwError = 0;
     }
     goto cleanup;
+}
+
+uint32_t
+pkg_invoke_search(
+    PTDNF_CLI_CONTEXT pContext,
+    PTDNF_CMD_ARGS pCmdArgs,
+    PTDNF_PKG_INFO* ppPkgInfo,
+    uint32_t* punCount
+    )
+{
+    PPMD_PKG_CLI_CONTEXT pLocalContext = pContext->pUserData;
+    return pkg_search(pLocalContext->hPMD,
+                      pLocalContext->hPkgHandle,
+                      pCmdArgs,
+                      ppPkgInfo,
+                      punCount);
 }
 
 uint32_t

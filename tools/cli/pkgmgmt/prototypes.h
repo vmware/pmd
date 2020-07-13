@@ -23,6 +23,14 @@ pkg_exec_cmd(
     PTDNF_CMD_ARGS pCmdArgs);
 
 uint32_t
+pkg_invoke_search(
+    PTDNF_CLI_CONTEXT pContext,
+    PTDNF_CMD_ARGS pCmdArgs,
+    PTDNF_PKG_INFO* ppPkgInfo,
+    uint32_t* punCount
+    );
+
+uint32_t
 pkg_invoke_alter(
     PTDNF_CLI_CONTEXT pContext,
     TDNF_ALTERTYPE nAlterType,

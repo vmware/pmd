@@ -766,6 +766,16 @@ pkg_version_s(
     wstring_t *ppwszVersion
     );
 //pkgmgmt privsep related
+
+uint32_t
+pkg_search_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    PTDNF_RPC_CMD_ARGS pRpcArgs,
+    PTDNF_RPC_PKGINFO_ARRAY* pRpcInfo,
+    uint32_t* punCount
+    );
+
 uint32_t
 pkg_list_w(
     PPMDHANDLE hHandle,
