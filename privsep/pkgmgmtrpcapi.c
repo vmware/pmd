@@ -87,6 +87,58 @@ error:
 }
 
 unsigned32
+pkg_privsep_rpc_search(
+    handle_t hBinding,
+    pkg_privsep_handle_t hPkgHandle,
+    PTDNF_RPC_CMD_ARGS pRpcArgs,
+    PTDNF_RPC_PKGINFO_ARRAY *ppInfo,
+    uint32_t* punCount
+    )
+{
+    uint32_t dwError = 0;
+    uint32_t dwCount = 0;
+
+    PTDNF_RPC_PKGINFO_ARRAY pInfo = NULL;
+    PTDNF_PKG_INFO pPkgInfo = NULL;
+
+    PTDNF_CMD_ARGS pArgs = NULL;
+    if(!hBinding || !hPkgHandle || !pRpcArgs || !ppInfo)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = pkg_rpc_get_cmd_args(pRpcArgs, &pArgs);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError =  pkg_search_s(hPkgHandle, pArgs, &pPkgInfo, &dwCount);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDRpcServerConvertPkgInfoArray(pPkgInfo, dwCount, &pInfo);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppInfo = pInfo;
+    *punCount = dwCount;
+
+cleanup:
+    if(pPkgInfo)
+    {
+        TDNFFreePackageInfoArray(pPkgInfo, dwCount);
+    }
+    return dwError;
+error:
+    if(pInfo)
+    {
+        PMDRpcServerFreeMemory(pInfo);
+    }
+    goto cleanup;
+}
+
+
+unsigned32
 pkg_privsep_rpc_count(
     handle_t hBinding,
     pkg_privsep_handle_t hPkgHandle,

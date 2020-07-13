@@ -33,6 +33,14 @@ pkg_get_scope_from_string(
     );
 
 unsigned32
+pkg_search_s(
+    PTDNF pTdnf,
+    PTDNF_CMD_ARGS pCmdArgs,
+    PTDNF_PKG_INFO *ppPkgInfo,
+    uint32_t* punCount
+    );
+
+unsigned32
 pkg_count_s(
     PTDNF pTdnf,
     unsigned32* pdwCount

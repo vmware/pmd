@@ -86,6 +86,90 @@ error:
 }
 
 uint32_t
+pkg_search_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    PTDNF_RPC_CMD_ARGS pRpcArgs,
+    PTDNF_RPC_PKGINFO_ARRAY* pRpcInfo,
+    uint32_t* punCount
+    )
+{
+    uint32_t dwError = 0;
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(pkg_privsep_rpc_search(hHandle->hRpc,
+                                      hPkgHandle,
+                                      pRpcArgs,
+                                      pRpcInfo,
+                                      punCount),
+                                      dwError);
+    }
+    else
+    {
+        DO_RPC(pkg_rpc_search(hHandle->hRpc,
+                              hPkgHandle,
+                              pRpcArgs,
+                              pRpcInfo,
+                              punCount),
+                              dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    return dwError;
+error:
+    goto cleanup;
+
+}
+uint32_t
+pkg_search(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    PTDNF_CMD_ARGS pCmdArgs,
+    PTDNF_PKG_INFO* ppPkgInfo,
+    uint32_t* punCount
+    )
+{
+    uint32_t dwError = 0;
+    PTDNF_RPC_CMD_ARGS pRpcArgs = NULL;
+
+    PTDNF_RPC_PKGINFO_ARRAY pRpcInfo = NULL;
+    PTDNF_PKG_INFO pPkgInfo = NULL;
+
+    dwError = pkg_get_rpc_cmd_args(pCmdArgs, &pRpcArgs);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = pkg_search_w(hHandle, hPkgHandle, pRpcArgs, &pRpcInfo, punCount);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDRpcClientConvertPkgInfo(pRpcInfo, &pPkgInfo);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppPkgInfo = pPkgInfo;
+
+cleanup:
+    if(pRpcArgs)
+    {
+        free_pkg_rpc_cmd_args(pRpcArgs);
+    }
+    if(pRpcInfo)
+    {
+        PMDRpcClientFreePkgInfoArray(pRpcInfo);
+    }
+    return dwError;
+error:
+    if(ppPkgInfo)
+    {
+        *ppPkgInfo = NULL;
+    }
+    if(pPkgInfo)
+    {
+        pkg_free_package_info_list(pPkgInfo);
+    }
+    goto cleanup;
+}
+
+uint32_t
 pkg_list_w(
     PPMDHANDLE hHandle,
     PPKGHANDLE hPkgHandle,

@@ -5,7 +5,7 @@
 Summary:	Photon Management Daemon
 Name:		pmd
 Version:	@VERSION@
-Release:	3%{?dist}
+Release:	4%{?dist}
 License:	Apache 2.0
 URL:            https://www.github.com/vmware/pmd
 Group:		Applications/System
@@ -302,6 +302,8 @@ rm -rf %{buildroot}/*
     %{_python3_sitearch}/%{name}_python-*.egg-info
 
 %changelog
+*       Fri Jul 24 2020 Tapas Kundu <tkundu@vmware.com> 0.1-4
+-       Add search command
 *       Sat May 16 2020 Tapas Kundu <tkundu@vmware.com> 0.1-3
 -       fix TDNFUpdateInfoSummary
 -       compatible with netmgmt 1.2.0

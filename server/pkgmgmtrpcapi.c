@@ -92,6 +92,40 @@ error:
 }
 
 unsigned32
+pkg_rpc_search(
+    handle_t hBinding,
+    pkg_handle_t hPkgHandle,
+    PTDNF_RPC_CMD_ARGS pCmdArgs,
+    PTDNF_RPC_PKGINFO_ARRAY* ppPkgInfo,
+    uint32_t* punCount
+    )
+{
+    uint32_t dwError = 0;
+    uint32_t dwCount = 0;
+    PPMDHANDLE hPMD = NULL;
+
+    if(!hBinding || !hPkgHandle || !pCmdArgs || !ppPkgInfo)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = privsep_handle_list_get(hPkgHandle, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = pkg_search_w(hPMD, hPkgHandle, pCmdArgs, ppPkgInfo, &dwCount);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *punCount = dwCount;
+cleanup:
+    return dwError;
+error:
+    goto cleanup;
+}
+
+unsigned32
 pkg_rpc_count(
     handle_t hBinding,
     pkg_handle_t hPkgHandle,

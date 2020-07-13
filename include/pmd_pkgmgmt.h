@@ -36,6 +36,15 @@ pkg_close_handle(
     );
 
 uint32_t
+pkg_search(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    PTDNF_CMD_ARGS pCmdArgs,
+    PTDNF_PKG_INFO* ppPkgInfo,
+    uint32_t* punCount
+    );
+
+uint32_t
 pkg_list(
     PPMDHANDLE hHandle,
     PPKGHANDLE phPkgHandle,
