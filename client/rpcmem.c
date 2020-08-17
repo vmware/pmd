@@ -154,6 +154,67 @@ error:
     goto cleanup;
 }
 
+
+uint32_t
+PMDRpcClientConvertCleanInfo(
+    PTDNF_RPC_CLEAN_INFO pRpcCleanInfo,
+    PTDNF_CLEAN_INFO *ppCleanInfo
+    )
+{
+    uint32_t dwError = 0;
+    uint32_t dwCount = 0;
+    uint32_t i = 0;
+    PTDNF_CLEAN_INFO pCleanInfo = NULL;
+
+    if(!ppCleanInfo || !pRpcCleanInfo)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateMemory(sizeof(TDNF_CLEAN_INFO),
+                                         (void**)&pCleanInfo);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pCleanInfo->nCleanAll = pRpcCleanInfo->nCleanAll;
+    pCleanInfo->nRpmDbFilesRemoved = pRpcCleanInfo->nRpmDbFilesRemoved;
+    pCleanInfo->nMetadataFilesRemoved = pRpcCleanInfo->nMetadataFilesRemoved;
+    pCleanInfo->nDbCacheFilesRemoved = pRpcCleanInfo->nDbCacheFilesRemoved;
+    pCleanInfo->nPackageFilesRemoved = pRpcCleanInfo->nPackageFilesRemoved;
+
+    
+    if(pRpcCleanInfo->pszReposUsed &&
+       pRpcCleanInfo->pszReposUsed->dwCount)
+    {
+        uint32_t dwCount = pRpcCleanInfo->pszReposUsed->dwCount;
+
+        dwError = PMDAllocateMemory(
+                      sizeof(char *) * (dwCount + 1),
+                      (void **)&pCleanInfo->ppszReposUsed);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        for(i = 0; i < dwCount; ++i)
+        {
+            dwError = PMDAllocateStringAFromW(
+                          pRpcCleanInfo->pszReposUsed->ppwszStrings[i],
+                          &pCleanInfo->ppszReposUsed[i]);
+            BAIL_ON_PMD_ERROR(dwError);
+        }
+    }
+    else
+    {
+        pRpcCleanInfo->pszReposUsed = NULL;
+    }
+
+    *ppCleanInfo = pCleanInfo;
+
+cleanup:
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
 uint32_t
 PMDRpcClientConvertPkgInfo(
     PTDNF_RPC_PKGINFO_ARRAY pRpcPkgInfoArray,

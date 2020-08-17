@@ -777,6 +777,28 @@ pkg_search_w(
     );
 
 uint32_t
+pkg_clean_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    TDNF_CLEANTYPE nCleanType,
+    PTDNF_RPC_CLEAN_INFO* ppCleanInfo
+    );
+uint32_t
+pkg_check_local_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    wstring_t pwszFolder
+    );
+
+uint32_t
+pkg_provides_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    wstring_t pwszSpec,
+    PTDNF_RPC_PKGINFO_ARRAY* pRpcInfo
+    );
+
+uint32_t
 pkg_list_w(
     PPMDHANDLE hHandle,
     PPKGHANDLE hPkgHandle,

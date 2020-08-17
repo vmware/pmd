@@ -83,6 +83,16 @@ typedef struct _TDNF_RPC_REPODATA_
     wstring_t  pwszName;
 }TDNF_RPC_REPODATA, *PTDNF_RPC_REPODATA;
 
+typedef struct _TDNF_RPC_CLEAN_INFO_
+{
+    unsigned32 nCleanAll;
+    unsigned32 nRpmDbFilesRemoved;
+    unsigned32 nMetadataFilesRemoved;
+    unsigned32 nDbCacheFilesRemoved;
+    unsigned32 nPackageFilesRemoved;
+    PPMD_WSTRING_ARRAY pszReposUsed;
+}TDNF_RPC_CLEAN_INFO, *PTDNF_RPC_CLEAN_INFO;
+
 typedef struct _TDNF_RPC_REPODATA_ARRAY_
 {
     unsigned32 dwCount;

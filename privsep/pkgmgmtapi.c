@@ -93,6 +93,126 @@ error:
 }
 
 unsigned32
+pkg_clean_s(
+    PTDNF pTdnf,
+    TDNF_CLEANTYPE nCleanType,
+    PTDNF_CLEAN_INFO *ppCleanInfo
+    )
+{
+    uint32_t dwError = 0;
+    int nLocked = 0;
+    PTDNF_CLEAN_INFO pCleanInfo = NULL;
+
+    if(!pTdnf || !ppCleanInfo)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    pthread_mutex_lock(&gpServerEnv->mutexPkgMgmtApi);
+    nLocked = 1;
+
+    dwError = TDNFClean(pTdnf, nCleanType, &pCleanInfo);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pthread_mutex_unlock(&gpServerEnv->mutexPkgMgmtApi);
+    nLocked = 0;
+
+    *ppCleanInfo = pCleanInfo;
+cleanup:
+    if(nLocked)
+    {
+        pthread_mutex_unlock(&gpServerEnv->mutexPkgMgmtApi);
+        nLocked = 0;
+    }
+    return dwError;
+error:
+    *ppCleanInfo = NULL;
+    if(pCleanInfo)
+    {
+        TDNFFreeCleanInfo(pCleanInfo);
+    }
+    goto cleanup;
+}
+unsigned32
+pkg_check_local_s(
+    PTDNF pTdnf,
+    const char *pszFolder
+    )
+{
+    uint32_t dwError = 0;
+    int nLocked = 0;
+
+    if(!pTdnf || !pszFolder)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    pthread_mutex_lock(&gpServerEnv->mutexPkgMgmtApi);
+    nLocked = 1;
+
+    dwError = TDNFCheckLocalPackages(pTdnf, pszFolder);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pthread_mutex_unlock(&gpServerEnv->mutexPkgMgmtApi);
+    nLocked = 0;
+
+cleanup:
+    if(nLocked)
+    {
+        pthread_mutex_unlock(&gpServerEnv->mutexPkgMgmtApi);
+        nLocked = 0;
+    }
+    return dwError;
+error:
+    goto cleanup;
+}
+
+unsigned32
+pkg_provides_s(
+    PTDNF pTdnf,
+    const char *pszSpec,
+    PTDNF_PKG_INFO *ppPkgInfo
+    )
+{
+    uint32_t dwError = 0;
+    int nLocked = 0;
+    PTDNF_PKG_INFO pPkgInfo;
+
+    if(!pTdnf || !pszSpec || !ppPkgInfo)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    pthread_mutex_lock(&gpServerEnv->mutexPkgMgmtApi);
+    nLocked = 1;
+
+    dwError = TDNFProvides(pTdnf, pszSpec, &pPkgInfo);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pthread_mutex_unlock(&gpServerEnv->mutexPkgMgmtApi);
+    nLocked = 0;
+
+    *ppPkgInfo = pPkgInfo;
+cleanup:
+    if(nLocked)
+    {
+        pthread_mutex_unlock(&gpServerEnv->mutexPkgMgmtApi);
+        nLocked = 0;
+    }
+    return dwError;
+error:
+    if(ppPkgInfo)
+    {
+        *ppPkgInfo = NULL;
+    }
+    goto cleanup;
+}
+
+
+unsigned32
 pkg_search_s(
     PTDNF pTdnf,
     PTDNF_CMD_ARGS pCmdArgs,

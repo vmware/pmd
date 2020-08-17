@@ -86,6 +86,144 @@ error:
 }
 
 uint32_t
+pkg_clean_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    TDNF_CLEANTYPE nCleanType,
+    PTDNF_RPC_CLEAN_INFO* ppCleanInfo
+    )
+{
+    uint32_t dwError = 0;
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(pkg_privsep_rpc_clean(hHandle->hRpc,
+                                     hPkgHandle,
+                                     nCleanType,
+                                     ppCleanInfo),
+                                     dwError);
+    }
+    else
+    {
+        DO_RPC(pkg_rpc_clean(hHandle->hRpc, hPkgHandle, nCleanType, ppCleanInfo),
+               dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+cleanup:
+    return dwError;
+error:
+    goto cleanup;
+}
+
+uint32_t
+pkg_clean(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    TDNF_CLEANTYPE nCleanType,
+    PTDNF_CLEAN_INFO* ppCleanInfo
+    )
+{
+    uint32_t dwError = 0;
+    PTDNF_RPC_CLEAN_INFO pRpcCleanInfo = NULL;
+    PTDNF_CLEAN_INFO pCleanInfo = NULL;
+    char **pwszReposUsed = NULL;
+    dwError = pkg_clean_w(hHandle, hPkgHandle, nCleanType, &pRpcCleanInfo);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDRpcClientConvertCleanInfo(pRpcCleanInfo, &pCleanInfo);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppCleanInfo = pCleanInfo;
+cleanup:
+    if (pRpcCleanInfo && pRpcCleanInfo->pszReposUsed != NULL)
+    {
+        int i = 0;
+        for (i = 0; i < pRpcCleanInfo->pszReposUsed->dwCount; i++)
+        {
+            PMD_SAFE_FREE_MEMORY(pRpcCleanInfo->pszReposUsed->ppwszStrings[i]);
+        }
+        PMD_SAFE_FREE_MEMORY(pRpcCleanInfo->pszReposUsed->ppwszStrings);
+        PMD_SAFE_FREE_MEMORY(pRpcCleanInfo->pszReposUsed);
+    }
+    PMD_SAFE_FREE_MEMORY(pRpcCleanInfo);
+    return dwError;
+error:
+    if(ppCleanInfo)
+    {
+        *ppCleanInfo = NULL;
+    }
+    if(pCleanInfo)
+    {
+        if (pCleanInfo->ppszReposUsed != NULL)
+        {
+            pwszReposUsed = pCleanInfo->ppszReposUsed;
+            while(pwszReposUsed && *pwszReposUsed)
+            {
+                PMD_SAFE_FREE_MEMORY(*pwszReposUsed);
+                ++pwszReposUsed;
+            }
+        }
+        PMD_SAFE_FREE_MEMORY(pCleanInfo->ppszReposUsed);
+        PMD_SAFE_FREE_MEMORY(pCleanInfo);
+    }
+    goto cleanup;
+
+}
+uint32_t
+pkg_check_local_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    wstring_t pwszFolder
+    )
+{
+
+    uint32_t dwError = 0;
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(pkg_privsep_rpc_check_local(hHandle->hRpc,
+                                           hPkgHandle,
+                                           pwszFolder),
+                                           dwError);
+    }
+    else
+    {
+        DO_RPC(pkg_rpc_check_local(hHandle->hRpc, hPkgHandle, pwszFolder),
+               dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+cleanup:
+    return dwError;
+error:
+    goto cleanup;
+}
+
+uint32_t
+pkg_check_local(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    const char *pszFolder
+    )
+{
+    uint32_t dwError = 0;
+    wstring_t pwszFolder = NULL;
+
+    dwError = PMDAllocateStringWFromA(
+                  pszFolder,
+                  &pwszFolder);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = pkg_check_local_w(hHandle, hPkgHandle, pwszFolder);
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pwszFolder);
+    return dwError;
+error:
+    goto cleanup;
+}
+
+
+uint32_t
 pkg_search_w(
     PPMDHANDLE hHandle,
     PPKGHANDLE hPkgHandle,
@@ -155,6 +293,81 @@ cleanup:
     if(pRpcInfo)
     {
         PMDRpcClientFreePkgInfoArray(pRpcInfo);
+    }
+    return dwError;
+error:
+    if(ppPkgInfo)
+    {
+        *ppPkgInfo = NULL;
+    }
+    if(pPkgInfo)
+    {
+        pkg_free_package_info_list(pPkgInfo);
+    }
+    goto cleanup;
+}
+
+uint32_t
+pkg_provides_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    wstring_t pwszSpec,
+    PTDNF_RPC_PKGINFO_ARRAY* pRpcInfo
+    )
+{
+
+    uint32_t dwError = 0;
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(pkg_privsep_rpc_provides(hHandle->hRpc,
+                                        hPkgHandle,
+                                        pwszSpec,
+                                        pRpcInfo),
+                                        dwError);
+    }
+    else
+    {
+        DO_RPC(pkg_rpc_provides(hHandle->hRpc, hPkgHandle, pwszSpec, pRpcInfo),
+               dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+cleanup:
+    return dwError;
+error:
+    goto cleanup;
+}
+
+uint32_t
+pkg_provides(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    const char *pszSpec,
+    PTDNF_PKG_INFO *ppPkgInfo
+    )
+{
+    uint32_t dwError = 0;
+    wstring_t pwszSpec = NULL;
+    PTDNF_RPC_PKGINFO_ARRAY pRpcPkgInfo = NULL;
+    PTDNF_PKG_INFO pPkgInfo = NULL;
+
+    dwError = PMDAllocateStringWFromA(
+                  pszSpec,
+                  &pwszSpec);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = pkg_provides_w(hHandle, hPkgHandle, pwszSpec, &pRpcPkgInfo);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDRpcClientConvertPkgInfoList(pRpcPkgInfo, &pPkgInfo);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppPkgInfo = pPkgInfo;
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pwszSpec);
+    if(pRpcPkgInfo)
+    {
+        PMDRpcClientFreePkgInfoArray(pRpcPkgInfo);
     }
     return dwError;
 error:

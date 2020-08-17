@@ -33,6 +33,26 @@ pkg_get_scope_from_string(
     );
 
 unsigned32
+pkg_check_local_s(
+    PTDNF pTdnf,
+    const char *pszFolder
+    );
+
+unsigned32
+pkg_clean_s(
+    PTDNF pTdnf,
+    TDNF_CLEANTYPE nCleanType,
+    PTDNF_CLEAN_INFO *ppCleanInfo
+    );
+
+unsigned32
+pkg_provides_s(
+    PTDNF pTdnf,
+    const char *pszSpec,
+    PTDNF_PKG_INFO *ppPkgInfo
+    );
+
+unsigned32
 pkg_search_s(
     PTDNF pTdnf,
     PTDNF_CMD_ARGS pCmdArgs,

@@ -38,6 +38,12 @@ get_client_rpc_binding(
 
 //rpcmem.c
 uint32_t
+PMDRpcClientConvertCleanInfo(
+    PTDNF_RPC_CLEAN_INFO pRpcCleanInfo,
+    PTDNF_CLEAN_INFO *ppCleanInfo
+    );
+
+uint32_t
 PMDRpcClientConvertPkgInfo(
     PTDNF_RPC_PKGINFO_ARRAY pRpcPkgInfo,
     PTDNF_PKG_INFO *ppPkgInfo

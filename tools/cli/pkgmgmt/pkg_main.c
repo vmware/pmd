@@ -61,14 +61,18 @@ pkg_main(
 
     stContext.pUserData = &stCliContext;
 
-    stContext.pFnCount      = pkg_invoke_count;
-    stContext.pFnAlter      = pkg_invoke_alter;
-    stContext.pFnInfo       = pkg_invoke_info;
-    stContext.pFnList       = pkg_invoke_list;
-    stContext.pFnRepoList   = pkg_invoke_repolist;
-    stContext.pFnResolve    = pkg_invoke_resolve;
-    stContext.pFnUpdateInfo = pkg_invoke_updateinfo;
-    stContext.pFnSearch     = pkg_invoke_search;
+    stContext.pFnCount        = pkg_invoke_count;
+    stContext.pFnAlter        = pkg_invoke_alter;
+    stContext.pFnInfo         = pkg_invoke_info;
+    stContext.pFnList         = pkg_invoke_list;
+    stContext.pFnRepoList     = pkg_invoke_repolist;
+    stContext.pFnResolve      = pkg_invoke_resolve;
+    stContext.pFnUpdateInfo   = pkg_invoke_updateinfo;
+    stContext.pFnSearch       = pkg_invoke_search;
+    stContext.pFnProvides     = pkg_invoke_provides;
+    stContext.pFnCheckLocal   = pkg_invoke_checklocal;
+    stContext.pFnCheckUpdate  = pkg_invoke_check_update;
+    stContext.pFnClean        = pkg_invoke_clean;
     stContext.pFnUpdateInfoSummary = pkg_invoke_updateinfo_summary;
 
     dwError = pkg_parse_args(argc, argv, &pCmdArgs);
@@ -147,6 +151,32 @@ error:
 }
 
 uint32_t
+pkg_invoke_checklocal(
+    PTDNF_CLI_CONTEXT pContext,
+    const char *pszFolder
+    )
+{
+    PPMD_PKG_CLI_CONTEXT pLocalContext = pContext->pUserData;
+    return pkg_check_local(pLocalContext->hPMD,
+                           pLocalContext->hPkgHandle,
+                           pszFolder);
+}
+
+uint32_t
+pkg_invoke_provides(
+    PTDNF_CLI_CONTEXT pContext,
+    const char *pszSpec,
+    PTDNF_PKG_INFO* ppPkgInfo
+    )
+{
+    PPMD_PKG_CLI_CONTEXT pLocalContext = pContext->pUserData;
+    return pkg_provides(pLocalContext->hPMD,
+                      pLocalContext->hPkgHandle,
+                      pszSpec,
+                      ppPkgInfo);
+}
+
+uint32_t
 pkg_invoke_search(
     PTDNF_CLI_CONTEXT pContext,
     PTDNF_CMD_ARGS pCmdArgs,
@@ -163,6 +193,19 @@ pkg_invoke_search(
 }
 
 uint32_t
+pkg_invoke_clean(
+    PTDNF_CLI_CONTEXT pContext,
+    TDNF_CLEANTYPE nCleanType,
+    PTDNF_CLEAN_INFO* ppCleanInfo
+    )
+{
+    PPMD_PKG_CLI_CONTEXT pLocalContext = pContext->pUserData;
+    return pkg_clean(pLocalContext->hPMD,
+                     pLocalContext->hPkgHandle,
+                     nCleanType,
+                     ppCleanInfo);
+}
+uint32_t
 pkg_invoke_alter(
     PTDNF_CLI_CONTEXT pContext,
     TDNF_ALTERTYPE nAlterType,
@@ -176,17 +219,6 @@ pkg_invoke_alter(
                      pSolvedPkgInfo);
 }
 
-uint32_t
-pkg_invoke_check_update(
-    PTDNF_CLI_CONTEXT pContext,
-    char** ppszPackageArgs,
-    PTDNF_PKG_INFO *ppPkgInfo,
-    uint32_t *pdwCount
-    )
-{
-    PPMD_PKG_CLI_CONTEXT pLocalContext = pContext->pUserData;
-    return 0;
-}
 
 uint32_t
 pkg_invoke_count(
@@ -228,6 +260,23 @@ pkg_invoke_list(
                     pLocalContext->hPkgHandle,
                     pInfoArgs->nScope,
                     pInfoArgs->ppszPackageNameSpecs,
+                    ppPkgInfo,
+                    pdwCount);
+}
+
+uint32_t
+pkg_invoke_check_update(
+    PTDNF_CLI_CONTEXT pContext,
+    char** ppszPackageArgs,
+    PTDNF_PKG_INFO *ppPkgInfo,
+    uint32_t *pdwCount
+    )
+{
+    PPMD_PKG_CLI_CONTEXT pLocalContext = pContext->pUserData;
+    return pkg_list(pLocalContext->hPMD,
+                    pLocalContext->hPkgHandle,
+                    SCOPE_UPGRADES,
+                    ppszPackageArgs,
                     ppPkgInfo,
                     pdwCount);
 }

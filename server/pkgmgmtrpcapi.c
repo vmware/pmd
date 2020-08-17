@@ -92,6 +92,99 @@ error:
 }
 
 unsigned32
+pkg_rpc_clean(
+    handle_t hBinding,
+    pkg_handle_t hPkgHandle,
+    unsigned32 nCleanType,
+    PTDNF_RPC_CLEAN_INFO* pCleanInfo
+    )
+{
+    uint32_t dwError = 0;
+    PPMDHANDLE hPMD = NULL;
+
+    if(!hBinding || !hPkgHandle || !pCleanInfo)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = privsep_handle_list_get(hPkgHandle, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = pkg_clean_w(hPMD, hPkgHandle, nCleanType, pCleanInfo);
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    return dwError;
+error:
+    goto cleanup;
+}
+
+unsigned32
+pkg_rpc_check_local(
+    handle_t hBinding,
+    pkg_handle_t hPkgHandle,
+    wstring_t pszFolder
+    )
+{
+    uint32_t dwError = 0;
+    PPMDHANDLE hPMD = NULL;
+
+    if(!hBinding || !hPkgHandle || !pszFolder)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = privsep_handle_list_get(hPkgHandle, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = pkg_check_local_w(hPMD, hPkgHandle, pszFolder);
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    return dwError;
+error:
+    goto cleanup;
+}
+
+unsigned32
+pkg_rpc_provides(
+    handle_t hBinding,
+    pkg_handle_t hPkgHandle,
+    wstring_t pszSpec,
+    PTDNF_RPC_PKGINFO_ARRAY* pRpcInfo
+    )
+{
+    uint32_t dwError = 0;
+    PPMDHANDLE hPMD = NULL;
+
+    if(!hBinding || !hPkgHandle || !pszSpec)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = privsep_handle_list_get(hPkgHandle, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = pkg_provides_w(hPMD, hPkgHandle, pszSpec, pRpcInfo);
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    return dwError;
+error:
+    goto cleanup;
+}
+
+
+unsigned32
 pkg_rpc_search(
     handle_t hBinding,
     pkg_handle_t hPkgHandle,

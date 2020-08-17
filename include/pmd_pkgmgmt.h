@@ -36,6 +36,29 @@ pkg_close_handle(
     );
 
 uint32_t
+pkg_check_local(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    const char *pszFolder
+    );
+
+uint32_t
+pkg_clean(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    TDNF_CLEANTYPE nCleanType,
+    PTDNF_CLEAN_INFO* ppCleanInfo
+    );
+
+uint32_t
+pkg_provides(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    const char *pszSpec,
+    PTDNF_PKG_INFO* ppPkgInfo
+    );
+
+uint32_t
 pkg_search(
     PPMDHANDLE hHandle,
     PPKGHANDLE hPkgHandle,
@@ -117,6 +140,11 @@ pkg_get_error_string(
 void
 pkg_free_repos(
     PTDNF_REPO_DATA pRepos
+    );
+
+void
+pkg_free_package_info(
+    PTDNF_PKG_INFO pPkgInfo
     );
 
 void
