@@ -31,6 +31,34 @@ pkg_invoke_search(
     );
 
 uint32_t
+pkg_invoke_clean(
+    PTDNF_CLI_CONTEXT pContext,
+    TDNF_CLEANTYPE nCleanType,
+    PTDNF_CLEAN_INFO* ppCleanInfo
+    );
+
+uint32_t
+pkg_invoke_check_update(
+    PTDNF_CLI_CONTEXT pContext,
+    char** ppszPackageArgs,
+    PTDNF_PKG_INFO *ppPkgInfo,
+    uint32_t *pdwCount
+    );
+
+uint32_t
+pkg_invoke_provides(
+    PTDNF_CLI_CONTEXT pContext,
+    const char *pszSpec,
+    PTDNF_PKG_INFO* ppPkgInfo
+    );
+
+uint32_t
+pkg_invoke_checklocal(
+    PTDNF_CLI_CONTEXT pContext,
+    const char *pszFolder
+    );
+
+uint32_t
 pkg_invoke_alter(
     PTDNF_CLI_CONTEXT pContext,
     TDNF_ALTERTYPE nAlterType,
