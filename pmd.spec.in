@@ -5,7 +5,7 @@
 Summary:	Photon Management Daemon
 Name:		pmd
 Version:	@VERSION@
-Release:	5%{?dist}
+Release:	6%{?dist}
 License:	Apache 2.0
 URL:            https://www.github.com/vmware/pmd
 Group:		Applications/System
@@ -14,7 +14,6 @@ Requires:       netmgmt
 Requires:	systemd
 Requires:	tdnf >= 1.2.0
 Requires:	c-rest-engine
-Requires:       lightwave-client-libs
 Requires:       jansson
 Requires:       copenapi
 Requires:       %{name}-libs = %{version}-%{release}
@@ -22,7 +21,6 @@ BuildRequires:	popt-devel
 BuildRequires:	rpm-devel
 BuildRequires:	tdnf-devel >= 1.2.0
 BuildRequires:	c-rest-engine-devel
-BuildRequires:  lightwave-devel
 BuildRequires:	netmgmt-devel
 BuildRequires:  jansson-devel
 BuildRequires:  copenapi-devel
@@ -47,7 +45,6 @@ BuildRequires:	netmgmt-cli-devel >= 1.0.4-2
 Summary: photon management daemon cmd line cli
 Requires: %{name}-libs = %{version}-%{release}
 Requires: likewise-open >= 6.2.0
-Requires: lightwave-client-libs
 
 %description cli
 photon management daemon cmd line cli
@@ -302,6 +299,8 @@ rm -rf %{buildroot}/*
     %{_python3_sitearch}/%{name}_python-*.egg-info
 
 %changelog
+*       Fri Oct 16 2020 Shreyas B <shreyasb@vmware.com> 0.1-6
+-       Remove PMD Dependencies on LightWave.
 *       Fri Aug 21 2020 Tapas Kundu <tkundu@vmware.com> 0.1-5
 -       Added clean, check-local, provides and check-update
 *       Fri Jul 24 2020 Tapas Kundu <tkundu@vmware.com> 0.1-4
