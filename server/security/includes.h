@@ -38,7 +38,9 @@
 #include "pmdsecurity.h"
 #include "prototypes.h"
 
-#include <vmdirclient.h>
-#include <vmafdclient.h>
+#include<ldap.h>
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
+
+#include "authLdap.h"
+#include "authKerberos.h"
