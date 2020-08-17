@@ -3,7 +3,9 @@ bin_PROGRAMS = pmdprivsepd
 pmdprivsepd_CPPFLAGS = \
     -I$(top_srcdir)/include \
     -I$(top_srcdir)/idl \
-    @LW_INCLUDES@
+    @LW_INCLUDES@ \
+    @VMDIRCLI_INCLUDES@ \
+    @VMAFD_INCLUDES@
 
 pmdprivsepd_SOURCES = \
     global.c \
@@ -54,7 +56,10 @@ pmdprivsepd_LDADD =  \
     @top_builddir@/server/common/libsrvcommon.la \
     @top_builddir@/privsep/demo/libdemosrv.la \
     @DCERPC_LIBS@ \
+    @VMDIRCLI_LIBS@ \
+    @VMAFD_LIBS@ \
     @LWBASE_LIBS@ \
+    -lvmdirclient \
     -ltdnf \
     -lnetmgr \
     -lpthread \
@@ -63,5 +68,7 @@ pmdprivsepd_LDADD =  \
     -ldl
 
 pmdprivsepd_LDFLAGS = \
+    @VMAFD_LDFLAGS@ \
+    @VMDIRCLI_LDFLAGS@ \
     @DCERPC_LDFLAGS@ \
     @LW_LDFLAGS@

@@ -75,12 +75,12 @@ open_vmdir_connection(
     char *pszDomain,
     char *pszAccount,
     char *pszPassword,
-    PPMDDIR_CONNECTION* ppConnection
+    PVMDIR_CONNECTION* ppConnection
     )
 {
     uint32_t dwError = 0;
     char *pszURI = NULL;
-    PPMDDIR_CONNECTION pConnection = NULL;
+    PVMDIR_CONNECTION pConnection = NULL;
 
     dwError = PMDAllocateStringPrintf(
                 &pszURI,
@@ -89,7 +89,7 @@ open_vmdir_connection(
                 LDAP_PORT);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = PmdDirConnectionOpen(
+    dwError = VmDirConnectionOpen(
                 pszURI,
                 pszDomain,
                 pszAccount,
@@ -108,7 +108,7 @@ error:
     }
     if(pConnection)
     {
-        PmdDirConnectionClose(pConnection);
+        VmDirConnectionClose(pConnection);
     }
     goto cleanup;
 }
@@ -121,7 +121,7 @@ get_vmdir_memberships(
     uint32_t* pdwMemberships)
 {
     uint32_t dwError = 0;
-    PPMDDIR_CONNECTION pConn = NULL;
+    PVMDIR_CONNECTION pConn = NULL;
     char* pszDCName = NULL;
     char* pszAccount = NULL;
     char* pszPassword = NULL;
@@ -129,13 +129,13 @@ get_vmdir_memberships(
     char **ppszMemberships = NULL;
     uint32_t  dwMemberships = 0;
 
-    dwError = PmdAfdGetDCNameA(NULL, &pszDCName);
+    dwError = VmAfdGetDCNameA(NULL, &pszDCName);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = PmdAfdGetDomainName(NULL, &pszDomain);
+    dwError = VmAfdGetDomainName(NULL, &pszDomain);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = PmdAfdGetMachineAccountInfoA(NULL, &pszAccount, &pszPassword);
+    dwError = VmAfdGetMachineAccountInfoA(NULL, &pszAccount, &pszPassword);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = open_vmdir_connection(pszDCName,
@@ -146,7 +146,7 @@ get_vmdir_memberships(
 
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = PmdDirGetMemberships(
+    dwError = VmDirGetMemberships(
                     pConn,
                     pszUPNName,
                     &ppszMemberships,
@@ -159,7 +159,7 @@ cleanup:
 
     if (pConn)
     {
-        PmdDirConnectionClose(pConn);
+        VmDirConnectionClose(pConn);
     }
 
     return dwError;
@@ -167,7 +167,7 @@ cleanup:
 error:
     if (ppszMemberships != NULL && dwMemberships > 0)
     {
-        PmdDirFreeMemberships(ppszMemberships, dwMemberships);
+        VmDirFreeMemberships(ppszMemberships, dwMemberships);
     }
     goto cleanup;
 }
@@ -448,7 +448,7 @@ domain_group_membership_check(
                       &dwMemberships);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = PmdAfdGetDomainName(NULL, &pszDomainName);
+    dwError = VmAfdGetDomainName(NULL, &pszDomainName);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = FQDN_to_DN(
@@ -471,7 +471,7 @@ cleanup:
 
     if (ppszMemberships != NULL && dwMemberships > 0)
     {
-        PmdDirFreeMemberships(ppszMemberships, dwMemberships);
+        VmDirFreeMemberships(ppszMemberships, dwMemberships);
     }
     PMDFreeMemory(pszDomainName);
     PMDFreeMemory(pszDomainNameDN);

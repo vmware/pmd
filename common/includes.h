@@ -43,5 +43,3 @@
 #include <pmd_fwmgmt_types.h>
 #include <pmd_rolemgmt_types.h>
 #include <pmd_usermgmt_types.h>
-
-#include "gssapi_creds_plugin.h"

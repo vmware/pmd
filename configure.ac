@@ -101,6 +101,74 @@ CPPFLAGS="$CPPFLAGS $LW_INCLUDES"
 AC_CHECK_HEADERS(lw/base.h lw/types.h uuid/uuid.h lwrpcrt/lwrpcrt.h dce/rpc.h)
 CPPFLAGS="$saved_CPPFLAGS"
 
+AC_ARG_WITH([vmdirclient],
+    [AC_HELP_STRING([--with-vmdirclient=<dir>], [use rest binaries rooted at prefix <dir> ])],
+    [
+        VMDIRCLI_BASE_PATH="$withval"
+        VMDIRCLI_INCLUDES="-I$withval/include"
+        VMDIRCLI_LDFLAGS="-L$withval/lib64"
+    ],
+    [
+        VMDIRCLI_BASE_PATH="/opt/vmware/"
+        VMDIRCLI_INCLUDES="-I/opt/vmware/include/"
+        VMDIRCLI_LDFLAGS="-L/opt/vmware/lib64/"
+    ])
+
+AC_SUBST(VMDIRCLI_BASE_PATH)
+AC_SUBST(VMDIRCLI_INCLUDES)
+AC_SUBST(VMDIRCLI_LDFLAGS)
+
+saved_CPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $VMDIRCLI_INCLUDES $DCERPC_INCLUDES"
+echo "Looking for vmdir cli headers"
+AC_CHECK_HEADERS(vmdirclient.h)
+#vmrest lib
+AC_CHECK_LIB(
+    [vmdirclient],
+    [VmDirOpenServerConnection],
+    [VMDIRCLI_LIBS="-lvmdirclient"],
+    [],
+    [$VMDIRCLI_LDFLAGS])
+
+AC_SUBST(VMDIRCLI_LIBS)
+
+CPPFLAGS="$saved_CPPFLAGS"
+
+AC_ARG_WITH([vmafdclient],
+    [AC_HELP_STRING([--with-vmafdclient=<dir>], [use rest binaries rooted at prefix <dir> ])],
+    [
+        VMAFD_BASE_PATH="$withval"
+        VMAFD_INCLUDES="-I$withval/include"
+        VMAFD_LDFLAGS="-L$withval/lib64"
+    ],
+    [
+        VMAFD_BASE_PATH="/opt/vmware/"
+        VMAFD_INCLUDES="-I/opt/vmware/include/"
+        VMAFD_LDFLAGS="-L/opt/vmware/lib64/"
+    ])
+
+AC_SUBST(VMAFD_BASE_PATH)
+AC_SUBST(VMAFD_INCLUDES)
+AC_SUBST(VMAFD_LDFLAGS)
+
+AC_SUBST(VMAFD_LDFLAGS)
+
+saved_CPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $VMAFD_INCLUDES $DCERPC_INCLUDES"
+echo "Looking for vmafd headers"
+AC_CHECK_HEADERS(vmafdclient.h)
+#vmafdclient lib
+AC_CHECK_LIB(
+    [vmafdclient],
+    [VmAfdOpenServerA],
+    [VMAFD_LIBS="-lvmafdclient"],
+    [],
+    [$VMAFD_LDFLAGS])
+AC_SUBST(VMAFD_LIBS)
+
+CPPFLAGS="$saved_CPPFLAGS"
+LIBS="$saved_LIBS"
+
 AC_ARG_ENABLE([python],
     [AS_HELP_STRING([--enable-python], [build pmd python bindings (default: disabled)])],
     [

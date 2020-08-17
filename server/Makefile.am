@@ -6,7 +6,9 @@ pmd_CPPFLAGS = \
     -I$(top_srcdir)/include \
     -I$(top_srcdir)/idl \
     @LW_INCLUDES@ \
-    @CREST_INCLUDES@
+    @CREST_INCLUDES@ \
+    @VMDIRCLI_INCLUDES@ \
+    @VMAFD_INCLUDES@
 
 pmd_SOURCES = \
     api.c \
@@ -86,8 +88,11 @@ pmd_LDADD =  \
     @DCERPC_LIBS@ \
     @JANSSON_LIBS@ \
     @CREST_LIBS@ \
+    @VMDIRCLI_LIBS@ \
+    @VMAFD_LIBS@ \
     @COPENAPI_LIBS@ \
     @LWBASE_LIBS@ \
+    -lvmdirclient \
     -lnetmgr \
     -lpthread \
     -lcrypt \
@@ -95,6 +100,8 @@ pmd_LDADD =  \
     -lgssapi_krb5
 
 pmd_LDFLAGS = \
+    @VMAFD_LDFLAGS@ \
+    @VMDIRCLI_LDFLAGS@ \
     @CREST_LDFLAGS@ \
     @DCERPC_LDFLAGS@ \
     @LW_LDFLAGS@

@@ -13,6 +13,7 @@
  */
 
 #include "includes.h"
+#include <gssapi_creds_plugin.h>
 #include <dlfcn.h>
 
 unsigned32

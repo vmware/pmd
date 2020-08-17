@@ -38,6 +38,8 @@
 #include <gssapi/gssapi.h>
 #include <gssapi/gssapi_generic.h>
 
+#include <vmdirclient.h>
+#include <vmafdclient.h>
 #include <vmrest.h>
 #include <tdnf/tdnf.h>
 #include <netmgmt/netmgr.h>
