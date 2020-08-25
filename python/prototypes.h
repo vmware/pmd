@@ -76,6 +76,18 @@ py_make_package(
    PyObject **ppPyPackage
    );
 
+uint32_t
+py_make_clean_info(
+    PTDNF_CLEAN_INFO pCleanInfo,
+    PyObject **ppPyPackage
+    );
+
+uint32_t
+py_make_stringlist(
+    char **ppszList,
+    PyObject **ppyList
+    );
+
 //pkgmgmt_solvedinfo.c
 uint32_t
 py_make_solvedinfo(

@@ -159,8 +159,265 @@ pkg_init(PY_NET *self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
+
 static PyObject *
-pkg_py_packages(
+pkg_py_search(
+    PPY_PKG self,
+    PyObject *args,
+    PyObject *kwds
+    )
+{
+    uint32_t dwError = 0;
+    int dwCount = 0;
+    static char *kwlist[] = {"packages", NULL};
+    PyObject *pyPkgList = NULL;
+    char **ppszPackages = NULL;
+    PyObject *pyPackageList = Py_None;
+    PPKGHANDLE hPkgHandle = NULL;
+    TDNF_CMD_ARGS stArgs = {0};
+    PTDNF_PKG_INFO pPkgInfo = NULL;
+    char *ppszCmdsC[] = {"search"};
+    int i = 0;
+    size_t nPkgCount = 0;
+
+    if (! PyArg_ParseTupleAndKeywords(args,
+                                      kwds,
+                                      "|O!",
+                                      kwlist,
+                                      &PyList_Type,
+                                      &pyPkgList))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(pyPkgList)
+    {
+        dwError = py_list_as_string_list(pyPkgList, &ppszPackages, &nPkgCount);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    stArgs.nCmdCount = nPkgCount + 1;
+    dwError = PMDAllocateMemory(sizeof(char *) * stArgs.nCmdCount,
+                                (void **)&stArgs.ppszCmds);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateString(*ppszCmdsC, &stArgs.ppszCmds[0]);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    for(i = 1; i < stArgs.nCmdCount; ++i)
+    {
+        dwError = PMDAllocateString(ppszPackages[i-1], &stArgs.ppszCmds[i]);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = pkg_open_handle(self->hHandle, &stArgs, &hPkgHandle);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = pkg_search(self->hHandle,
+                       hPkgHandle,
+                       &stArgs,
+                       &pPkgInfo,
+                       (uint32_t*)&dwCount);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pyPackageList = PyList_New(0);
+    if(!pyPackageList)
+    {
+        dwError = ERROR_PMD_OUT_OF_MEMORY;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    for(i = 0; i < dwCount; ++i)
+    {
+        PyObject *pPyPackage = NULL;
+
+        dwError = py_make_package(pPkgInfo + i, &pPyPackage);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        if(PyList_Append(pyPackageList, pPyPackage) == -1)
+        {
+            dwError = ERROR_PMD_OUT_OF_MEMORY;
+            BAIL_ON_PMD_ERROR(dwError);
+        }
+    }
+
+cleanup:
+    if(self && self->hHandle && hPkgHandle)
+    {
+        pkg_close_handle(self->hHandle, hPkgHandle);
+    }
+    if(pPkgInfo)
+    {
+        pkg_free_package_info_array(pPkgInfo, dwCount);
+    }
+    PMDFreeStringArray(ppszPackages);
+    PMDFreeStringArrayWithCount(stArgs.ppszCmds, stArgs.nCmdCount);
+    return pyPackageList;
+
+error:
+    pyPackageList = NULL;
+    raise_pkg_exception(self, dwError);
+    goto cleanup;
+
+}
+
+static PyObject *
+pkg_py_clean(
+    PPY_PKG self,
+    PyObject *args
+    )
+{
+    uint32_t dwError = 0;
+    uint32_t dwCount = 0;
+    PyObject *pyPackageList = Py_None;
+    PPKGHANDLE hPkgHandle = NULL;
+    TDNF_CMD_ARGS stArgs = {0};
+    PTDNF_CLEAN_INFO pCleanInfo = NULL;
+    char *ppszCmdsC[] = {"clean"};
+    char **pwszReposUsed = NULL;
+
+    stArgs.nCmdCount = 1;
+    stArgs.ppszCmds = ppszCmdsC;
+
+    dwError = pkg_open_handle(self->hHandle, &stArgs, &hPkgHandle);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = pkg_clean(self->hHandle,
+                        hPkgHandle,
+                        CLEANTYPE_ALL,
+                        &pCleanInfo);
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    if(self && self->hHandle && hPkgHandle)
+    {
+        pkg_close_handle(self->hHandle, hPkgHandle);
+    }
+    if(pCleanInfo && pCleanInfo->ppszReposUsed != NULL)
+    {
+        pwszReposUsed = pCleanInfo->ppszReposUsed;
+        while(pwszReposUsed && *pwszReposUsed)
+        {
+            PMD_SAFE_FREE_MEMORY(*pwszReposUsed);
+            ++pwszReposUsed;
+        }
+        PMD_SAFE_FREE_MEMORY(pCleanInfo->ppszReposUsed);
+        PMD_SAFE_FREE_MEMORY(pCleanInfo);
+    }
+    return pyPackageList;
+
+error:
+    pyPackageList = NULL;
+    raise_pkg_exception(self, dwError);
+    goto cleanup;
+
+}
+static PyObject *
+pkg_py_provides(
+    PPY_PKG self,
+    PyObject *args,
+    PyObject *kwds
+    )
+{
+    uint32_t dwError = 0;
+    uint32_t dwCount = 0;
+    static char *kwlist[] = {"packages", NULL};
+    PyObject *pyPackageList = Py_None;
+    char **ppszPackages = NULL;
+    PPKGHANDLE hPkgHandle = NULL;
+    TDNF_CMD_ARGS stArgs = {0};
+    PTDNF_PKG_INFO pPkgInfo = NULL;
+    PTDNF_PKG_INFO pTempPkgInfo = NULL;
+    char *ppszCmdsC[] = {"provides"};
+    PyObject *pyPkgList = NULL;
+    int i = 0;
+    size_t nPkgCount = 0;
+
+    if (! PyArg_ParseTupleAndKeywords(args,
+                                      kwds,
+                                      "|O!",
+                                      kwlist,
+                                      &PyList_Type,
+                                      &pyPkgList))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(pyPkgList)
+    {
+        dwError = py_list_as_string_list(pyPkgList, &ppszPackages, &nPkgCount);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    stArgs.nCmdCount = nPkgCount + 1;
+    dwError = PMDAllocateMemory(sizeof(char *) * stArgs.nCmdCount,
+                                (void **)&stArgs.ppszCmds);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateString(*ppszCmdsC, &stArgs.ppszCmds[0]);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    for(i = 1; i < stArgs.nCmdCount; ++i)
+    {
+        dwError = PMDAllocateString(ppszPackages[i-1], &stArgs.ppszCmds[i]);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = pkg_open_handle(self->hHandle, &stArgs, &hPkgHandle);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = pkg_provides(self->hHandle,
+                           hPkgHandle,
+                           stArgs.ppszCmds[1],
+                           &pPkgInfo);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pyPackageList = PyList_New(0);
+    if(!pyPackageList)
+    {
+        dwError = ERROR_PMD_OUT_OF_MEMORY;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+    pTempPkgInfo = pPkgInfo;
+    while(pTempPkgInfo)
+    {
+        PyObject *pPyPackage = NULL;
+
+        dwError = py_make_package(pTempPkgInfo, &pPyPackage);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        if(PyList_Append(pyPackageList, pPyPackage) == -1)
+        {
+            dwError = ERROR_PMD_OUT_OF_MEMORY;
+            BAIL_ON_PMD_ERROR(dwError);
+        }
+        pTempPkgInfo = pTempPkgInfo->pNext;
+    }
+
+cleanup:
+    if(self && self->hHandle && hPkgHandle)
+    {
+        pkg_close_handle(self->hHandle, hPkgHandle);
+    }
+    if(pPkgInfo)
+    {
+        pkg_free_package_info_list(pPkgInfo);
+    }
+    PMDFreeStringArray(ppszPackages);
+    PMDFreeStringArrayWithCount(stArgs.ppszCmds, stArgs.nCmdCount);
+    return pyPackageList;
+
+error:
+    pyPackageList = NULL;
+    raise_pkg_exception(self, dwError);
+    goto cleanup;
+}
+
+static PyObject *
+pkg_py_list(
+    TDNF_SCOPE ScopeType,
     PPY_PKG self,
     PyObject *args,
     PyObject *kwds
@@ -208,7 +465,7 @@ pkg_py_packages(
 
     dwError = pkg_list(self->hHandle,
                        hPkgHandle,
-                       0,
+                       ScopeType,
                        ppszPkgNameSpecs,
                        &pPkgInfo,
                        &dwCount);
@@ -251,6 +508,26 @@ error:
     pyPackageList = NULL;
     raise_pkg_exception(self, dwError);
     goto cleanup;
+}
+
+static PyObject *
+pkg_py_packages_check_update(
+PPY_PKG self,
+    PyObject *args,
+    PyObject *kwds
+    )
+{
+    return pkg_py_list(SCOPE_UPGRADES, self, args, kwds);
+}
+
+static PyObject *
+pkg_py_packages(
+    PPY_PKG self,
+    PyObject *args,
+    PyObject *kwds
+    )
+{
+    return pkg_py_list(SCOPE_ALL, self, args, kwds);
 }
 
 static PyObject *
@@ -674,6 +951,21 @@ static PyMethodDef pkg_methods[] =
     {"resolve", (PyCFunction)pkg_py_resolve, METH_VARARGS|METH_KEYWORDS,
      "pkg.resolve(action=install, packages=['pkg1', 'pkg2']) \n\
      solve for install/update/erase of package or packages. return a solve object which has information on packages affected.\n"},
+    {"check_update", (PyCFunction)pkg_py_packages_check_update, METH_VARARGS|METH_KEYWORDS,
+     "pkg.check_update(packages) \n\
+     filter: string array of package names. Optional.\n\
+     return list of packages updates in all enabled repositories.\n"},
+    {"search", (PyCFunction)pkg_py_search, METH_VARARGS|METH_KEYWORDS,
+     "pkg.search(packages) \n\
+     filter: string array of package or binary names. Mandatory.\n\
+     return list of packages matching the search in all enabled repositories.\n"},
+    {"provides", (PyCFunction)pkg_py_provides, METH_VARARGS|METH_KEYWORDS,
+     "pkg.provides(packages) \n\
+     filter: find which package provides this rpm. Mandatory.\n\
+     return list of packages matching rpms providing this package in all enabled repositories.\n"},
+    {"clean", (PyCFunction)pkg_py_clean, METH_NOARGS,
+     "pkg.clean(filter) \n\
+     Always clean cache of all repos as other options not supported in tdnf\n"},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 

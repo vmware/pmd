@@ -118,12 +118,15 @@ package_init(
     PyObject *version = NULL;
     PyObject *arch = NULL;
     PyObject *release = NULL;
+    PyObject *summary = NULL;
+    PyObject *description = NULL;
+    PyObject *reponame = NULL;
     PyObject *tmp = NULL;
 
-    static char *kwlist[] = {"name", "version", "arch", "release", NULL};
+    static char *kwlist[] = {"name", "version", "arch", "release", "summary", "description", "reponame", NULL};
 
-    if (! PyArg_ParseTupleAndKeywords(args, kwds, "|SSSS", kwlist,
-                                      &name, &version, &arch, &release))
+    if (! PyArg_ParseTupleAndKeywords(args, kwds, "|SSSSSSS", kwlist,
+                                      &name, &version, &arch, &release, &summary, &description, &reponame))
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
@@ -157,6 +160,27 @@ package_init(
         self->release = release;
         Py_XDECREF(tmp);
     }
+    if (summary)
+    {
+        tmp = self->summary;
+        Py_INCREF(summary);
+        self->summary = summary;
+        Py_XDECREF(tmp);
+    }
+    if (description)
+    {
+        tmp = self->description;
+        Py_INCREF(description);
+        self->description = description;
+        Py_XDECREF(tmp);
+    }
+    if (reponame)
+    {
+        tmp = self->reponame;
+        Py_INCREF(reponame);
+        self->reponame = reponame;
+        Py_XDECREF(tmp);
+    }
 
 cleanup:
     return dwError > 0 ? -1 : 0;
@@ -164,6 +188,47 @@ cleanup:
 error:
     fprintf(stderr, "Error = %d\n", dwError);
     goto cleanup;
+}
+
+
+PyObject*
+pkginfo_repr(
+    PyObject *self
+    )
+{
+    uint32_t dwError = 0;
+    PyObject *pyRepr = Py_None;
+    PPY_PKG_PACKAGE pPyPackage = NULL;
+    char *pszRepr = NULL;
+
+    pPyPackage = (PPY_PKG_PACKAGE)self;
+    dwError = PMDAllocateStringPrintf(
+                  &pszRepr,
+                  "{%s: %s}",
+                  pPyPackage->name ? PyBytes_AsString(pPyPackage->name) : "",
+                  pPyPackage->description ? PyBytes_AsString(pPyPackage->description) : "");
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pyRepr = Py_BuildValue("s", pszRepr);
+    Py_INCREF(pyRepr);
+
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pszRepr);
+    return pyRepr;
+
+error:
+    printf("Error = %d\n", dwError);
+    pyRepr = Py_None;
+    goto cleanup;
+
+}
+
+PyObject*
+pkginfo_str(
+    PyObject *self
+    )
+{
+    return pkginfo_repr(self);
 }
 
 uint32_t
@@ -271,13 +336,13 @@ PyTypeObject packageType = {
     0,                         /*tp_getattr*/
     0,                         /*tp_setattr*/
     0,                         /*tp_compare*/
-    0,                         /*tp_repr*/
+    pkginfo_repr,                         /*tp_repr*/
     0,                         /*tp_as_number*/
     0,                         /*tp_as_sequence*/
     0,                         /*tp_as_mapping*/
     0,                         /*tp_hash */
     0,                         /*tp_call*/
-    0,                         /*tp_str*/
+    pkginfo_str,                         /*tp_str*/
     0,                         /*tp_getattro*/
     0,                         /*tp_setattro*/
     0,                         /*tp_as_buffer*/
