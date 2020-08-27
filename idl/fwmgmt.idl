@@ -21,7 +21,6 @@
 
 interface fwmgmt
 {
-#include <lw/types.h>
 #include "pmdrpctypes.h"
 #include "fwmgmtrpctypes.h"
 

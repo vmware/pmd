@@ -21,7 +21,6 @@
 
 interface pkg
 {
-#include <lw/types.h>
 #include "pmdrpctypes.h"
 #include "pkgmgmtrpctypes.h"
 

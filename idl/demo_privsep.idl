@@ -21,7 +21,6 @@
 
 interface demo_privsep
 {
-#include <lw/types.h>
 #include "pmdrpctypes.h"
 
     unsigned32

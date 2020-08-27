@@ -2,8 +2,7 @@ lib_LTLIBRARIES = libpmdclient.la
 
 libpmdclient_la_CPPFLAGS = \
     -I$(top_srcdir)/include \
-    -I$(top_srcdir)/idl \
-    @LW_INCLUDES@
+    -I$(top_srcdir)/idl
 
 libpmdclient_la_SOURCES = \
     gssapi_creds_plugin.c \
@@ -92,10 +91,7 @@ CLEANFILES = \
 libpmdclient_la_LIBADD =  \
     @top_builddir@/common/libcommon.la \
     @DCERPC_LIBS@ \
-    @LWBASE_LIBS@ \
-    -lpthread \
-    -llwbase_nothr
+    -lpthread
 
 libpmdclient_la_LDFLAGS= \
-    @LW_LDFLAGS@ \
     @DCERPC_LDFLAGS@

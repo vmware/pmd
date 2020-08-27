@@ -21,14 +21,6 @@ init_module_security(
     PPMD_MODULE_SECURITY *ppModuleSecurity
     );
 
-uint32_t
-check_access_uid_gid(
-    PPMD_SECURITY_CONTEXT pContext,
-    uid_t uid,
-    gid_t gid,
-    const char *psModuleName,
-    const char *pszApiName
-    );
 
 void
 free_api_security(

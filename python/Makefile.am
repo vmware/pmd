@@ -5,8 +5,7 @@ CLEANFILES =
 
 _pmd_la_CPPFLAGS = \
     -I$(top_srcdir)/include \
-    -I@WITH_PYTHON_INCLUDE@ \
-    @LW_INCLUDES@
+    -I@WITH_PYTHON_INCLUDE@
 
 _pmd_la_SOURCES = \
     fwmgmt_py.c \

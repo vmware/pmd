@@ -21,7 +21,6 @@
 
 interface netmgmt_privsep
 {
-#include <lw/types.h>
 #include "pmdrpctypes.h"
 #include "netmgmtrpctypes.h"
 

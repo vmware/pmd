@@ -20,10 +20,6 @@
 extern "C" {
 #endif
 
-#if (!defined NO_LIKEWISE && !defined _WIN32)
-#include <lw/types.h>
-#endif
-
 #define PMD_NCALRPC_BASE              "/var/run/pmd"
 #define PMD_NCALRPC_SOCKET            "pmd_socket"
 #define PMD_NCALRPC_END_POINT         PMD_NCALRPC_BASE"/"PMD_NCALRPC_SOCKET

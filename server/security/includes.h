@@ -16,9 +16,6 @@
 #pragma once
 #include <stdint.h>
 
-#include <lw/base.h>
-#include <lw/types.h>
-
 #include "../../common/includes.h"
 #include <dce/dcethread.h>
 #include <dce/lrpc.h>

@@ -63,7 +63,7 @@ PMDRpcServerAllocateStringA(
     )
 {
     uint32_t dwError = 0;
-    PSTR pszTarget = NULL;
+    char *pszTarget = NULL;
     size_t length = 0;
 
     if (!pszSource)
@@ -107,7 +107,7 @@ PMDRpcServerAllocateStringW(
 {
     uint32_t  dwError = 0;
     size_t len = 0;
-    PWSTR  pwszTarget = NULL;
+    wchar16_t *pwszTarget = NULL;
 
     if (!pwszSource || !ppwszTarget)
     {
@@ -119,11 +119,11 @@ PMDRpcServerAllocateStringW(
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDRpcServerAllocateMemory(
-                    sizeof(WCHAR) * (len + 1),
-                    (PVOID*)&pwszTarget);
+                    sizeof(wchar16_t) * (len + 1),
+                    (void**)&pwszTarget);
     BAIL_ON_PMD_ERROR(dwError);
 
-    memcpy((PBYTE)pwszTarget, (PBYTE)pwszSource, sizeof(WCHAR) * len);
+    memcpy((uint8_t *)pwszTarget, (uint8_t *)pwszSource, sizeof(wchar16_t) * len);
 
     *ppwszTarget = pwszTarget;
 

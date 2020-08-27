@@ -20,10 +20,6 @@
 extern "C" {
 #endif
 
-#if (!defined NO_LIKEWISE && !defined _WIN32)
-#include <lw/types.h>
-#endif
-
 #ifdef _DCE_IDL_
 
 cpp_quote("#include <pkgmgmtrpctypes.h>")

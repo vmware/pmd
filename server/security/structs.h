@@ -19,7 +19,6 @@ typedef struct _PMD_API_SECURITY_
 {
     char *pszName;
     char *pszSDDL;
-    PSECURITY_DESCRIPTOR_ABSOLUTE pSecAbs;
     struct _PMD_API_SECURITY_ *pNext;
 }PMD_API_SECURITY, *PPMD_API_SECURITY;
 
@@ -32,6 +31,5 @@ typedef struct _PMD_MODULE_SECURITY_
 
 typedef struct _PMD_SECURITY_CONTEXT_
 {
-    PLW_MAP_SECURITY_CONTEXT pSecContext;
     PPMD_MODULE_SECURITY pModuleSecurity;
 }PMD_SECURITY_CONTEXT, *PPMD_SECURITY_CONTEXT;

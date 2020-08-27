@@ -90,7 +90,7 @@ PPMDGetCanonicalHostName(
     }
     else
     {
-        dwError = ERROR_NO_DATA;
+        dwError = ERROR_PMD_NO_DATA;
     }
     BAIL_ON_PMD_ERROR(dwError);
 

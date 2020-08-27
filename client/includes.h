@@ -13,7 +13,6 @@
  */
 #pragma once
 
-#include <lw/base.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>

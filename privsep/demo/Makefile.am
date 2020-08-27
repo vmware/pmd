@@ -2,9 +2,8 @@ noinst_LTLIBRARIES = libdemosrv.la
 
 libdemosrv_la_CPPFLAGS = \
     -I$(top_srcdir)/include \
-    -I$(top_srcdir)/idl \
-    @LW_INCLUDES@
-    
+    -I$(top_srcdir)/idl
+ 
 libdemosrv_la_SOURCES = \
     demo_privsep_sstub.c \
     demoapi.c \
