@@ -1,5 +1,5 @@
-DCETOP = $(LW_BASE_PATH)
-DCEIDL = $(LW_BASE_PATH)/bin/dceidl
+DCETOP = /usr
+DCEIDL = /usr/bin/dceidl
 IDL_INCLUDE_DIR = $(DCETOP)/include
 IDLFLAGS = -I$(IDL_INCLUDE_DIR) -keep c_source
 

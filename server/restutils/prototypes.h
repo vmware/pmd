@@ -12,8 +12,8 @@
  * under the License.
  */
 
-
 #pragma once
+#include "includes.h"
 //openidconnect.c
 uint32_t
 process_oidc_auth_header(
@@ -262,7 +262,7 @@ request_negotiate_auth(
 uint32_t
 make_negotiate_string(
     gss_buffer_desc *pBuffer,
-    PSTR *ppszNegotiate
+    char **ppszNegotiate
     );
 
 uint32_t

@@ -4,8 +4,7 @@ AM_CFLAGS += $(JANSSON_CFLAGS)
 
 libdemosrv_la_CPPFLAGS = \
     -I$(top_srcdir)/include \
-    -I$(top_srcdir)/idl \
-    @LW_INCLUDES@
+    -I$(top_srcdir)/idl
 
 libdemosrv_la_SOURCES = \
     demoapi.c \

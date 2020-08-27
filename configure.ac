@@ -14,35 +14,18 @@ AC_PROG_LIBTOOL
 
 CPPFLAGS="$CPPFLAGS -D_REENTRANT -D_GNU_SOURCE -fPIC"
 
-AM_CPPFLAGS="$AM_CPPFLAGS -I${top_srcdir}/include" 
+AM_CPPFLAGS="$AM_CPPFLAGS -I${top_srcdir}/include"
 AM_CFLAGS="$AM_CFLAGS -Wall -Werror -Wno-unused-variable -fno-strict-aliasing"
 
 AC_SUBST(AM_CPPFLAGS)
 AC_SUBST(AM_CFLAGS)
 
-AC_ARG_WITH([likewise],
-    [AC_HELP_STRING([--with-likewise=<dir>], [use likewise binaries rooted at prefix <dir> ])],
-    [
-        LW_BASE_PATH="$withval"
-        LW_INCLUDES="-I$withval/include"
-        LW_LDFLAGS="-L$withval/lib64 -Wl,-rpath,$withval/lib64 -Wl,-rpath-link,$withval/lib64"
-    ],
-    [
-        LW_BASE_PATH="/opt/likewise/"
-        LW_INCLUDES="-I/opt/likewise/include"
-        LW_LDFLAGS="-L/opt/likewise/lib64 -Wl,-rpath,/opt/likewise/lib64 -Wl,-rpath-link,/opt/likewise/lib64"
-    ])
-
-AC_SUBST(LW_BASE_PATH)
-AC_SUBST(LW_INCLUDES)
-AC_SUBST(LW_LDFLAGS)
-
 saved_CPPFLAGS="$CPPFLAGS"
-CPPFLAGS="$CPPFLAGS $LW_INCLUDES"
+CPPFLAGS="$CPPFLAGS"
 
-DCERPC_PATH=$LW_BASE_PATH/bin
-DCERPC_INCLUDES=$LW_INCLUDES
-DCERPC_LDFLAGS=$LW_LDFLAGS
+DCERPC_PATH="/usr/bin"
+DCERPC_INCLUDES="-I/usr/include"
+DCERPC_LDFLAGS="-L/usr/lib"
 
 AC_SUBST(DCERPC_PATH)
 AC_SUBST(DCERPC_INCLUDES)
@@ -97,8 +80,8 @@ AC_CHECK_LIB(
 AC_SUBST(CREST_LIBS)
 
 saved_CPPFLAGS="$CPPFLAGS"
-CPPFLAGS="$CPPFLAGS $LW_INCLUDES"
-AC_CHECK_HEADERS(lw/base.h lw/types.h uuid/uuid.h lwrpcrt/lwrpcrt.h dce/rpc.h)
+CPPFLAGS="$CPPFLAGS"
+AC_CHECK_HEADERS(uuid/uuid.h dce/rpc.h)
 CPPFLAGS="$saved_CPPFLAGS"
 
 AC_ARG_ENABLE([python],
@@ -137,14 +120,6 @@ AC_ARG_ENABLE([demo],
     ])
 AM_CONDITIONAL(ENABLE_DEMO, [test "$WITH_DEMO" = 1])
 
-AC_CHECK_LIB(
-    [lwbase],
-    [LwRtlMemoryAllocate],
-    [LWBASE_LIBS="-llwbase -llwbase_nothr"],
-    [],
-    [$LW_LDFLAGS -llwbase_nothr])
-
-AC_SUBST(LWBASE_LIBS)
 
 #tdnf
 PKG_CHECK_MODULES([TDNF], [tdnf], [have_libtdnf=yes], [have_libtdnf=no])
@@ -195,7 +170,7 @@ AC_CONFIG_FILES([Makefile
                  tools/cli/netmgmt/Makefile
                  tools/cli/usermgmt/Makefile
                  tools/cli/rolemgmt/Makefile
-                 tools/pmd.spec
+                 pmd.spec
                 ])
 
 #pmd conf dir

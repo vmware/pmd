@@ -4,9 +4,8 @@ AM_CFLAGS += $(JANSSON_CFLAGS)
 AM_CFLAGS += $(COPENAPI_CFLAGS)
 
 librestutils_la_CPPFLAGS = \
-    -I$(top_srcdir)/include \
-    @LW_INCLUDES@
-    
+    -I$(top_srcdir)/include
+ 
 librestutils_la_SOURCES = \
     global.c \
     restauth.c \

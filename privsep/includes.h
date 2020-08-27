@@ -15,9 +15,6 @@
 
 #pragma once
 
-#include <lw/base.h>
-#include <lw/types.h>
-
 #include <ctype.h>
 #include <locale.h>
 #include <stdio.h>

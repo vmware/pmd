@@ -5,8 +5,7 @@ libsrvcommon_la_SOURCES = \
     signal.c
 
 libsrvcommon_la_CPPFLAGS = \
-    -I$(top_srcdir)/include \
-    @LW_INCLUDES@
+    -I$(top_srcdir)/include
 
 libsrvcommon_la_LDFLAGS = \
     -static

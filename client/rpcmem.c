@@ -474,9 +474,9 @@ PMDRpcFreeString(
     char** ppszString
 )
 {
-    uint32_t dwError = ERROR_SUCCESS;
+    uint32_t dwError = 0;
 
-    rpc_string_free((PBYTE*)ppszString, &dwError);
+    rpc_string_free((uint8_t **)ppszString, &dwError);
 
     return dwError;
 }
@@ -486,7 +486,7 @@ PMDRpcFreeBinding(
     handle_t* pBinding
 )
 {
-    uint32_t dwError = ERROR_SUCCESS;
+    uint32_t dwError = 0;
 
     rpc_binding_free(pBinding, &dwError);
 

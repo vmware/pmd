@@ -2,8 +2,7 @@ noinst_LTLIBRARIES = libpmdextras.la
 
 libpmdextras_la_CPPFLAGS = \
     -I$(top_srcdir)/include \
-    -I$(top_srcdir)/idl \
-    @LW_INCLUDES@
+    -I$(top_srcdir)/idl
 
 libpmdextras_la_SOURCES =
 

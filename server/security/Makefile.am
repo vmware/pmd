@@ -1,8 +1,7 @@
 noinst_LTLIBRARIES = libpmdsecurity.la
 
 libpmdsecurity_la_CPPFLAGS = \
-    -I$(top_srcdir)/include \
-    @LW_INCLUDES@
+    -I$(top_srcdir)/include
 
 libpmdsecurity_la_SOURCES = \
     apisecurity.c \

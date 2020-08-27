@@ -21,9 +21,8 @@ typedef unsigned short* wstring_t;
 #define MAX_LINE_LENGTH 1024
 #define MAX_CONFIG_LINE_LENGTH 1024
 #define INVALID_CMD_CHARS ";&|`"
-
 #define IsNullOrEmptyString(str) (!(str) || !(*str))
-
+typedef unsigned short int  wchar16_t;
 #define DO_RPC(rpc_pfn, sts) \
   do {                       \
     dcethread_exc *exc = NULL;      \
@@ -73,22 +72,24 @@ typedef unsigned short* wstring_t;
 #define PMD_UNKNOWN_ERROR_STRING "Unknown error"
 #define PMD_ERROR_TABLE \
 { \
-    {ERROR_PMD_BASE,                "ERROR_PMD_EBASE",               "Generic base error"}, \
-    {ERROR_PMD_CONF_FILE_LOAD,      "ERROR_PMD_CONF_FILE_LOAD",      "Error reading config file."}, \
-    {ERROR_PMD_INVALID_DAEMON_USER, "ERROR_PMD_INVALID_DAEMON_USER", "Could not verify server integrity for this communication. Cannot proceed."}, \
-    {ERROR_PMD_RPC_PEER_NOT_READY,  "ERROR_PMD_RPC_PEER_NOT_READY",  "rpc connection not established."}, \
-    {ERROR_PMD_PRIVSEP_INTEGRITY,   "ERROR_PMD_PRIVSEP_INTEGRITY",   "Unable to verify privilege separation integrity. Cannot proceed."}, \
-    {ERROR_PMD_MISSING_PRIVSEP_PUBKEY,"ERROR_PMD_MISSING_PRIVSEP_PUBKEY","Missing public key for privilege separation encryption. Please check config."}, \
-    {ERROR_PMD_PRIVSEP_ENCRYPT,     "ERROR_PMD_PRIVSEP_ENCRYPT",     "There was an error encrypting information for privilege separation. Please check privilege separation keys."}, \
-    {ERROR_PMD_PRIVSEP_DECRYPT,     "ERROR_PMD_PRIVSEP_DECRYPT",     "There was an error decrypting information for privilege separation. Please check privilege separation keys."}, \
-    {ERROR_PMD_INVALID_CMD,         "ERROR_PMD_INVALID_CMD",         "Invalid command."}, \
-    {ERROR_PMD_NOTHING_TO_DO,       "ERROR_PMD_NOTHING_TO_DO",       "Nothing to do."}, \
-    {ERROR_PMD_ROLES_PLUGIN_NOT_SET,"ERROR_PMD_ROLES_PLUGIN_NOT_SET","Plugin is not set for this role."}, \
-    {ERROR_PMD_ROLE_UNMAPPED_FN,    "ERROR_PMD_ROLE_UNMAPPED_FN",    "Plugin is loaded but does not specify an entry point for this functionality."}, \
-    {ERROR_PMD_ROLE_UNMAPPED_LOAD,  "ERROR_PMD_ROLE_UNMAPPED_LOAD",  "Plugin is loaded but does not specify an entry point for javelin_role_load."}, \
-    {ERROR_PMD_ROLE_PLUGIN_BAD,     "ERROR_PMD_ROLE_PLUGIN_BAD",     "Plugin is loaded but did not behave as expected. Plugin has been disabled for this session."}, \
-    {ERROR_PMD_ROLE_PLUGIN_DISABLED,"ERROR_PMD_ROLE_PLUGIN_DISABLED","Plugin is disabled. Most likely cause is an unexpected response from plugin apis. Restarting the server will reload plugins."}, \
-    {ERROR_PMD_ROLE_PLUGIN_HAS_TASKS,"ERROR_PMD_ROLE_PLUGIN_HAS_TASKS","Plugin has tasks. Please use status to get a status on tasks. Cannot queue another task at this time."}, \
-    {ERROR_PMD_ROLE_TASK_NOT_FOUND,  "ERROR_PMD_ROLE_TASK_NOT_FOUND",  "Could not find a task matching the id provided."}, \
-    {ERROR_PMD_ROLE_TASK_NO_LOGS,    "ERROR_PMD_ROLE_TASK_NO_LOGS",    "Task has no logs."}, \
+    {ERROR_PMD_BASE,                  "ERROR_PMD_EBASE",                  "Generic base error"}, \
+    {ERROR_PMD_CONF_FILE_LOAD,        "ERROR_PMD_CONF_FILE_LOAD",         "Error reading config file."}, \
+    {ERROR_PMD_INVALID_DAEMON_USER,   "ERROR_PMD_INVALID_DAEMON_USER",    "Could not verify server integrity for this communication. Cannot proceed."}, \
+    {ERROR_PMD_RPC_PEER_NOT_READY,    "ERROR_PMD_RPC_PEER_NOT_READY",     "rpc connection not established."}, \
+    {ERROR_PMD_PRIVSEP_INTEGRITY,     "ERROR_PMD_PRIVSEP_INTEGRITY",      "Unable to verify privilege separation integrity. Cannot proceed."}, \
+    {ERROR_PMD_MISSING_PRIVSEP_PUBKEY,"ERROR_PMD_MISSING_PRIVSEP_PUBKEY", "Missing public key for privilege separation encryption. Please check config."}, \
+    {ERROR_PMD_PRIVSEP_ENCRYPT,       "ERROR_PMD_PRIVSEP_ENCRYPT",        "There was an error encrypting information for privilege separation. Please check privilege separation keys."}, \
+    {ERROR_PMD_PRIVSEP_DECRYPT,       "ERROR_PMD_PRIVSEP_DECRYPT",        "There was an error decrypting information for privilege separation. Please check privilege separation keys."}, \
+    {ERROR_PMD_INVALID_CMD,           "ERROR_PMD_INVALID_CMD",            "Invalid command."}, \
+    {ERROR_PMD_NOTHING_TO_DO,         "ERROR_PMD_NOTHING_TO_DO",          "Nothing to do."}, \
+    {ERROR_PMD_ROLES_PLUGIN_NOT_SET,  "ERROR_PMD_ROLES_PLUGIN_NOT_SET",   "Plugin is not set for this role."}, \
+    {ERROR_PMD_ROLE_UNMAPPED_FN,      "ERROR_PMD_ROLE_UNMAPPED_FN",       "Plugin is loaded but does not specify an entry point for this functionality."}, \
+    {ERROR_PMD_ROLE_UNMAPPED_LOAD,    "ERROR_PMD_ROLE_UNMAPPED_LOAD",     "Plugin is loaded but does not specify an entry point for javelin_role_load."}, \
+    {ERROR_PMD_ROLE_PLUGIN_BAD,       "ERROR_PMD_ROLE_PLUGIN_BAD",        "Plugin is loaded but did not behave as expected. Plugin has been disabled for this session."}, \
+    {ERROR_PMD_ROLE_PLUGIN_DISABLED,  "ERROR_PMD_ROLE_PLUGIN_DISABLED",   "Plugin is disabled. Most likely cause is an unexpected response from plugin apis. Restarting the server will reload plugins."}, \
+    {ERROR_PMD_ROLE_PLUGIN_HAS_TASKS, "ERROR_PMD_ROLE_PLUGIN_HAS_TASKS",  "Plugin has tasks. Please use status to get a status on tasks. Cannot queue another task at this time."}, \
+    {ERROR_PMD_ROLE_TASK_NOT_FOUND,   "ERROR_PMD_ROLE_TASK_NOT_FOUND",    "Could not find a task matching the id provided."}, \
+    {ERROR_PMD_ROLE_TASK_NO_LOGS,     "ERROR_PMD_ROLE_TASK_NO_LOGS",      "Task has no logs."}, \
+    {ERROR_PMD_STRING_COMPARE_FAILED, "ERROR_PMD_STRING_COMPARE_FAILED",  "String comparison failed."}, \
+    {ERROR_PMD_CONVERT_TO_WCHAR_FAILED, "ERROR_PMD_CONVERT_TO_WCHAR_FAILED", "String conversion Failed."}, \
 };

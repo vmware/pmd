@@ -20,7 +20,6 @@
 
 interface rolemgmt 
 {
-#include <lw/types.h>
 #include "pmdrpctypes.h"
 #include "rolemgmtrpctypes.h"
 

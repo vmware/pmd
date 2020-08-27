@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <lw/base.h>
+#include <errno.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,13 +23,14 @@
 #include <stdint.h>
 #include <termios.h>
 #include <sys/wait.h>
+#include <locale.h>
+#include <iconv.h>
 
 #include <openssl/evp.h>
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
 
 #include <pmderror.h>
- 
 #include <dce/rpc.h>
 #include <dce/dcethread.h>
 #include <dce/dce_error.h>

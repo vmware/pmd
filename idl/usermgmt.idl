@@ -21,7 +21,6 @@
 
 interface usermgmt
 {
-#include <lw/types.h>
 #include "pmdrpctypes.h"
 #include "usermgmtrpctypes.h"
 

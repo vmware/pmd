@@ -32,5 +32,4 @@ if ENABLE_DEMO
 endif
 
 pmd_cli_LDFLAGS = \
-    @DCERPC_LDFLAGS@ \
-    @LW_LDFLAGS@
+    @DCERPC_LDFLAGS@

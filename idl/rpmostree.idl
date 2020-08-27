@@ -21,7 +21,6 @@
 
 interface rpmostree
 {
-#include <lw/types.h>
 #include "pmdrpctypes.h"
 #include "rpmostreerpctypes.h"
 

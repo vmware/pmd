@@ -5,7 +5,6 @@ AM_CFLAGS += $(COPENAPI_CFLAGS)
 pmd_CPPFLAGS = \
     -I$(top_srcdir)/include \
     -I$(top_srcdir)/idl \
-    @LW_INCLUDES@ \
     @CREST_INCLUDES@
 
 pmd_SOURCES = \
@@ -87,7 +86,6 @@ pmd_LDADD =  \
     @JANSSON_LIBS@ \
     @CREST_LIBS@ \
     @COPENAPI_LIBS@ \
-    @LWBASE_LIBS@ \
     -lnetmgr \
     -lpthread \
     -lcrypt \
@@ -96,8 +94,7 @@ pmd_LDADD =  \
 
 pmd_LDFLAGS = \
     @CREST_LDFLAGS@ \
-    @DCERPC_LDFLAGS@ \
-    @LW_LDFLAGS@
+    @DCERPC_LDFLAGS@
 
 if ENABLE_DEMO
     pmd_LDADD += @top_builddir@/server/demo/libdemosrv.la

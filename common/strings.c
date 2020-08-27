@@ -14,6 +14,157 @@
 
 #include "includes.h"
 
+size_t
+PMDWC16StringNumChars(
+        wchar16_t const *pszString
+    )
+{
+    size_t len = 0;
+
+    if (pszString)
+    {
+        for(; pszString[len] != 0; len++);
+    }
+    return len;
+}
+
+uint32_t
+PMDConvertStringToWC16(
+    wchar16_t **ppwszDest,
+    const char *pszSrc
+    )
+{
+    iconv_t cd = 0;
+    size_t nconv = 0, insize = 0, mbLen = 0, mbSize = 0;
+    char *inputString = NULL;
+    char *wcharString = NULL;
+    wchar16_t *pwszbuf = NULL;
+    uint32_t dwError = 0;
+
+    if (!ppwszDest || !pszSrc)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    cd = iconv_open ("UCS-2LE", "");
+    if (cd == (iconv_t)-1)
+    {
+        dwError = ERROR_PMD_CONVERT_TO_WCHAR_FAILED;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    mbLen = mbstowcs (NULL, pszSrc, 0);
+    if (mbLen == -1)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+    mbSize = (mbLen + 1) * sizeof (wchar16_t);
+    dwError = PMDAllocateMemory (mbSize, (void**)&pwszbuf);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    inputString = (char *)pszSrc;
+    wcharString = (char *)pwszbuf;
+    insize = strlen (pszSrc) * sizeof (char);
+
+    nconv = iconv (cd, &inputString, &insize, &wcharString, &mbSize);
+    if (nconv == -1)
+    {
+        dwError = ERROR_PMD_CONVERT_TO_WCHAR_FAILED;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+    if (mbSize >= sizeof (wchar16_t))
+    {
+        *(wchar16_t *)wcharString = 0;
+    }
+    *ppwszDest = pwszbuf;
+cleanup:
+    if (cd && (cd != (iconv_t)-1))
+    {
+        iconv_close(cd);
+    }
+    return dwError;
+
+error:
+    if (pwszbuf)
+    {
+        free(pwszbuf);
+    }
+    if (ppwszDest)
+    {
+        *ppwszDest = 0;
+    }
+    goto cleanup;
+
+}
+
+uint32_t
+PMDConvertWC16ToString(
+    char **ppszDest,
+    const wchar16_t *pwszSrc
+    )
+{
+    iconv_t cd = 0;
+    size_t nconv = 0, avail = 0, insize = 0;
+    char *wcharString = NULL;
+    char *pszbuf = NULL;
+    char *outputString = NULL;
+    uint32_t dwError = 0;
+
+    if (!ppszDest || !pwszSrc)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    cd = iconv_open ("", "UCS-2LE");
+    if (cd == (iconv_t)-1)
+    {
+        dwError = ERROR_PMD_CONVERT_TO_WCHAR_FAILED;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    insize = PMDWC16StringNumChars(pwszSrc) * sizeof(wchar16_t);
+
+    dwError = PMDAllocateMemory((insize + 1) * sizeof(char), (void **)&pszbuf);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    wcharString = (char *)pwszSrc;
+    outputString = (char *)pszbuf;
+    avail = insize + 1; /* Added one for terminating with NULL */
+
+    nconv = iconv (cd, &wcharString, &insize, &outputString, &avail);
+    if (nconv == -1)
+    {
+        dwError = ERROR_PMD_CONVERT_TO_WCHAR_FAILED;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+    if (avail >= sizeof(wchar16_t))
+    {
+        *outputString = 0;
+    }
+
+    *ppszDest = pszbuf;
+cleanup:
+    if (cd && (cd != (iconv_t)-1))
+    {
+        iconv_close(cd);
+    }
+    return dwError;
+
+error:
+    if (pszbuf)
+    {
+        free(pszbuf);
+    }
+    if (ppszDest)
+    {
+        *ppszDest = 0;
+    }
+    goto cleanup;
+}
+
 uint32_t
 PMDSafeAllocateString(
     const char *pszSrc,
@@ -34,7 +185,7 @@ PMDGetStringLengthW(
     size_t* pLength
     )
 {
-    ULONG dwError = 0;
+    uint32_t dwError = 0;
 
     if (!pwszStr || !pLength)
     {
@@ -42,7 +193,7 @@ PMDGetStringLengthW(
     }
     else
     {
-        *pLength = LwRtlWC16StringNumChars(pwszStr);
+        *pLength = PMDWC16StringNumChars(pwszStr);
     }
 
     return dwError;
@@ -59,14 +210,16 @@ PMDAllocateStringWFromA(
     if (!pszSrc || !ppwszDst)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
     }
-    else
-    {
-        dwError = LwNtStatusToWin32Error(
-                        LwRtlWC16StringAllocateFromCString(ppwszDst, pszSrc));
-    }
+    dwError = PMDConvertStringToWC16(ppwszDst, pszSrc);
+    BAIL_ON_PMD_ERROR(dwError);
 
+cleanup:
     return dwError;
+
+error:
+    goto cleanup;
 }
 
 uint32_t
@@ -83,8 +236,7 @@ PMDAllocateStringAFromW(
     }
     else
     {
-        dwError = LwNtStatusToWin32Error(
-                        LwRtlCStringAllocateFromWC16String(ppszDst, pwszSrc));
+        dwError = PMDConvertWC16ToString(ppszDst, pwszSrc);
     }
 
     return dwError;
@@ -208,16 +360,6 @@ error:
     }
     PMD_SAFE_FREE_MEMORY(pszDst);
     goto cleanup;
-}
-
-int32_t
-PMDStringCompareA(
-    const char* pszStr1,
-    const char* pszStr2,
-    uint32_t bIsCaseSensitive
-    )
-{
-    return LwRtlCStringCompare(pszStr1, pszStr2, bIsCaseSensitive);
 }
 
 uint32_t

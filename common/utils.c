@@ -197,7 +197,7 @@ do_rtrim(
 
     if(IsNullOrEmptyString(pszString) || !ppszTrimmedString)
     {
-        dwError = ERROR_INVALID_PARAMETER;
+        dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
@@ -247,7 +247,7 @@ count_matches(
        IsNullOrEmptyString(pszFind) ||
        !pnCount)
     {
-        dwError = ERROR_INVALID_PARAMETER;
+        dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
