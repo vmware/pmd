@@ -14,12 +14,13 @@
 
 #pragma once
 
+#include <glib.h>
+#include <stdbool.h>
 #include <net/if.h>
 #include <arpa/inet.h>
 #include "../includes.h"
 #include "structs.h"
 #include "prototypes.h"
 #include "netmgmt_h.h"
-#include <netmgmt/netmgr.h>
-#include <netmgmt/netmgrcli.h>
+#include <network-config-manager.h>
 #include "pmd_netmgr.h"

@@ -241,40 +241,6 @@ error:
     goto cleanup;
 }
 
-static uint32_t
-net_dns_mode_to_str(
-    NET_DNS_MODE nMode,
-    char **ppszMode
-    )
-{
-    uint32_t dwError = 0;
-    char *pszMode = NULL;
-
-    switch(nMode)
-    {
-        case STATIC_DNS:
-            dwError = PMDAllocateString("static", &pszMode);
-            BAIL_ON_PMD_ERROR(dwError);
-        break;
-        case DHCP_DNS:
-            dwError = PMDAllocateString("dhcp", &pszMode);
-            BAIL_ON_PMD_ERROR(dwError);
-        break;
-        default:
-            dwError = EINVAL;
-            BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    *ppszMode = pszMode;
-
-cleanup:
-    return dwError;
-
-error:
-   PMD_SAFE_FREE_MEMORY(pszMode);
-   goto cleanup;
-}
-
 void
 netmgmt_free_ip_addrs(
     PNET_IP_ADDR *ppIpAddrArray,
@@ -532,8 +498,6 @@ net_rest_get_dns_servers(
 {
     uint32_t dwError = 0;
     char *pszOutputJson = NULL;
-    char *pszIfName = NULL;
-    NET_DNS_MODE mode;
     int nCount = 0;
     int i = 0;
     char **ppszDnsServers = NULL;
@@ -554,8 +518,6 @@ net_rest_get_dns_servers(
 
     dwError = netmgr_client_get_dns_servers(
                   hPMD,
-                  pszIfName,
-                  &mode,
                   (size_t *)&nCount,
                   &ppszDnsServers);
     BAIL_ON_PMD_ERROR(dwError);
@@ -566,11 +528,6 @@ net_rest_get_dns_servers(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
-
-    dwError = net_dns_mode_to_str(mode, &pszMode);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    json_object_set_new(pRoot, "mode", json_string(pszMode));
 
     pServerArray = json_array();
     json_object_set_new(pRoot, "servers", pServerArray);
@@ -593,7 +550,6 @@ cleanup:
         PMD_SAFE_FREE_MEMORY(ppszDnsServers[i]);
     }
     PMD_SAFE_FREE_MEMORY(ppszDnsServers);
-    PMD_SAFE_FREE_MEMORY(pszMode);
     rpc_free_handle(hPMD);
     return dwError;
 
@@ -614,12 +570,10 @@ net_rest_get_dns_domains(
 {
     uint32_t dwError = 0;
     char *pszOutputJson = NULL;
-    char *pszIfName = NULL;
     char **ppszDnsDomains = NULL;
     json_t *pJson = NULL;
     json_t *pRoot = NULL;
     json_t *pServerArray = NULL;
-    char *pszMode = NULL;
     size_t nCount = 0;
     size_t i = 0;
     const char *pszInputJson = NULL;
@@ -639,12 +593,6 @@ net_rest_get_dns_domains(
         dwError = get_json_object_from_string(pszInputJson, &pJson);
         BAIL_ON_PMD_ERROR(dwError);
 
-        dwError = json_get_string_value(pJson, "interface", &pszIfName);
-        if(dwError == ENOENT)
-        {
-            dwError = 0;
-        }
-        BAIL_ON_PMD_ERROR(dwError);
     }
 
     dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
@@ -652,7 +600,6 @@ net_rest_get_dns_domains(
 
     dwError = netmgr_client_get_dns_domains(
                   hPMD,
-                  pszIfName,
                   &nCount,
                   &ppszDnsDomains);
     BAIL_ON_PMD_ERROR(dwError);
@@ -685,7 +632,6 @@ cleanup:
         PMD_SAFE_FREE_MEMORY(ppszDnsDomains[i]);
     }
     PMD_SAFE_FREE_MEMORY(ppszDnsDomains);
-    PMD_SAFE_FREE_MEMORY(pszIfName);
     rpc_free_handle(hPMD);
     return dwError;
 
@@ -2301,7 +2247,6 @@ net_rest_get_link_info(
 
 cleanup:
     PMD_SAFE_FREE_MEMORY(pszIfName);
-    nm_free_link_info(pLinkInfo);
     if(pJson)
     {
         json_decref(pJson);
@@ -2535,6 +2480,8 @@ net_rest_put_link_mtu(
     const char *pszInputJson = NULL;
     PPMDHANDLE hPMD = NULL;
     PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
+    int argc = 0;
+    char **argv = {NULL};
 
     if(!pArgs || IsNullOrEmptyString(pArgs->pszInputJson) || !ppOutputJson)
     {
@@ -2547,16 +2494,13 @@ net_rest_put_link_mtu(
     dwError = get_json_object_from_string(pszInputJson, &pJson);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = json_get_string_value(pJson, "interface", &pszIfName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = json_get_string_value(pJson, "link_mtu", &pszLinkMTU);
+    dwError = json_get_string_array(pJson, "set_mtu", &argc, &argv);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = net_open_privsep_rest(pArgs->pAuthArgs->pRestAuth, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = netmgr_client_set_link_mtu(hPMD, pszIfName, atoi(pszLinkMTU));
+    dwError = netmgr_client_configure(hPMD, argc, (const char **)argv);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = json_make_result_success(&pszOutputJson);
@@ -2879,7 +2823,9 @@ net_rest_get_ntp_servers(
     size_t nCount = 0;
     size_t i = 0;
     char **ppszNtpServers = NULL;
+    char *pszIfName = NULL;
     json_t *pRoot = NULL;
+    json_t *pJson = NULL;
     json_t *pServerArray = NULL;
     char *pszMode = NULL;
 
@@ -2888,6 +2834,13 @@ net_rest_get_ntp_servers(
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    dwError = json_get_string_value(pJson, "interface", &pszIfName);
+    if(dwError == ENOENT)
+    {
+	dwError = 0;
+    }
+    BAIL_ON_PMD_ERROR(dwError);
 
     nCount = 1;
     dwError = PMDAllocateMemory(sizeof(char **) * nCount,
@@ -2925,6 +2878,7 @@ cleanup:
         PMD_SAFE_FREE_MEMORY(ppszNtpServers[i]);
     }
     PMD_SAFE_FREE_MEMORY(ppszNtpServers);
+    PMD_SAFE_FREE_MEMORY(pszIfName);
     return dwError;
 
 error:

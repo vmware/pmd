@@ -22,6 +22,111 @@ extern "C" {
 #include "pmdtypes.h"
 #include "pmderror.h"
 
+/*
+ * Interface configuration structs
+ */
+typedef enum __NET_LINK_MODE
+{
+    LINK_AUTO = 0,
+    LINK_MANUAL,
+    LINK_MODE_UNKNOWN
+} NET_LINK_MODE;
+
+typedef enum __NET_LINK_STATE
+{
+    LINK_DOWN = 0,
+    LINK_UP,
+    LINK_STATE_UNKNOWN,
+} NET_LINK_STATE;
+
+typedef struct _NET_LINK_INFO
+{
+    struct _NET_LINK_INFO *pNext;
+    char *pszInterfaceName;
+    char *pszMacAddress;
+    uint32_t mtu;
+    NET_LINK_MODE mode;
+    NET_LINK_STATE state;
+} NET_LINK_INFO, *PNET_LINK_INFO;
+
+
+/*
+ * IP Address configuration structs
+ */
+typedef enum __NET_IPV4_ADDR_MODE
+{
+    IPV4_ADDR_MODE_NONE = 0,
+    IPV4_ADDR_MODE_STATIC,
+    IPV4_ADDR_MODE_DHCP,
+    IPV4_ADDR_MODE_MAX
+} NET_IPV4_ADDR_MODE;
+
+typedef enum __NET_ADDR_TYPE
+{
+    STATIC_IPV4        =  0x00000001,
+    STATIC_IPV6        =  0x00000002,
+    DHCP_IPV4          =  0x00000010,
+    DHCP_IPV6          =  0x00000020,
+    AUTO_IPV6          =  0x00000040,
+    LINK_LOCAL_IPV6    =  0x00000080,
+} NET_ADDR_TYPE;
+
+#define NET_ADDR_IPV4     STATIC_IPV4 | DHCP_IPV4
+#define NET_ADDR_IPV6     STATIC_IPV6 | DHCP_IPV6 | AUTO_IPV6
+
+typedef struct __NET_IP_ADDR
+{
+    char *pszInterfaceName;
+    NET_ADDR_TYPE type;
+    char *pszIPAddrPrefix;
+} NET_IP_ADDR, *PNET_IP_ADDR;
+
+
+/*
+ * Route configuration structs
+ */
+typedef enum __NET_ROUTE_SCOPE
+{
+    GLOBAL_ROUTE = 0,
+    LINK_ROUTE,
+    HOST_ROUTE,
+    NET_ROUTE_SCOPE_MAX
+} NET_ROUTE_SCOPE;
+
+typedef struct _NET_IP_ROUTE
+{
+    char *pszInterfaceName;
+    char *pszDestNetwork;
+    char *pszSourceNetwork;
+    char *pszGateway;
+    NET_ROUTE_SCOPE scope;
+    uint32_t metric;
+    uint32_t table;
+} NET_IP_ROUTE, *PNET_IP_ROUTE;
+
+/*
+ * DNS configuration structs
+ */
+typedef enum __NET_DNS_MODE
+{
+    DNS_MODE_UNKNOWN = 0,
+    STATIC_DNS,
+    DHCP_DNS,
+    DNS_MODE_MAX,
+} NET_DNS_MODE;
+
+uint32_t
+netmgr_client_get_version(
+    PPMDHANDLE hHandle,
+    char **ppszVersion
+);
+
+uint32_t
+netmgr_client_is_networkd_running(
+    PPMDHANDLE hHandle,
+    char **ppszIsNetworkdRunning
+);
+
 uint32_t
 netmgr_client_set_mac_addr(
     PPMDHANDLE hHandle,
@@ -55,6 +160,27 @@ netmgr_client_set_link_mtu(
     PPMDHANDLE hHandle,
     const char *pszIfname,
     uint32_t mtu
+);
+
+uint32_t
+netmgr_client_configure(
+    PPMDHANDLE hHandle,
+    uint32_t argc,
+    const char *pszArgv[]
+);
+
+uint32_t
+netmgr_client_get_dhcp_mode(
+    PPMDHANDLE hHandle,
+    const char *pszIfname,
+    uint32_t *pDHCPMode
+);
+
+uint32_t
+netmgr_client_get_dhcp_client_iaid(
+    PPMDHANDLE hHandle,
+    const char *pszIfname,
+    uint32_t *pIaid
 );
 
 uint32_t
@@ -169,6 +295,20 @@ netmgr_client_get_ip_addr(
     );
 
 uint32_t
+netmgr_client_get_addresses(
+    PPMDHANDLE hHandle,
+    char *pszIfname,
+    size_t *pnCount,
+    char ***pppszAddresses);
+
+uint32_t
+netmgr_client_get_routes(
+    PPMDHANDLE hHandle,
+    char *pszIfname,
+    size_t *pnCount,
+    char ***pppszRoutes);
+
+uint32_t
 netmgr_client_add_static_ip_route(
     PPMDHANDLE hHandle,
     NET_IP_ROUTE *pRoute
@@ -214,8 +354,6 @@ netmgr_client_set_dns_servers(
 uint32_t
 netmgr_client_get_dns_servers(
     PPMDHANDLE hHandle,
-    char *pszIfname,
-    NET_DNS_MODE *pMode,
     size_t *pCount,
     char ***pppszDnsServers
     );
@@ -245,7 +383,6 @@ netmgr_client_set_dns_domains(
 uint32_t
 netmgr_client_get_dns_domains(
     PPMDHANDLE hHandle,
-    char *pszIfname,
     size_t *pCount,
     char ***pppszDnsDomains
     );
@@ -300,6 +437,7 @@ netmgr_client_delete_ntp_servers(
 uint32_t
 netmgr_client_get_ntp_servers(
     PPMDHANDLE hHandle,
+    char *pszIfname,
     size_t *pnCount,
     char ***pppszNtpServers);
 

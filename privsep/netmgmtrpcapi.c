@@ -34,7 +34,8 @@ netmgr_privsep_rpc_get_version(
     dwError = check_connection_integrity(hBinding);
     BAIL_ON_PMD_ERROR(dwError);
 
-    pszVersion = PACKAGE_VERSION;
+    /* TODO: Should be coming from network-config-manager get_version API */
+    pszVersion = NET_API_VERSION;
     if(IsNullOrEmptyString(pszVersion))
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
@@ -58,6 +59,50 @@ error:
     goto cleanup;
 }
 
+unsigned32
+netmgr_privsep_rpc_is_networkd_running(
+    handle_t hBinding,
+    wstring_t* ppwszIsNetworkdRunning
+    )
+{
+    uint32_t dwError = 0;
+    const char* pszIsNetworkdRunning = NULL;
+    wstring_t pwszIsNetworkdRunning = NULL;
+
+    if(!hBinding || !ppwszIsNetworkdRunning)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if(ncm_is_netword_running() == true)
+    {
+        pszIsNetworkdRunning = "Running";
+    }
+    else
+    {
+        pszIsNetworkdRunning = "Not Running";
+    }
+
+    dwError = PMDRpcServerAllocateWFromA(pszIsNetworkdRunning, &pwszIsNetworkdRunning);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszIsNetworkdRunning = pwszIsNetworkdRunning;
+
+cleanup:
+    return dwError;
+
+error:
+    if(ppwszIsNetworkdRunning)
+    {
+        *ppwszIsNetworkdRunning = NULL;
+    }
+    PMD_SAFE_FREE_MEMORY(pwszIsNetworkdRunning);
+    goto cleanup;
+}
 
 /*
  * Interface configuration APIs
@@ -69,37 +114,13 @@ netmgr_privsep_rpc_set_mac_addr(
     wstring_t pwszMacAddress
 )
 {
-    uint32_t dwError = 0;
-    char *pszIfName = NULL;
-    char *pszMacAddr = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName || !pwszMacAddress)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (pwszMacAddress)
-    {
-        dwError = PMDAllocateStringAFromW(pwszMacAddress, &pszMacAddr);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = nm_set_link_mac_addr(pszIfName, pszMacAddr);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
-    PMD_SAFE_FREE_MEMORY(pszMacAddr);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -114,23 +135,23 @@ netmgr_privsep_rpc_get_mac_addr(
     char *pszMacAddr = NULL;
     wstring_t pwszMacAddress = NULL;
 
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName || !ppwszMacAddress)
+    if (!hBinding || !pwszInterfaceName || !ppwszMacAddress)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    if (pwszInterfaceName)
-    {
-        dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = nm_get_link_mac_addr(pszIfName, &pszMacAddr);
+    dwError = check_connection_integrity(hBinding);
     BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (ncm_link_get_mac(pszIfName, &pszMacAddr) < 0)
+    {
+	dwError = ERROR_PMD_NET_CMD_FAIL;
+	BAIL_ON_PMD_ERROR(dwError);
+    }
 
     dwError = PMDRpcServerAllocateWFromA(pszMacAddr, &pwszMacAddress);
     BAIL_ON_PMD_ERROR(dwError);
@@ -139,10 +160,7 @@ netmgr_privsep_rpc_get_mac_addr(
 
 cleanup:
     PMD_SAFE_FREE_MEMORY(pszIfName);
-    if (pszMacAddr != NULL)
-    {
-        free(pszMacAddr);
-    }
+    PMD_SAFE_FREE_MEMORY(pszMacAddr);
     return dwError;
 error:
     if (ppwszMacAddress)
@@ -159,29 +177,13 @@ netmgr_privsep_rpc_set_link_mode(
     NET_RPC_LINK_MODE linkMode
 )
 {
-    uint32_t dwError = 0;
-    char *pszIfName = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = nm_set_link_mode(pszIfName, linkMode);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -191,39 +193,13 @@ netmgr_privsep_rpc_get_link_mode(
     NET_RPC_LINK_MODE *pLinkMode
 )
 {
-    uint32_t dwError = 0;
-    char *pszIfName = NULL;
-    NET_LINK_MODE linkMode;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName || !pLinkMode)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if (pwszInterfaceName)
-    {
-        dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = nm_get_link_mode(pszIfName, &linkMode);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    *pLinkMode = linkMode;
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    if (pLinkMode)
-    {
-        *pLinkMode = RPC_LINK_MODE_UNKNOWN;
-    }
-    goto cleanup;
 }
 
 unsigned32
@@ -233,28 +209,143 @@ netmgr_privsep_rpc_set_link_mtu(
     unsigned32 mtu
 )
 {
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
+    return dwError;
+}
+
+unsigned32
+netmgr_privsep_rpc_configure(
+    handle_t hBinding,
+    PPMD_WSTRING_ARRAY pwszArgv
+)
+{
     uint32_t dwError = 0;
-    char *pszIfName = NULL;
+    uint32_t i = 0;
+    char **ppszArgv = NULL;
+    NetmgmtCliManager *pNetCliMgr = NULL;
+    uint32_t nCount = 0;
 
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName)
+    if (!hBinding || !pwszArgv || (pwszArgv->dwCount == 0))
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateMemory(sizeof(char *) * pwszArgv->dwCount,
+                                (void **)&ppszArgv);
+    BAIL_ON_PMD_ERROR(dwError);
+    for (i = 0; i < pwszArgv->dwCount; ++i)
+    {
+        dwError = PMDAllocateStringAFromW(pwszArgv->ppwszStrings[i],
+                                          &ppszArgv[i]);
+        BAIL_ON_PMD_ERROR(dwError);
+	nCount = nCount + 1;
+    }
+
+    dwError = netmgmt_cli_manager_new(&pNetCliMgr);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgmt_cli_run_command(pNetCliMgr, pwszArgv->dwCount, ppszArgv);
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    if (pNetCliMgr)
+    {
+	netmgmt_cli_unrefp(&pNetCliMgr);
+    }
+    PMDFreeStringArrayWithCount(ppszArgv, nCount);
+    return dwError;
+error:
+    goto cleanup;
+}
+
+unsigned32
+netmgr_privsep_rpc_get_dhcp_mode(
+    handle_t hBinding,
+    wstring_t pwszInterfaceName,
+    unsigned32 *pDHCPMode
+)
+{
+    uint32_t dwError = 0, nDHCPMode = 0;
+    char *pszIfName = NULL;
+
+    if (!hBinding || !pwszInterfaceName || !pDHCPMode)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
+
     dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = nm_set_link_mtu(pszIfName, mtu);
-    BAIL_ON_PMD_ERROR(dwError);
+    if (ncm_link_get_dhcp_mode(pszIfName, (int *)&nDHCPMode) < 0)
+    {
+	dwError = ERROR_PMD_NET_CMD_FAIL;
+	BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    *pDHCPMode = nDHCPMode;
 
 cleanup:
     PMD_SAFE_FREE_MEMORY(pszIfName);
     return dwError;
 error:
+    if (pDHCPMode)
+    {
+        *pDHCPMode = 0;
+    }
+    goto cleanup;
+}
+
+unsigned32
+netmgr_privsep_rpc_get_dhcp_client_iaid(
+    handle_t hBinding,
+    wstring_t pwszInterfaceName,
+    unsigned32 *pIaid
+)
+{
+    uint32_t dwError = 0, dwIaid = 0;
+    char *pszIfName = NULL;
+
+    if (!hBinding || !pwszInterfaceName || !pIaid)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (ncm_link_get_dhcp_client_iaid(pszIfName, &dwIaid) < 0)
+    {
+	dwError = ERROR_PMD_NET_CMD_FAIL;
+	BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    *pIaid = dwIaid;
+
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pszIfName);
+    return dwError;
+error:
+    if (pIaid)
+    {
+        *pIaid = 0;
+    }
     goto cleanup;
 }
 
@@ -265,26 +356,26 @@ netmgr_privsep_rpc_get_link_mtu(
     unsigned32 *pMtu
 )
 {
-    uint32_t dwError = 0, mtu;
+    uint32_t dwError = 0, mtu = 0;
     char *pszIfName = NULL;
 
     dwError = check_connection_integrity(hBinding);
     BAIL_ON_PMD_ERROR(dwError);
 
-    if (!pwszInterfaceName || !pMtu)
+    if (!hBinding || !pwszInterfaceName || !pMtu)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    if (pwszInterfaceName)
-    {
-        dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = nm_get_link_mtu(pszIfName, &mtu);
+    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
     BAIL_ON_PMD_ERROR(dwError);
+
+    if (ncm_link_get_mtu(pszIfName, &mtu) < 0)
+    {
+	dwError = ERROR_PMD_NET_CMD_FAIL;
+	BAIL_ON_PMD_ERROR(dwError);
+    }
 
     *pMtu = mtu;
 
@@ -306,29 +397,13 @@ netmgr_privsep_rpc_set_link_state(
     NET_RPC_LINK_STATE linkState
 )
 {
-    uint32_t dwError = 0;
-    char *pszIfName = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = nm_set_link_state(pszIfName, linkState);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -338,39 +413,13 @@ netmgr_privsep_rpc_get_link_state(
     NET_RPC_LINK_STATE *pLinkState
 )
 {
-    uint32_t dwError = 0;
-    char *pszIfName = NULL;
-    NET_LINK_STATE linkState;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName || !pLinkState)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if (pwszInterfaceName)
-    {
-        dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = nm_get_link_state(pszIfName, &linkState);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    *pLinkState = linkState;
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    if (pLinkState)
-    {
-        *pLinkState = RPC_LINK_STATE_UNKNOWN;
-    }
-    goto cleanup;
 }
 
 unsigned32
@@ -379,29 +428,13 @@ netmgr_privsep_rpc_ifup(
     wstring_t pwszInterfaceName
 )
 {
-    uint32_t dwError = 0;
-    char *pszIfName = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = nm_ifup(pszIfName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -410,29 +443,13 @@ netmgr_privsep_rpc_ifdown(
     wstring_t pwszInterfaceName
 )
 {
-    uint32_t dwError = 0;
-    char *pszIfName = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = nm_ifdown(pszIfName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -442,84 +459,13 @@ netmgr_privsep_rpc_get_link_info(
     PNET_RPC_LINK_INFO_ARRAY *ppLinkInfoArray
 )
 {
-    uint32_t dwError = 0, dwCount = 0, i = 0;
-    char *pszIfName = NULL;
-    NET_LINK_INFO *pLinkInfo = NULL, *cur;
-    PNET_RPC_LINK_INFO_ARRAY pLinkInfoArray = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!ppLinkInfoArray)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if (pwszInterfaceName)
-    {
-        dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = nm_get_link_info(pszIfName, &pLinkInfo);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    for (cur = pLinkInfo; cur; cur = cur->pNext, dwCount++);
-
-    dwError = PMDRpcServerAllocateMemory(sizeof(NET_RPC_LINK_INFO_ARRAY),
-                                         (void **)&pLinkInfoArray);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    pLinkInfoArray->dwCount = dwCount;
-
-    if (dwCount)
-    {
-        dwError = PMDRpcServerAllocateMemory(
-                                      dwCount * sizeof(NET_RPC_LINK_INFO),
-                                      (void**)&pLinkInfoArray->pRpcLinkInfo);
-        BAIL_ON_PMD_ERROR(dwError);
-
-        for (cur = pLinkInfo; cur; cur = cur->pNext, i++)
-        {
-            dwError = PMDAllocateStringWFromA(cur->pszInterfaceName,
-                         &pLinkInfoArray->pRpcLinkInfo[i].pwszInterfaceName);
-            BAIL_ON_PMD_ERROR(dwError);
-            dwError = PMDAllocateStringWFromA(cur->pszMacAddress,
-                         &pLinkInfoArray->pRpcLinkInfo[i].pwszMacAddress);
-            BAIL_ON_PMD_ERROR(dwError);
-            pLinkInfoArray->pRpcLinkInfo[i].mtu = cur->mtu;
-            pLinkInfoArray->pRpcLinkInfo[i].mode =
-                                        (NET_RPC_LINK_MODE)cur->mode;
-            pLinkInfoArray->pRpcLinkInfo[i].state =
-                                        (NET_RPC_LINK_STATE)cur->state;
-        }
-    }
-
-    *ppLinkInfoArray = pLinkInfoArray;
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
-    nm_free_link_info(pLinkInfo);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    if (ppLinkInfoArray)
-    {
-        *ppLinkInfoArray = NULL;
-    }
-    if (pLinkInfoArray && pLinkInfoArray->pRpcLinkInfo)
-    {
-        for (i = 0; i < dwCount; i++)
-        {
-            PMD_SAFE_FREE_MEMORY(
-                     pLinkInfoArray->pRpcLinkInfo[i].pwszInterfaceName);
-            PMD_SAFE_FREE_MEMORY(
-                     pLinkInfoArray->pRpcLinkInfo[i].pwszMacAddress);
-        }
-        PMD_SAFE_FREE_MEMORY(pLinkInfoArray->pRpcLinkInfo);
-    }
-    PMD_SAFE_FREE_MEMORY(pLinkInfoArray);
-    goto cleanup;
 }
 
 
@@ -535,49 +481,13 @@ netmgr_privsep_rpc_set_ipv4_addr_gateway(
     wstring_t pwszIPv4Gateway
 )
 {
-    uint32_t dwError = 0;
-    char *pszIfName = NULL;
-    char *pszIPv4AddrPrefix = NULL;
-    char *pszIPv4Gateway = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (pwszIPv4AddrPrefix)
-    {
-        dwError = PMDAllocateStringAFromW(pwszIPv4AddrPrefix,
-                                          &pszIPv4AddrPrefix);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if (pwszIPv4Gateway)
-    {
-        dwError = PMDAllocateStringAFromW(pwszIPv4Gateway, &pszIPv4Gateway);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = nm_set_ipv4_addr_gateway(pszIfName,
-                                       mode,
-                                       pszIPv4AddrPrefix,
-                                       pszIPv4Gateway);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
-    PMD_SAFE_FREE_MEMORY(pszIPv4AddrPrefix);
-    PMD_SAFE_FREE_MEMORY(pszIPv4Gateway);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -589,67 +499,13 @@ netmgr_privsep_rpc_get_ipv4_addr_gateway(
     wstring_t *ppwszIPv4Gateway
 )
 {
-    uint32_t dwError = 0;
-    char *pszIfName = NULL;
-    NET_IPV4_ADDR_MODE mode;
-    char *pszIPv4AddrPrefix = NULL, *pszIPv4Gateway = NULL;
-    wstring_t pwszIPv4AddrPrefix = NULL, pwszIPv4Gateway = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName || !pMode || !ppwszIPv4AddrPrefix ||
-        !ppwszIPv4Gateway)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = nm_get_ipv4_addr_gateway(pszIfName,
-                                       &mode,
-                                       &pszIPv4AddrPrefix,
-                                       &pszIPv4Gateway);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (pszIPv4AddrPrefix)
-    {
-        dwError = PMDRpcServerAllocateWFromA(pszIPv4AddrPrefix,
-                                             &pwszIPv4AddrPrefix);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if (pszIPv4Gateway)
-    {
-        dwError = PMDRpcServerAllocateWFromA(pszIPv4Gateway, &pwszIPv4Gateway);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    *pMode = mode;
-    *ppwszIPv4AddrPrefix = pwszIPv4AddrPrefix;
-    *ppwszIPv4Gateway = pwszIPv4Gateway;
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
-    free(pszIPv4AddrPrefix);
-    free(pszIPv4Gateway);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    if (pMode)
-    {
-        *pMode = RPC_IPV4_ADDR_MODE_NONE;
-    }
-    if (ppwszIPv4AddrPrefix)
-    {
-        *ppwszIPv4AddrPrefix = NULL;
-    }
-    if (ppwszIPv4Gateway)
-    {
-        *ppwszIPv4Gateway = NULL;
-    }
-    goto cleanup;
 }
 
 unsigned32
@@ -659,34 +515,13 @@ netmgr_privsep_rpc_add_static_ipv6_addr(
     wstring_t pwszIPv6AddrPrefix
 )
 {
-    uint32_t dwError = 0;
-    char *pszIfName = NULL;
-    char *pszIPv6AddrPrefix = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName || !pwszIPv6AddrPrefix)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = PMDAllocateStringAFromW(pwszIPv6AddrPrefix, &pszIPv6AddrPrefix);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = nm_add_static_ipv6_addr(pszIfName, pszIPv6AddrPrefix);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
-    PMD_SAFE_FREE_MEMORY(pszIPv6AddrPrefix);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -696,34 +531,13 @@ netmgr_privsep_rpc_delete_static_ipv6_addr(
     wstring_t pwszIPv6AddrPrefix
 )
 {
-    uint32_t dwError = 0;
-    char *pszIfName = NULL;
-    char *pszIPv6AddrPrefix = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName || !pwszIPv6AddrPrefix)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = PMDAllocateStringAFromW(pwszIPv6AddrPrefix, &pszIPv6AddrPrefix);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = nm_delete_static_ipv6_addr(pszIfName, pszIPv6AddrPrefix);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
-    PMD_SAFE_FREE_MEMORY(pszIPv6AddrPrefix);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -734,29 +548,13 @@ netmgr_privsep_rpc_set_ipv6_addr_mode(
     unsigned32 enableAutoconf
 )
 {
-    uint32_t dwError = 0;
-    char *pszIfName = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = nm_set_ipv6_addr_mode(pszIfName, enableDhcp, enableAutoconf);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -767,46 +565,13 @@ netmgr_privsep_rpc_get_ipv6_addr_mode(
     unsigned32 *pAutoconfEnabled
 )
 {
-    uint32_t dwError = 0, dhcpEnabled, autoconfEnabled;
-    char *pszIfName = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = nm_get_ipv6_addr_mode(pszIfName, &dhcpEnabled, &autoconfEnabled);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (pDhcpEnabled)
-    {
-        *pDhcpEnabled = dhcpEnabled;
-    }
-    if (pAutoconfEnabled)
-    {
-        *pAutoconfEnabled = autoconfEnabled;
-    }
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    if (pDhcpEnabled)
-    {
-        *pDhcpEnabled = 0;
-    }
-    if (pAutoconfEnabled)
-    {
-        *pAutoconfEnabled = 0;
-    }
-    goto cleanup;
 }
 
 unsigned32
@@ -816,36 +581,13 @@ netmgr_privsep_rpc_set_ipv6_gateway(
     wstring_t pwszIPv6Gateway
 )
 {
-    uint32_t dwError = 0;
-    char *pszIfName = NULL, *pszIPv6Gateway = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (pwszIPv6Gateway)
-    {
-        dwError = PMDAllocateStringAFromW(pwszIPv6Gateway, &pszIPv6Gateway);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = nm_set_ipv6_gateway(pszIfName, pszIPv6Gateway);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
-    PMD_SAFE_FREE_MEMORY(pszIPv6Gateway);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -855,43 +597,13 @@ netmgr_privsep_rpc_get_ipv6_gateway(
     wstring_t *ppwszIPv6Gateway
 )
 {
-    uint32_t dwError = 0;
-    char *pszIfName = NULL, *pszIPv6Gateway = NULL;
-    wstring_t pwszIPv6Gateway = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName || !ppwszIPv6Gateway)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = nm_get_ipv6_gateway(pszIfName, &pszIPv6Gateway);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (pszIPv6Gateway)
-    {
-        dwError = PMDAllocateStringWFromA(pszIPv6Gateway, &pwszIPv6Gateway);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    *ppwszIPv6Gateway = pwszIPv6Gateway;
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
-    free(pszIPv6Gateway);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    if (ppwszIPv6Gateway)
-    {
-        *ppwszIPv6Gateway = NULL;
-    }
-    goto cleanup;
 }
 
 unsigned32
@@ -902,88 +614,13 @@ netmgr_privsep_rpc_get_ip_addr(
     NET_RPC_IP_ADDR_ARRAY **ppIpAddrArray
 )
 {
-    uint32_t dwError = 0;
-    size_t i, dwCount = 0;
-    char *pszIfName = NULL;
-    NET_IP_ADDR **ppIpAddrList = NULL;
-    NET_RPC_IP_ADDR_ARRAY *pIpAddrArray = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!ppIpAddrArray)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if (pwszInterfaceName)
-    {
-        dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = nm_get_ip_addr(pszIfName, addrTypes, &dwCount, &ppIpAddrList);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = PMDRpcServerAllocateMemory(sizeof(NET_RPC_IP_ADDR_ARRAY),
-                                         (void **)&pIpAddrArray);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    pIpAddrArray->dwCount = dwCount;
-
-    if (dwCount)
-    {
-        dwError = PMDRpcServerAllocateMemory(dwCount * sizeof(NET_RPC_IP_ADDR),
-                                             (void**)&pIpAddrArray->pRpcIpAddr);
-        BAIL_ON_PMD_ERROR(dwError);
-
-        for (i = 0; i < dwCount; i++)
-        {
-            dwError = PMDAllocateStringWFromA(ppIpAddrList[i]->pszInterfaceName,
-                             &pIpAddrArray->pRpcIpAddr[i].pwszInterfaceName);
-            BAIL_ON_PMD_ERROR(dwError);
-
-            pIpAddrArray->pRpcIpAddr[i].type = (NET_RPC_ADDR_TYPE)
-                                                    ppIpAddrList[i]->type;
-
-            dwError = PMDAllocateStringWFromA(ppIpAddrList[i]->pszIPAddrPrefix,
-                             &pIpAddrArray->pRpcIpAddr[i].pwszIPAddrPrefix);
-            BAIL_ON_PMD_ERROR(dwError);
-        }
-    }
-
-    *ppIpAddrArray = pIpAddrArray;
-
-cleanup:
-    for (i = 0; i < dwCount; i++)
-    {
-        free(ppIpAddrList[i]->pszInterfaceName);
-        free(ppIpAddrList[i]->pszIPAddrPrefix);
-        free(ppIpAddrList[i]);
-    }
-    free(ppIpAddrList);
-    PMD_SAFE_FREE_MEMORY(pszIfName);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-
-error:
-    if (ppIpAddrArray)
-    {
-        *ppIpAddrArray = NULL;
-    }
-    if (pIpAddrArray && pIpAddrArray->pRpcIpAddr)
-    {
-        for (i = 0; i < pIpAddrArray->dwCount; i++)
-        {
-            PMD_SAFE_FREE_MEMORY(
-                     pIpAddrArray->pRpcIpAddr[i].pwszInterfaceName);
-            PMD_SAFE_FREE_MEMORY(
-                     pIpAddrArray->pRpcIpAddr[i].pwszIPAddrPrefix);
-        }
-        PMD_SAFE_FREE_MEMORY(pIpAddrArray->pRpcIpAddr);
-    }
-    PMD_SAFE_FREE_MEMORY(pIpAddrArray);
-    goto cleanup;
 }
 
 
@@ -996,53 +633,13 @@ netmgr_privsep_rpc_add_static_ip_route(
     NET_RPC_IP_ROUTE *pIpRoute
 )
 {
-    uint32_t dwError = 0;
-    NET_IP_ROUTE ipRoute = {0};
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pIpRoute)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pIpRoute->pwszInterfaceName,
-                                      &ipRoute.pszInterfaceName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = PMDAllocateStringAFromW(pIpRoute->pwszDestNetwork,
-                                      &ipRoute.pszDestNetwork);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = PMDAllocateStringAFromW(pIpRoute->pwszGateway,
-                                      &ipRoute.pszGateway);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (pIpRoute->pwszSourceNetwork)
-    {
-        dwError = PMDAllocateStringAFromW(pIpRoute->pwszSourceNetwork,
-                                          &ipRoute.pszSourceNetwork);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    ipRoute.scope = (NET_ROUTE_SCOPE)pIpRoute->scope;
-    ipRoute.metric = pIpRoute->dwMetric;
-    ipRoute.table = pIpRoute->dwTableId;
-
-    dwError = nm_add_static_ip_route(&ipRoute);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(ipRoute.pszInterfaceName);
-    PMD_SAFE_FREE_MEMORY(ipRoute.pszDestNetwork);
-    PMD_SAFE_FREE_MEMORY(ipRoute.pszSourceNetwork);
-    PMD_SAFE_FREE_MEMORY(ipRoute.pszGateway);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -1051,56 +648,13 @@ netmgr_privsep_rpc_delete_static_ip_route(
     NET_RPC_IP_ROUTE *pIpRoute
 )
 {
-    uint32_t dwError = 0;
-    NET_IP_ROUTE ipRoute = {0};
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pIpRoute)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pIpRoute->pwszInterfaceName,
-                                      &ipRoute.pszInterfaceName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = PMDAllocateStringAFromW(pIpRoute->pwszDestNetwork,
-                                      &ipRoute.pszDestNetwork);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (pIpRoute->pwszGateway)
-    {
-        dwError = PMDAllocateStringAFromW(pIpRoute->pwszGateway,
-                                          &ipRoute.pszGateway);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if (pIpRoute->pwszSourceNetwork)
-    {
-        dwError = PMDAllocateStringAFromW(pIpRoute->pwszSourceNetwork,
-                                          &ipRoute.pszSourceNetwork);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    ipRoute.scope = (NET_ROUTE_SCOPE)pIpRoute->scope;
-    ipRoute.metric = pIpRoute->dwMetric;
-    ipRoute.table = pIpRoute->dwTableId;
-
-    dwError = nm_delete_static_ip_route(&ipRoute);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(ipRoute.pszInterfaceName);
-    PMD_SAFE_FREE_MEMORY(ipRoute.pszDestNetwork);
-    PMD_SAFE_FREE_MEMORY(ipRoute.pszSourceNetwork);
-    PMD_SAFE_FREE_MEMORY(ipRoute.pszGateway);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -1110,106 +664,13 @@ netmgr_privsep_rpc_get_static_ip_routes(
     NET_RPC_IP_ROUTE_ARRAY **ppIpRouteArray
 )
 {
-    uint32_t dwError = 0;
-    size_t i, dwCount = 0;
-    char *pszIfName = NULL;
-    NET_IP_ROUTE **ppRoutesList = NULL;
-    NET_RPC_IP_ROUTE_ARRAY *pIpRouteArray = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!ppIpRouteArray)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if (pwszInterfaceName)
-    {
-        dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = nm_get_static_ip_routes(pszIfName, &dwCount, &ppRoutesList);
-    BAIL_ON_PMD_ERROR(dwError);
-
-
-    dwError = PMDRpcServerAllocateMemory(sizeof(NET_RPC_IP_ROUTE_ARRAY),
-                                         (void **)&pIpRouteArray);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    pIpRouteArray->dwCount = dwCount;
-
-    if (dwCount)
-    {
-        dwError = PMDRpcServerAllocateMemory(
-                                      dwCount * sizeof(NET_RPC_IP_ROUTE),
-                                      (void**)&pIpRouteArray->pRpcIpRoute);
-        BAIL_ON_PMD_ERROR(dwError);
-
-        for (i = 0; i < dwCount; i++)
-        {
-            dwError = PMDAllocateStringWFromA(ppRoutesList[i]->pszInterfaceName,
-                             &pIpRouteArray->pRpcIpRoute[i].pwszInterfaceName);
-            BAIL_ON_PMD_ERROR(dwError);
-            dwError = PMDAllocateStringWFromA(ppRoutesList[i]->pszDestNetwork,
-                             &pIpRouteArray->pRpcIpRoute[i].pwszDestNetwork);
-            BAIL_ON_PMD_ERROR(dwError);
-            dwError = PMDAllocateStringWFromA(ppRoutesList[i]->pszGateway,
-                             &pIpRouteArray->pRpcIpRoute[i].pwszGateway);
-            BAIL_ON_PMD_ERROR(dwError);
-            if (ppRoutesList[i]->pszSourceNetwork)
-            {
-                dwError = PMDAllocateStringWFromA(
-                             ppRoutesList[i]->pszSourceNetwork,
-                             &pIpRouteArray->pRpcIpRoute[i].pwszSourceNetwork);
-                BAIL_ON_PMD_ERROR(dwError);
-            }
-            pIpRouteArray->pRpcIpRoute[i].scope = (NET_RPC_ROUTE_SCOPE)
-                                                       ppRoutesList[i]->scope;
-            pIpRouteArray->pRpcIpRoute[i].dwMetric = ppRoutesList[i]->metric;
-            pIpRouteArray->pRpcIpRoute[i].dwTableId = ppRoutesList[i]->table;
-        }
-    }
-
-    *ppIpRouteArray = pIpRouteArray;
-
-cleanup:
-    for (i = 0; i < dwCount; i++)
-    {
-        free(ppRoutesList[i]->pszInterfaceName);
-        free(ppRoutesList[i]->pszDestNetwork);
-        free(ppRoutesList[i]->pszSourceNetwork);
-        free(ppRoutesList[i]->pszGateway);
-        free(ppRoutesList[i]);
-    }
-    free(ppRoutesList);
-    PMD_SAFE_FREE_MEMORY(pszIfName);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-
-error:
-    if (ppIpRouteArray)
-    {
-        *ppIpRouteArray = NULL;
-    }
-    if (pIpRouteArray && pIpRouteArray->pRpcIpRoute)
-    {
-        for (i = 0; i < pIpRouteArray->dwCount; i++)
-        {
-            PMD_SAFE_FREE_MEMORY(
-                     pIpRouteArray->pRpcIpRoute[i].pwszInterfaceName);
-            PMD_SAFE_FREE_MEMORY(
-                     pIpRouteArray->pRpcIpRoute[i].pwszDestNetwork);
-            PMD_SAFE_FREE_MEMORY(
-                     pIpRouteArray->pRpcIpRoute[i].pwszSourceNetwork);
-            PMD_SAFE_FREE_MEMORY(
-                     pIpRouteArray->pRpcIpRoute[i].pwszGateway);
-        }
-        PMD_SAFE_FREE_MEMORY(pIpRouteArray->pRpcIpRoute);
-    }
-    PMD_SAFE_FREE_MEMORY(pIpRouteArray);
-    goto cleanup;
 }
 
 
@@ -1223,38 +684,13 @@ netmgr_privsep_rpc_add_dns_server(
     wstring_t pwszDnsServer
 )
 {
-    uint32_t i, dwError = 0;
-    char *pszIfName = NULL;
-    char *pszDnsServer = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszDnsServer)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if (pwszInterfaceName)
-    {
-        dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszDnsServer, &pszDnsServer);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = nm_add_dns_server(pszIfName, pszDnsServer);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
-    PMD_SAFE_FREE_MEMORY(pszDnsServer);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -1264,38 +700,13 @@ netmgr_privsep_rpc_delete_dns_server(
     wstring_t pwszDnsServer
 )
 {
-    uint32_t i, dwError = 0;
-    char *pszIfName = NULL;
-    char *pszDnsServer = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszDnsServer)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if (pwszInterfaceName)
-    {
-        dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszDnsServer, &pszDnsServer);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = nm_delete_dns_server(pszIfName, pszDnsServer);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
-    PMD_SAFE_FREE_MEMORY(pszDnsServer);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -1306,101 +717,49 @@ netmgr_privsep_rpc_set_dns_servers(
     PPMD_WSTRING_ARRAY pwszDnsServers
 )
 {
-    uint32_t i, dwError = 0;
-    char *pszIfName = NULL;
-    char **ppszDnsServers = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszDnsServers)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if (pwszInterfaceName)
-    {
-        dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if (pwszDnsServers->dwCount)
-    {
-        dwError = PMDAllocateMemory(sizeof(char *) * pwszDnsServers->dwCount,
-                                    (void **)&ppszDnsServers);
-        BAIL_ON_PMD_ERROR(dwError);
-
-        for (i = 0; i < pwszDnsServers->dwCount; ++i)
-        {
-            dwError = PMDAllocateStringAFromW(pwszDnsServers->ppwszStrings[i],
-                                              &ppszDnsServers[i]);
-            BAIL_ON_PMD_ERROR(dwError);
-        }
-    }
-
-    dwError = nm_set_dns_servers(pszIfName,
-                                 dwMode,
-                                 pwszDnsServers->dwCount,
-                                 (const char **)ppszDnsServers);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    if ((pwszDnsServers != NULL) && (ppszDnsServers != NULL))
-    {
-        for (i = 0; i < pwszDnsServers->dwCount; i++)
-        {
-            PMD_SAFE_FREE_MEMORY(ppszDnsServers[i]);
-        }
-        PMD_SAFE_FREE_MEMORY(ppszDnsServers);
-    }
-    PMD_SAFE_FREE_MEMORY(pszIfName);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-
-error:
-    goto cleanup;
 }
 
 unsigned32
 netmgr_privsep_rpc_get_dns_servers(
     handle_t hBinding,
-    wstring_t pwszInterfaceName,
-    NET_RPC_DNS_MODE *pdwMode,
     PPMD_WSTRING_ARRAY *ppwszDnsServers
 )
 {
     uint32_t dwError = 0;
-    char *pszIfName = NULL;
-    NET_DNS_MODE mode;
-    size_t i, bytes = 0, count = 0;
+    size_t i, count = 0;
     char **ppszDnsServers = NULL, *pszDnsServers = NULL;
     PPMD_WSTRING_ARRAY pwszDnsServers = NULL;
 
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pdwMode || !ppwszDnsServers)
+    if (!hBinding || !ppwszDnsServers)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    if (pwszInterfaceName)
-    {
-        dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = nm_get_dns_servers(pszIfName,
-                                 &mode,
-                                 &count,
-                                 &ppszDnsServers);
+    dwError = check_connection_integrity(hBinding);
     BAIL_ON_PMD_ERROR(dwError);
 
+    if (ncm_get_dns_server(&ppszDnsServers) < 0)
+    {
+	dwError = ERROR_PMD_NET_CMD_FAIL;
+	BAIL_ON_PMD_ERROR(dwError);
+    }
+    if (ppszDnsServers)
+    {
+	count = g_strv_length(ppszDnsServers);
+    }
     dwError = PMDRpcServerAllocateMemory(sizeof(PMD_WSTRING_ARRAY),
                                          (void **)&pwszDnsServers);
     BAIL_ON_PMD_ERROR(dwError);
 
+    pwszDnsServers->dwCount = 0;
     if (count > 0)
     {
         dwError = PMDRpcServerAllocateMemory(sizeof(wstring_t) * count,
@@ -1412,23 +771,17 @@ netmgr_privsep_rpc_get_dns_servers(
             dwError = PMDRpcServerAllocateWFromA(ppszDnsServers[i],
                                           &pwszDnsServers->ppwszStrings[i]);
             BAIL_ON_PMD_ERROR(dwError);
+	    pwszDnsServers->dwCount = pwszDnsServers->dwCount + 1;
         }
-        pwszDnsServers->dwCount = count;
     }
 
-    *pdwMode = mode;
     *ppwszDnsServers = pwszDnsServers;
 
 cleanup:
     PMDFreeStringArrayWithCount(ppszDnsServers, count);
-    PMD_SAFE_FREE_MEMORY(pszIfName);
     return dwError;
 
 error:
-    if (pdwMode)
-    {
-        *pdwMode = RPC_DNS_MODE_INVALID;
-    }
     if (ppwszDnsServers)
     {
         *ppwszDnsServers = NULL;
@@ -1452,38 +805,13 @@ netmgr_privsep_rpc_add_dns_domain(
     wstring_t pwszDnsDomain
 )
 {
-    uint32_t i, dwError = 0;
-    char *pszIfName = NULL;
-    char *pszDnsDomain = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszDnsDomain)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if (pwszInterfaceName)
-    {
-        dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszDnsDomain, &pszDnsDomain);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = nm_add_dns_domain(pszIfName,
-                                pszDnsDomain);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -1493,37 +821,13 @@ netmgr_privsep_rpc_delete_dns_domain(
     wstring_t pwszDnsDomain
 )
 {
-    uint32_t i, dwError = 0;
-    char *pszIfName = NULL;
-    char *pszDnsDomain = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszDnsDomain)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if (pwszInterfaceName)
-    {
-        dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszDnsDomain, &pszDnsDomain);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = nm_delete_dns_domain(pszIfName, pszDnsDomain);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -1533,95 +837,50 @@ netmgr_privsep_rpc_set_dns_domains(
     PPMD_WSTRING_ARRAY pwszDnsDomains
 )
 {
-    uint32_t i, dwError = 0;
-    char *pszIfName = NULL;
-    char **ppszDnsDomains = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszDnsDomains)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if (pwszInterfaceName)
-    {
-        dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if (pwszDnsDomains->dwCount)
-    {
-        dwError = PMDAllocateMemory(sizeof(char *) * pwszDnsDomains->dwCount,
-                                    (void **)&ppszDnsDomains);
-        BAIL_ON_PMD_ERROR(dwError);
-
-        for (i = 0; i < pwszDnsDomains->dwCount; ++i)
-        {
-            dwError = PMDAllocateStringAFromW(pwszDnsDomains->ppwszStrings[i],
-                                              &ppszDnsDomains[i]);
-            BAIL_ON_PMD_ERROR(dwError);
-        }
-    }
-
-    dwError = nm_set_dns_domains(pszIfName,
-                                 pwszDnsDomains->dwCount,
-                                 (const char **)ppszDnsDomains);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    if ((pwszDnsDomains != NULL) && (ppszDnsDomains != NULL))
-    {
-        for (i = 0; i < pwszDnsDomains->dwCount; i++)
-        {
-            PMD_SAFE_FREE_MEMORY(ppszDnsDomains[i]);
-        }
-        PMD_SAFE_FREE_MEMORY(ppszDnsDomains);
-    }
-    PMD_SAFE_FREE_MEMORY(pszIfName);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-
-error:
-    goto cleanup;
 }
 
 unsigned32
 netmgr_privsep_rpc_get_dns_domains(
     handle_t hBinding,
-    wstring_t pwszInterfaceName,
     PPMD_WSTRING_ARRAY *ppwszDnsDomains
 )
 {
     uint32_t dwError = 0;
-    char *pszIfName = NULL;
-    size_t i, bytes = 0, count = 0;
+    size_t i, count = 0;
     char **ppszDnsDomains = NULL;
     PPMD_WSTRING_ARRAY pwszDnsDomains = NULL;
 
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!ppwszDnsDomains)
+    if (!hBinding || !ppwszDnsDomains)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    if (pwszInterfaceName)
-    {
-        dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = nm_get_dns_domains(pszIfName, &count, &ppszDnsDomains);
+    dwError = check_connection_integrity(hBinding);
     BAIL_ON_PMD_ERROR(dwError);
 
+    if (ncm_get_dns_domains(&ppszDnsDomains) < 0)
+    {
+	dwError = ERROR_PMD_NET_CMD_FAIL;
+	BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if (ppszDnsDomains)
+    {
+	count = g_strv_length(ppszDnsDomains);
+    }
     dwError = PMDRpcServerAllocateMemory(sizeof(PMD_WSTRING_ARRAY),
                                 (void **)&pwszDnsDomains);
     BAIL_ON_PMD_ERROR(dwError);
 
+    pwszDnsDomains->dwCount = 0;
     if (count > 0)
     {
         dwError = PMDRpcServerAllocateMemory(sizeof(wstring_t) * count,
@@ -1633,19 +892,14 @@ netmgr_privsep_rpc_get_dns_domains(
             dwError = PMDRpcServerAllocateWFromA(ppszDnsDomains[i],
                                               &pwszDnsDomains->ppwszStrings[i]);
             BAIL_ON_PMD_ERROR(dwError);
+	    pwszDnsDomains->dwCount = pwszDnsDomains->dwCount + 1;
         }
-        pwszDnsDomains->dwCount = count;
     }
 
     *ppwszDnsDomains = pwszDnsDomains;
 
 cleanup:
-    for (i = 0; i < count; i++)
-    {
-        free(ppszDnsDomains[i]);
-    }
-    free(ppszDnsDomains);
-    PMD_SAFE_FREE_MEMORY(pszIfName);
+    PMDFreeStringArrayWithCount(ppszDnsDomains, count);
     return dwError;
 
 error:
@@ -1676,29 +930,13 @@ netmgr_privsep_rpc_set_iaid(
     unsigned32 dwIaid
 )
 {
-    uint32_t dwError = 0;
-    char *pszIfName = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = nm_set_iaid(pszIfName, (uint32_t)dwIaid);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -1708,35 +946,13 @@ netmgr_privsep_rpc_get_iaid(
     unsigned32 *pdwIaid
 )
 {
-    uint32_t dwError = 0, iaid = 0;
-    char *pszIfName = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName || !pdwIaid)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = nm_get_iaid(pszIfName, &iaid);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    *pdwIaid = (unsigned32)iaid;
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    if (pdwIaid)
-    {
-        *pdwIaid = 0;
-    }
-    goto cleanup;
 }
 
 unsigned32
@@ -1746,34 +962,13 @@ netmgr_privsep_rpc_set_duid(
     wstring_t pwszDuid
 )
 {
-    uint32_t dwError = 0;
-    char *pszIfName = NULL;
-    char *pszDuid = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (pwszInterfaceName)
-    {
-        dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if (pwszDuid)
-    {
-        dwError = PMDAllocateStringAFromW(pwszDuid, &pszDuid);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = nm_set_duid(pszIfName, pszDuid);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
-    PMD_SAFE_FREE_MEMORY(pszDuid);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -1783,46 +978,13 @@ netmgr_privsep_rpc_get_duid(
     wstring_t *ppwszDuid
 )
 {
-    uint32_t dwError = 0;
-    char *pszIfName = NULL;
-    char *pszDuid = NULL;
-    wstring_t pwszDuid = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!ppwszDuid)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if (pwszInterfaceName)
-    {
-        dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = nm_get_duid(pszIfName, &pszDuid);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = PMDRpcServerAllocateWFromA(pszDuid, &pwszDuid);
-    BAIL_ON_PMD_ERROR(dwError);
-    *ppwszDuid = pwszDuid;
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
-    if (pszDuid != NULL)
-    {
-        free(pszDuid);
-    }
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    if (ppwszDuid)
-    {
-        ppwszDuid = NULL;
-    }
-    goto cleanup;
 }
 
 uint32_t
@@ -1831,44 +993,13 @@ netmgr_privsep_rpc_set_ntp_servers(
     PPMD_WSTRING_ARRAY pwszNtpServers
     )
 {
-    uint32_t dwError = 0;
-    char **ppszNtpServers = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszNtpServers)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if (pwszNtpServers->dwCount)
-    {
-        size_t i = 0;
-        dwError = PMDAllocateMemory(
-                      sizeof(char *) * pwszNtpServers->dwCount + 1,
-                      (void **)&ppszNtpServers);
-        BAIL_ON_PMD_ERROR(dwError);
-
-        for (i = 0; i < pwszNtpServers->dwCount; ++i)
-        {
-            dwError = PMDAllocateStringAFromW(pwszNtpServers->ppwszStrings[i],
-                                              &ppszNtpServers[i]);
-            BAIL_ON_PMD_ERROR(dwError);
-        }
-    }
-
-    dwError = nm_set_ntp_servers(pwszNtpServers->dwCount,
-                                 (const char **)ppszNtpServers);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMDFreeStringArray(ppszNtpServers);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-
-error:
-    goto cleanup;
 }
 
 uint32_t
@@ -1877,44 +1008,13 @@ netmgr_privsep_rpc_add_ntp_servers(
     PPMD_WSTRING_ARRAY pwszNtpServers
     )
 {
-    uint32_t dwError = 0;
-    char **ppszNtpServers = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszNtpServers)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    if (pwszNtpServers->dwCount)
-    {
-        size_t i = 0;
-        dwError = PMDAllocateMemory(
-                      sizeof(char *) * pwszNtpServers->dwCount + 1,
-                      (void **)&ppszNtpServers);
-        BAIL_ON_PMD_ERROR(dwError);
-
-        for (i = 0; i < pwszNtpServers->dwCount; ++i)
-        {
-            dwError = PMDAllocateStringAFromW(pwszNtpServers->ppwszStrings[i],
-                                              &ppszNtpServers[i]);
-            BAIL_ON_PMD_ERROR(dwError);
-        }
-    }
-
-    dwError = nm_add_ntp_servers(pwszNtpServers->dwCount,
-                                 (const char **)ppszNtpServers);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMDFreeStringArray(ppszNtpServers);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-
-error:
-    goto cleanup;
 }
 
 uint32_t
@@ -1923,76 +1023,222 @@ netmgr_privsep_rpc_delete_ntp_servers(
     PPMD_WSTRING_ARRAY pwszNtpServers
     )
 {
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
+    return dwError;
+}
+
+unsigned32
+netmgr_privsep_rpc_get_addresses(
+    handle_t hBinding,
+    wstring_t pwszInterfaceName,
+    PPMD_WSTRING_ARRAY *ppwszAddresses
+    )
+{
     uint32_t dwError = 0;
-    char **ppszNtpServers = NULL;
+    size_t nCount = 0;
+    size_t i = 0;
+    char *pszIfName = NULL;
+    char **ppszAddresses = NULL;
+    PPMD_WSTRING_ARRAY pwszAddresses = NULL;
 
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszNtpServers)
+    if (!hBinding || !ppwszAddresses || !pwszInterfaceName)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    if (pwszNtpServers->dwCount)
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (ncm_link_get_addresses(pszIfName, &ppszAddresses) < 0)
     {
-        size_t i = 0;
-        dwError = PMDAllocateMemory(
-                      sizeof(char *) * pwszNtpServers->dwCount + 1,
-                      (void **)&ppszNtpServers);
+	dwError = ERROR_PMD_NET_CMD_FAIL;
+	BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if (ppszAddresses)
+    {
+	nCount = g_strv_length(ppszAddresses);
+    }
+    dwError = PMDRpcServerAllocateMemory(sizeof(PMD_WSTRING_ARRAY),
+                                         (void **)&pwszAddresses);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pwszAddresses->dwCount = 0;
+    if (nCount > 0)
+    {
+        dwError = PMDRpcServerAllocateMemory(
+                      sizeof(wstring_t) * nCount,
+                      (void **)&pwszAddresses->ppwszStrings);
         BAIL_ON_PMD_ERROR(dwError);
 
-        for (i = 0; i < pwszNtpServers->dwCount; ++i)
+        for (i = 0; i < nCount; i++)
         {
-            dwError = PMDAllocateStringAFromW(pwszNtpServers->ppwszStrings[i],
-                                              &ppszNtpServers[i]);
+            dwError = PMDRpcServerAllocateWFromA(
+                          ppszAddresses[i],
+                          &pwszAddresses->ppwszStrings[i]);
             BAIL_ON_PMD_ERROR(dwError);
+	    pwszAddresses->dwCount = pwszAddresses->dwCount + 1;
         }
     }
 
-    dwError = nm_delete_ntp_servers(pwszNtpServers->dwCount,
-                                    (const char **)ppszNtpServers);
-    BAIL_ON_PMD_ERROR(dwError);
+    *ppwszAddresses = pwszAddresses;
 
 cleanup:
-    PMDFreeStringArray(ppszNtpServers);
+    PMDFreeStringArrayWithCount(ppszAddresses, nCount);
+    PMD_SAFE_FREE_MEMORY(pszIfName);
     return dwError;
 
 error:
+    if (ppwszAddresses)
+    {
+        *ppwszAddresses = NULL;
+    }
+    if (pwszAddresses != NULL)
+    {
+        for (i = 0; i < pwszAddresses->dwCount; i++)
+        {
+            PMDRpcServerFreeMemory(pwszAddresses->ppwszStrings[i]);
+        }
+        PMDRpcServerFreeMemory(pwszAddresses->ppwszStrings);
+        PMDRpcServerFreeMemory(pwszAddresses);
+    }
+    goto cleanup;
+}
+
+unsigned32
+netmgr_privsep_rpc_get_routes(
+    handle_t hBinding,
+    wstring_t pwszInterfaceName,
+    PPMD_WSTRING_ARRAY *ppwszRoutes
+    )
+{
+    uint32_t dwError = 0;
+    size_t nCount = 0;
+    size_t i = 0;
+    char *pszIfName = NULL;
+    char **ppszRoutes = NULL;
+    PPMD_WSTRING_ARRAY pwszRoutes = NULL;
+
+    if (!hBinding || !ppwszRoutes || !pwszInterfaceName)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (ncm_link_get_routes(pszIfName, &ppszRoutes) < 0)
+    {
+	dwError = ERROR_PMD_NET_CMD_FAIL;
+	BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if (ppszRoutes)
+    {
+	nCount = g_strv_length(ppszRoutes);
+    }
+    dwError = PMDRpcServerAllocateMemory(sizeof(PMD_WSTRING_ARRAY),
+                                         (void **)&pwszRoutes);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pwszRoutes->dwCount = 0;
+    if (nCount > 0)
+    {
+        dwError = PMDRpcServerAllocateMemory(
+                      sizeof(wstring_t) * nCount,
+                      (void **)&pwszRoutes->ppwszStrings);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        for (i = 0; i < nCount; i++)
+        {
+            dwError = PMDRpcServerAllocateWFromA(
+                          ppszRoutes[i],
+                          &pwszRoutes->ppwszStrings[i]);
+            BAIL_ON_PMD_ERROR(dwError);
+	    pwszRoutes->dwCount = pwszRoutes->dwCount + 1;
+        }
+    }
+
+    *ppwszRoutes = pwszRoutes;
+
+cleanup:
+    PMDFreeStringArrayWithCount(ppszRoutes, nCount);
+    PMD_SAFE_FREE_MEMORY(pszIfName);
+    return dwError;
+
+error:
+    if (ppwszRoutes)
+    {
+        *ppwszRoutes = NULL;
+    }
+    if (pwszRoutes != NULL)
+    {
+        for (i = 0; i < pwszRoutes->dwCount; i++)
+        {
+            PMDRpcServerFreeMemory(pwszRoutes->ppwszStrings[i]);
+        }
+        PMDRpcServerFreeMemory(pwszRoutes->ppwszStrings);
+        PMDRpcServerFreeMemory(pwszRoutes);
+    }
     goto cleanup;
 }
 
 unsigned32
 netmgr_privsep_rpc_get_ntp_servers(
     handle_t hBinding,
+    wstring_t pwszInterfaceName,
     PPMD_WSTRING_ARRAY *ppwszNtpServers
     )
 {
     uint32_t dwError = 0;
     size_t nCount = 0;
+    size_t i = 0;
+    char *pszIfName = NULL;
     char **ppszNtpServers = NULL;
     PPMD_WSTRING_ARRAY pwszNtpServers = NULL;
 
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!ppwszNtpServers)
+    if (!hBinding || !pwszInterfaceName || !ppwszNtpServers)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = nm_get_ntp_servers(&nCount, &ppszNtpServers);
+    dwError = check_connection_integrity(hBinding);
     BAIL_ON_PMD_ERROR(dwError);
 
+    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (ncm_link_get_ntp(pszIfName, &ppszNtpServers) < 0)
+    {
+	dwError = ERROR_PMD_NET_CMD_FAIL;
+	BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if (ppszNtpServers)
+    {
+	nCount = g_strv_length(ppszNtpServers);
+    }
     dwError = PMDRpcServerAllocateMemory(sizeof(PMD_WSTRING_ARRAY),
                                          (void **)&pwszNtpServers);
     BAIL_ON_PMD_ERROR(dwError);
 
+    pwszNtpServers->dwCount = 0;
     if (nCount > 0)
     {
-        int i = 0;
         dwError = PMDRpcServerAllocateMemory(
                       sizeof(wstring_t) * nCount,
                       (void **)&pwszNtpServers->ppwszStrings);
@@ -2004,14 +1250,14 @@ netmgr_privsep_rpc_get_ntp_servers(
                           ppszNtpServers[i],
                           &pwszNtpServers->ppwszStrings[i]);
             BAIL_ON_PMD_ERROR(dwError);
+	    pwszNtpServers->dwCount = pwszNtpServers->dwCount + 1;
         }
-        pwszNtpServers->dwCount = nCount;
     }
-
     *ppwszNtpServers = pwszNtpServers;
 
 cleanup:
     PMDFreeStringArrayWithCount(ppszNtpServers, nCount);
+    PMD_SAFE_FREE_MEMORY(pszIfName);
     return dwError;
 
 error:
@@ -2021,7 +1267,6 @@ error:
     }
     if (pwszNtpServers != NULL)
     {
-        int i = 0;
         for (i = 0; i < pwszNtpServers->dwCount; i++)
         {
             PMDRpcServerFreeMemory(pwszNtpServers->ppwszStrings[i]);
@@ -2042,29 +1287,13 @@ netmgr_privsep_rpc_set_hostname(
     wstring_t pwszHostname
     )
 {
-    uint32_t dwError = 0;
-    char *pszHostname = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszHostname)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszHostname, &pszHostname);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = nm_set_hostname(pszHostname);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszHostname);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -2077,16 +1306,16 @@ netmgr_privsep_rpc_get_hostname(
     char *pszHostname = NULL;
     wstring_t pwszHostname = NULL;
 
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!ppwszHostname)
+    if (!hBinding || !ppwszHostname)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    dwError = nm_get_hostname(&pszHostname);
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = ncm_get_system_hostname(&pszHostname);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = PMDRpcServerAllocateWFromA(pszHostname, &pwszHostname);
@@ -2095,10 +1324,7 @@ netmgr_privsep_rpc_get_hostname(
     *ppwszHostname = pwszHostname;
 
 cleanup:
-    if (pszHostname != NULL)
-    {
-        free(pszHostname);
-    }
+    PMD_SAFE_FREE_MEMORY(pszHostname);
     return dwError;
 error:
     if (ppwszHostname)
@@ -2115,29 +1341,13 @@ netmgr_privsep_rpc_wait_for_link_up(
     unsigned32 dwTimeout
     )
 {
-    uint32_t dwError = 0;
-    char *pszIfName = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = nm_wait_for_link_up(pszIfName, (uint32_t)dwTimeout);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -2148,31 +1358,13 @@ netmgr_privsep_rpc_wait_for_ip(
     NET_RPC_ADDR_TYPE dwAddrTypes
 )
 {
-    uint32_t dwError = 0;
-    char *pszIfName = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszInterfaceName)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = nm_wait_for_ip(pszIfName,
-                             (uint32_t)dwTimeout,
-                             (NET_ADDR_TYPE)dwAddrTypes);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszIfName);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -2182,39 +1374,13 @@ netmgr_privsep_rpc_get_error_info(
     wstring_t *ppwszErrInfo
 )
 {
-    uint32_t dwError = 0;
-    const char *pszErrInfo = NULL;
-    wstring_t pwszErrInfo = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!ppwszErrInfo)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    pszErrInfo = nm_get_error_info(nmErrCode);
-    if (pszErrInfo == NULL)
-    {
-        dwError = ERROR_PMD_NO_DATA;
-    }
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = PMDRpcServerAllocateWFromA(pszErrInfo, &pwszErrInfo);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    *ppwszErrInfo = pwszErrInfo;
-
-cleanup:
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    if (ppwszErrInfo)
-    {
-        ppwszErrInfo = NULL;
-    }
-    goto cleanup;
 }
 
 unsigned32
@@ -2225,40 +1391,13 @@ netmgr_privsep_rpc_set_network_param(
     wstring_t pwszParamValue
 )
 {
-    uint32_t dwError = 0;
-    char *pszObjectName = NULL, *pszParamName = NULL, *pszParamValue = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszObjectName || !pwszParamName)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszObjectName, &pszObjectName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = PMDAllocateStringAFromW(pwszParamName, &pszParamName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (pwszParamValue)
-    {
-        dwError = PMDAllocateStringAFromW(pwszParamValue, &pszParamValue);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = nm_set_network_param(pszObjectName, pszParamName, pszParamValue);
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    PMD_SAFE_FREE_MEMORY(pszParamValue);
-    PMD_SAFE_FREE_MEMORY(pszParamName);
-    PMD_SAFE_FREE_MEMORY(pszObjectName);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    goto cleanup;
 }
 
 unsigned32
@@ -2269,48 +1408,11 @@ netmgr_privsep_rpc_get_network_param(
     wstring_t *ppwszParamValue
 )
 {
-    uint32_t dwError = 0;
-    char *pszObjectName = NULL, *pszParamName = NULL, *pszParamValue = NULL;
-    wstring_t pwszParamValue = NULL;
-
-    dwError = check_connection_integrity(hBinding);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (!pwszObjectName || !pwszParamName || !ppwszParamValue)
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    dwError = PMDAllocateStringAFromW(pwszObjectName, &pszObjectName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = PMDAllocateStringAFromW(pwszParamName, &pszParamName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = nm_get_network_param(pszObjectName, pszParamName, &pszParamValue);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    if (pszParamValue)
-    {
-        dwError = PMDAllocateStringWFromA(pszParamValue, &pwszParamValue);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
-    *ppwszParamValue = pwszParamValue;
-
-cleanup:
-    if (pszParamValue != NULL)
-    {
-        free(pszParamValue);
-    }
-    PMD_SAFE_FREE_MEMORY(pszParamName);
-    PMD_SAFE_FREE_MEMORY(pszObjectName);
+    /*
+     * TODO: remove this API support,
+     * once Python and rest API support
+     * is added.
+     */
+    uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
-error:
-    if (ppwszParamValue)
-    {
-        ppwszParamValue = NULL;
-    }
-    goto cleanup;
 }

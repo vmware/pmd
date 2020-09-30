@@ -17,6 +17,7 @@
 
 #define PKG_CONFIG_FILE_NAME "/etc/tdnf/tdnf.conf"
 
+#define NET_API_VERSION "0.1"
 #define FIREWALL_API_VERSION "0.1"
 #define MAX_SCRIPT_LINE_LENGTH 1024
 #define IPTABLES_CMD "iptables"

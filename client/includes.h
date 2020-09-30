@@ -52,10 +52,8 @@
 #include <pmd_pkgmgmt.h>
 #include <pmd_rolemgmt.h>
 #include <pmd_usermgmt.h>
+#include <pmd_netmgr.h>
 
 #include "defines.h"
 #include "structs.h"
 #include "prototypes.h"
-
-#include <netmgmt/netmgr.h>
-#include "pmd_netmgr.h"

@@ -1223,22 +1223,12 @@ get_dns_servers(
     uint32_t dwError = 0;
     size_t i = 0, count = 0;
     NET_DNS_MODE dnsMode = DNS_MODE_UNKNOWN;
-    char *pszInterfaceName = NULL;
-    char *pszDnsMode = NULL;
     char **ppszDnsServers = NULL;
     PyObject *pPyDnsServersList = Py_None;
     static char *kwlist[] = {"ifname", NULL};
     PyObject *pyRes = Py_None;
 
-    if(!PyArg_ParseTupleAndKeywords(arg, kwds, "|s", kwlist, &pszInterfaceName))
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
     dwError = netmgr_client_get_dns_servers(self->hHandle,
-                                            pszInterfaceName,
-                                            &dnsMode,
                                             &count,
                                             &ppszDnsServers);
     BAIL_ON_PMD_ERROR(dwError);
@@ -1254,22 +1244,8 @@ get_dns_servers(
         }
     }
 
-    if (dnsMode == DNS_MODE_UNKNOWN)
-    {
-        pszDnsMode = "invalid";
-    }
-    else if (dnsMode == STATIC_DNS)
-    {
-        pszDnsMode = "static";
-    }
-    else
-    {
-        pszDnsMode = "dhcp";
-    }
-
-    pyRes = PyTuple_New(2);
-    PyTuple_SetItem(pyRes, 0, Py_BuildValue("s", pszDnsMode));
-    PyTuple_SetItem(pyRes, 1, pPyDnsServersList);
+    pyRes = PyTuple_New(1);
+    PyTuple_SetItem(pyRes, 0, pPyDnsServersList);
 
 cleanup:
     PMDFreeStringArrayWithCount(ppszDnsServers, count);
@@ -1337,20 +1313,11 @@ get_dns_domains(
 {
     uint32_t dwError = 0;
     size_t i = 0, count = 0;
-    char *pszInterfaceName = NULL;
     char **ppszDnsDomains = NULL;
     PyObject *pPyDnsDomainsList = Py_None;
-    static char *kwlist[] = {"ifname", NULL};
     PyObject *pyRes = Py_None;
 
-    if(!PyArg_ParseTupleAndKeywords(arg, kwds, "|s", kwlist, &pszInterfaceName))
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
     dwError = netmgr_client_get_dns_domains(self->hHandle,
-                                            pszInterfaceName,
                                             &count,
                                             &ppszDnsDomains);
     if (dwError == NM_ERR_VALUE_NOT_FOUND)
@@ -1521,11 +1488,20 @@ get_ntp_servers(
 {
     uint32_t dwError = 0;
     size_t i = 0, count = 0;
+    char *pszInterfaceName = NULL;
     char **ppszNtpServers = NULL;
     PyObject *pPyNtpServersList = Py_None;
     PyObject *pyRes = Py_None;
+    static char *kwlist[] = {"ifname", NULL};
+
+    if(!PyArg_ParseTupleAndKeywords(arg, kwds, "|s", kwlist, &pszInterfaceName))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
 
     dwError = netmgr_client_get_ntp_servers(self->hHandle,
+                                            pszInterfaceName,
                                             &count,
                                             &ppszNtpServers);
     if (dwError == NM_ERR_VALUE_NOT_FOUND)
@@ -1820,8 +1796,6 @@ fill_link_info(
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = netmgr_client_get_dns_servers(self->hHandle,
-                                            pszIfName,
-                                            &dnsMode,
                                             &countDnsServers,
                                             &ppszDnsServers);
     if ((dwError == NM_ERR_VALUE_NOT_FOUND) || (dwError == ENOENT))
@@ -1854,7 +1828,6 @@ fill_link_info(
     }
 
     dwError = netmgr_client_get_dns_domains(self->hHandle,
-                                            pszIfName,
                                             &countDnsDomains,
                                             &ppszDnsDomains);
     if ((dwError == NM_ERR_VALUE_NOT_FOUND) || (dwError == ENOENT))
@@ -2075,8 +2048,6 @@ get_system_network_info(
         BAIL_ON_PMD_ERROR(dwError);
     }
     dwError = netmgr_client_get_dns_servers(self->hHandle,
-                                            NULL,
-                                            &dnsMode,
                                             &countDnsServers,
                                             &ppszDnsServers);
     if ((dwError == NM_ERR_VALUE_NOT_FOUND) || (dwError == ENOENT))
@@ -2111,7 +2082,6 @@ get_system_network_info(
     }
 
     dwError = netmgr_client_get_dns_domains(self->hHandle,
-                                            NULL,
                                             &countDnsDomains,
                                             &ppszDnsDomains);
     if ((dwError == NM_ERR_VALUE_NOT_FOUND) || (dwError == ENOENT))
@@ -2132,6 +2102,7 @@ get_system_network_info(
     }
 
     dwError = netmgr_client_get_ntp_servers(self->hHandle,
+                                            NULL,
                                             &countNtpServers,
                                             &ppszNtpServers);
     if ((dwError == NM_ERR_VALUE_NOT_FOUND) || (dwError == ENOENT))

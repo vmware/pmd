@@ -1,7 +1,7 @@
 bin_PROGRAMS = pmdprivsepd
 
 pmdprivsepd_CPPFLAGS = \
-    -I$(top_srcdir)/include \
+    -I$(top_srcdir)/include -I/usr/include -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include \
     -I$(top_srcdir)/idl
 
 pmdprivsepd_SOURCES = \
@@ -10,6 +10,7 @@ pmdprivsepd_SOURCES = \
     pkgmgmtrpcapi.c \
     pkghandlelist.c \
     netmgmtrpcapi.c \
+    netmgmt_utils.c \
     fwmgmt_api.c \
     fwmgmt_rpcapi.c \
     fwmgmt_utils.c \
@@ -54,10 +55,11 @@ pmdprivsepd_LDADD =  \
     @top_builddir@/privsep/demo/libdemosrv.la \
     @DCERPC_LIBS@ \
     -ltdnf \
-    -lnetmgr \
+    -lnetwork_config_manager \
     -lpthread \
     -lcrypt \
     -lcrypto \
+    -lglib-2.0 \
     -ldl
 
 pmdprivsepd_LDFLAGS = \

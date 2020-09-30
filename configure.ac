@@ -145,6 +145,10 @@ AM_CONDITIONAL([COPENAPI],  [test "$have_libcopenapi" = "yes"])
 PKG_CHECK_MODULES([UUID], [uuid], [have_libuuid=yes], [have_libuuid=no])
 AM_CONDITIONAL([UUID],  [test "$have_libuuid" = "yes"])
 
+#network-config-manager
+PKG_CHECK_MODULES([NETWORK_CONFIG_MANAGER], [network-config-manager], [have_libnetwork_config_manager=yes], [have_libnetwork_config_manager=no])
+AM_CONDITIONAL([NETWORK_CONFIG_MANAGER],  [test "$have_libnetwork_config_manager" = "yes"])
+
 #makefiles
 AC_CONFIG_FILES([Makefile
                  common/Makefile

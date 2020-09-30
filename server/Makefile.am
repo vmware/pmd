@@ -86,7 +86,6 @@ pmd_LDADD =  \
     @JANSSON_LIBS@ \
     @CREST_LIBS@ \
     @COPENAPI_LIBS@ \
-    -lnetmgr \
     -lpthread \
     -lcrypt \
     -lcrypto \

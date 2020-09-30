@@ -21,15 +21,15 @@
 #include <pmd_fwmgmt.h>
 #include <pmd_pkgmgmt.h>
 #include <pmd_rolemgmt.h>
-#include <netmgmt/netmgr.h>
 #include "../common/defines.h"
 #include "../common/structs.h"
 #include "../common/prototypes.h"
 #include "structs.h"
 #include "netmgmt_structs_py.h"
+#include "pmd_netmgr.h"
+#include "netmgmt_py.h"
 #include "prototypes.h"
 #include "fwmgmt_py.h"
-#include "netmgmt_py.h"
 #include "pkgmgmt_py.h"
 #include "rolemgmt_py.h"
 #include "rolemgmt_prereq_py.h"
@@ -42,4 +42,3 @@
 #include "pkgmgmt_repodata_py.h"
 #include "pkgmgmt_package_py.h"
 #include "pkgmgmt_solvedinfo_py.h"
-#include "pmd_netmgr.h"

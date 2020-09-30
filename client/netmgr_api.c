@@ -16,6 +16,180 @@
 #include "includes.h"
 
 uint32_t
+netmgr_client_get_version_w(
+    PPMDHANDLE hHandle,
+    wstring_t *ppwszVersion
+)
+{
+    uint32_t dwError = 0;
+    wstring_t pwszVersion = NULL;
+
+    if(!hHandle || !ppwszVersion)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(netmgr_privsep_rpc_get_version(
+                   hHandle->hRpc,
+                   &pwszVersion),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(netmgr_rpc_get_version(
+                   hHandle->hRpc,
+                   &pwszVersion),
+                   dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszVersion = pwszVersion;
+
+cleanup:
+    return dwError;
+
+error:
+    if (ppwszVersion)
+    {
+        *ppwszVersion = NULL;
+    }
+    goto cleanup;
+}
+
+uint32_t
+netmgr_client_get_version(
+    PPMDHANDLE hHandle,
+    char **ppszVersion
+)
+{
+    uint32_t dwError = 0;
+    wstring_t pwszVersion = NULL;
+    char *pszVersion = NULL;
+
+    if(!hHandle || !ppszVersion)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = netmgr_client_get_version_w(
+                  hHandle,
+                  &pwszVersion);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (pwszVersion)
+    {
+        dwError = PMDAllocateStringAFromW(pwszVersion,
+                                          &pszVersion);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    *ppszVersion = pszVersion;
+
+cleanup:
+    PMDRpcClientFreeMemory(pwszVersion);
+    return dwError;
+
+error:
+    if (ppszVersion)
+    {
+        *ppszVersion = NULL;
+    }
+    PMD_SAFE_FREE_MEMORY(pszVersion);
+    goto cleanup;
+}
+
+uint32_t
+netmgr_client_is_networkd_running_w(
+    PPMDHANDLE hHandle,
+    wstring_t *ppwszIsNetworkdRunning
+)
+{
+    uint32_t dwError = 0;
+    wstring_t pwszIsNetworkdRunning = NULL;
+
+    if(!hHandle || !ppwszIsNetworkdRunning)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(netmgr_privsep_rpc_is_networkd_running(
+                   hHandle->hRpc,
+                   &pwszIsNetworkdRunning),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(netmgr_rpc_is_networkd_running(
+                   hHandle->hRpc,
+                   &pwszIsNetworkdRunning),
+                   dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszIsNetworkdRunning = pwszIsNetworkdRunning;
+
+cleanup:
+    return dwError;
+
+error:
+    if (ppwszIsNetworkdRunning)
+    {
+        *ppwszIsNetworkdRunning = NULL;
+    }
+    goto cleanup;
+}
+
+uint32_t
+netmgr_client_is_networkd_running(
+    PPMDHANDLE hHandle,
+    char **ppszIsNetworkdRunning
+)
+{
+    uint32_t dwError = 0;
+    wstring_t pwszIsNetworkdRunning = NULL;
+    char *pszIsNetworkdRunning = NULL;
+
+    if(!hHandle || !ppszIsNetworkdRunning)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = netmgr_client_is_networkd_running_w(
+                  hHandle,
+                  &pwszIsNetworkdRunning);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (pwszIsNetworkdRunning)
+    {
+        dwError = PMDAllocateStringAFromW(pwszIsNetworkdRunning,
+                                          &pszIsNetworkdRunning);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    *ppszIsNetworkdRunning = pszIsNetworkdRunning;
+
+cleanup:
+    PMDRpcClientFreeMemory(pwszIsNetworkdRunning);
+    return dwError;
+
+error:
+    if (ppszIsNetworkdRunning)
+    {
+        *ppszIsNetworkdRunning = NULL;
+    }
+    PMD_SAFE_FREE_MEMORY(pszIsNetworkdRunning);
+    goto cleanup;
+}
+
+uint32_t
 netmgr_client_set_mac_addr_w(
     PPMDHANDLE hHandle,
     wstring_t pwszIfname,
@@ -135,7 +309,6 @@ error:
     {
         *ppwszMacAddress = NULL;
     }
-    PMDRpcClientFreeMemory(pwszMacAddress);
     goto cleanup;
 }
 
@@ -151,7 +324,7 @@ netmgr_client_get_mac_addr(
     wstring_t pwszMacAddress = NULL;
     char *pszMacAddress = NULL;
 
-    if(!hHandle)
+    if(!hHandle || IsNullOrEmptyString(pszIfname) || !ppszMacAddress)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
@@ -345,6 +518,7 @@ error:
     goto cleanup;
 }
 
+
 uint32_t
 netmgr_client_set_link_mtu_w(
     PPMDHANDLE hHandle,
@@ -392,9 +566,173 @@ netmgr_client_set_link_mtu(
 )
 {
     uint32_t dwError = 0;
+
+    wstring_t pwszIfname = NULL;
+    if(!hHandle || IsNullOrEmptyString(pszIfname))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+    dwError = PMDAllocateStringWFromA(pszIfname, &pwszIfname);
+    BAIL_ON_PMD_ERROR(dwError);
+    dwError = netmgr_client_set_link_mtu_w(
+                  hHandle,
+                  pwszIfname,
+                  mtu);
+    BAIL_ON_PMD_ERROR(dwError);
+cleanup:
+    PMDFreeMemory(pwszIfname);
+    return dwError;
+error:
+    goto cleanup;
+}
+
+uint32_t
+netmgr_client_configure_w(
+    PPMDHANDLE hHandle,
+    PPMD_WSTRING_ARRAY pwszArgv
+)
+{
+    uint32_t dwError = 0;
+
+    if(!hHandle || !pwszArgv)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(netmgr_privsep_rpc_configure(
+                   hHandle->hRpc,
+                   pwszArgv),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(netmgr_rpc_configure(
+                   hHandle->hRpc,
+                   pwszArgv),
+                   dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    return dwError;
+error:
+    goto cleanup;
+}
+
+uint32_t
+netmgr_client_configure(
+    PPMDHANDLE hHandle,
+    uint32_t argc,
+    const char *pszArgv[]
+)
+{
+    uint32_t dwError = 0;
+    uint32_t i;
+    PPMD_WSTRING_ARRAY pwszArgv = NULL;
+
+    if(!hHandle || !pszArgv || (argc == 0))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateMemory(sizeof(PMD_WSTRING_ARRAY),
+                                (void **)&pwszArgv);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateMemory(sizeof(wstring_t) * argc,
+                                (void **)&pwszArgv->ppwszStrings);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pwszArgv->dwCount = 0;
+    for (i = 0; i < argc; ++i)
+    {
+        dwError = PMDAllocateStringWFromA(pszArgv[i],
+                                          &pwszArgv->ppwszStrings[i]);
+        BAIL_ON_PMD_ERROR(dwError);
+        pwszArgv->dwCount = pwszArgv->dwCount + 1;
+    }
+
+    dwError = netmgr_client_configure_w(
+                  hHandle,
+                  pwszArgv
+                  );
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    if (pwszArgv && pwszArgv->ppwszStrings)
+    {
+        for (i = 0; i < pwszArgv->dwCount; ++i)
+        {
+            PMDFreeMemory(pwszArgv->ppwszStrings[i]);
+        }
+        PMDFreeMemory(pwszArgv->ppwszStrings);
+    }
+    PMDFreeMemory(pwszArgv);
+    return dwError;
+error:
+    goto cleanup;
+}
+
+uint32_t
+netmgr_client_get_dhcp_mode_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    uint32_t *pnDHCPMode
+)
+{
+    uint32_t dwError = 0;
+    uint32_t nDHCPMode = 0;
+
+    if(!hHandle || !pnDHCPMode || !pwszIfname)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(netmgr_privsep_rpc_get_dhcp_mode(
+                   hHandle->hRpc,
+                   pwszIfname,
+                   &nDHCPMode),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(netmgr_rpc_get_dhcp_mode(
+                   hHandle->hRpc,
+                   pwszIfname,
+                   &nDHCPMode),
+                   dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *pnDHCPMode = nDHCPMode;
+
+cleanup:
+    return dwError;
+
+error:
+    goto cleanup;
+}
+
+uint32_t
+netmgr_client_get_dhcp_mode(
+    PPMDHANDLE hHandle,
+    const char *pszIfname,
+    uint32_t *pnDHCPMode
+)
+{
+    uint32_t dwError = 0;
+    uint32_t nDHCPMode = 0;
     wstring_t pwszIfname = NULL;
 
-    if(!hHandle || IsNullOrEmptyString(pszIfname))
+    if(!hHandle || !pnDHCPMode || IsNullOrEmptyString(pszIfname))
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
@@ -403,18 +741,113 @@ netmgr_client_set_link_mtu(
     dwError = PMDAllocateStringWFromA(pszIfname, &pwszIfname);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = netmgr_client_set_link_mtu_w(
+    dwError = netmgr_client_get_dhcp_mode_w(
                   hHandle,
                   pwszIfname,
-                  mtu);
+                  &nDHCPMode);
     BAIL_ON_PMD_ERROR(dwError);
+
+    *pnDHCPMode = nDHCPMode;
 
 cleanup:
     PMDFreeMemory(pwszIfname);
     return dwError;
+
 error:
+    if (pnDHCPMode)
+    {
+        *pnDHCPMode = 0;
+    }
     goto cleanup;
 }
+
+uint32_t
+netmgr_client_get_dhcp_client_iaid_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    uint32_t *pnIaid
+)
+{
+    uint32_t dwError = 0;
+    uint32_t nIaid = 0;
+
+    if(!hHandle || !pwszIfname || !pnIaid)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(netmgr_privsep_rpc_get_dhcp_client_iaid(
+                   hHandle->hRpc,
+                   pwszIfname,
+                   &nIaid),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(netmgr_rpc_get_dhcp_client_iaid(
+                   hHandle->hRpc,
+                   pwszIfname,
+                   &nIaid),
+                   dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *pnIaid = nIaid;
+
+cleanup:
+    return dwError;
+
+error:
+    if (pnIaid)
+    {
+        *pnIaid = 0;
+    }
+    goto cleanup;
+}
+
+uint32_t
+netmgr_client_get_dhcp_client_iaid(
+    PPMDHANDLE hHandle,
+    const char *pszIfname,
+    uint32_t *pnIaid
+)
+{
+    uint32_t dwError = 0;
+    uint32_t nIaid = 0;
+    wstring_t pwszIfname = NULL;
+
+    if(!hHandle || IsNullOrEmptyString(pszIfname) || !pnIaid)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateStringWFromA(pszIfname, &pwszIfname);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_dhcp_client_iaid_w(
+                  hHandle,
+                  pwszIfname,
+                  &nIaid);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *pnIaid = nIaid;
+
+cleanup:
+    PMDFreeMemory(pwszIfname);
+    return dwError;
+
+error:
+    if (pnIaid)
+    {
+        *pnIaid = 0;
+    }
+    goto cleanup;
+}
+
 
 uint32_t
 netmgr_client_get_link_mtu_w(
@@ -426,7 +859,7 @@ netmgr_client_get_link_mtu_w(
     uint32_t dwError = 0;
     uint32_t nMTU = 0;
 
-    if(!hHandle || !pwszIfname)
+    if(!hHandle || !pwszIfname || !pnMTU)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
@@ -2469,20 +2902,16 @@ cleanup:
 error:
     goto cleanup;
 }
-
 uint32_t
 netmgr_client_get_dns_servers_w(
     PPMDHANDLE hHandle,
-    wstring_t pwszIfname,
-    NET_RPC_DNS_MODE *pMode,
     PPMD_WSTRING_ARRAY *ppwszDnsServers
     )
 {
     uint32_t dwError = 0;
-    NET_RPC_DNS_MODE dwMode = RPC_DNS_MODE_INVALID;
     PPMD_WSTRING_ARRAY pwszDnsServers = NULL;
 
-    if(!hHandle || !pMode || !ppwszDnsServers)
+    if(!hHandle || !ppwszDnsServers)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
@@ -2492,8 +2921,6 @@ netmgr_client_get_dns_servers_w(
     {
         DO_RPC(netmgr_privsep_rpc_get_dns_servers(
                    hHandle->hRpc,
-                   pwszIfname,
-                   &dwMode,
                    &pwszDnsServers),
                    dwError);
     }
@@ -2501,24 +2928,17 @@ netmgr_client_get_dns_servers_w(
     {
         DO_RPC(netmgr_rpc_get_dns_servers(
                    hHandle->hRpc,
-                   pwszIfname,
-                   &dwMode,
                    &pwszDnsServers),
                    dwError);
     }
     BAIL_ON_PMD_ERROR(dwError);
 
-    *pMode = dwMode;
     *ppwszDnsServers = pwszDnsServers;
 
 cleanup:
     return dwError;
 
 error:
-    if (pMode)
-    {
-        *pMode = RPC_DNS_MODE_INVALID;
-    }
     if (ppwszDnsServers)
     {
         *ppwszDnsServers = NULL;
@@ -2529,35 +2949,24 @@ error:
 uint32_t
 netmgr_client_get_dns_servers(
     PPMDHANDLE hHandle,
-    char *pszIfname,
-    NET_DNS_MODE *pMode,
     size_t *pCount,
     char ***pppszDnsServers
     )
 {
     uint32_t dwError = 0;
     size_t i;
-    wstring_t pwszIfname = NULL;
-    NET_RPC_DNS_MODE dwMode = RPC_DNS_MODE_INVALID;
     PPMD_WSTRING_ARRAY pwszDnsServers = NULL;
     char **ppszDnsServers = NULL;
+    size_t nCount = 0;
 
-    if(!hHandle || !pMode || !pCount || !pppszDnsServers)
+    if(!hHandle || !pCount || !pppszDnsServers)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    if (pszIfname)
-    {
-        dwError = PMDAllocateStringWFromA(pszIfname, &pwszIfname);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
     dwError = netmgr_client_get_dns_servers_w(
                   hHandle,
-                  pwszIfname,
-                  &dwMode,
                   &pwszDnsServers);
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -2572,11 +2981,11 @@ netmgr_client_get_dns_servers(
             dwError = PMDAllocateStringAFromW(pwszDnsServers->ppwszStrings[i],
                                               &ppszDnsServers[i]);
             BAIL_ON_PMD_ERROR(dwError);
+            nCount = nCount + 1;
         }
     }
 
-    *pMode = (NET_DNS_MODE)dwMode;
-    *pCount = (pwszDnsServers != NULL) ? pwszDnsServers->dwCount : 0;
+    *pCount = nCount;
     *pppszDnsServers = ppszDnsServers;
 
 cleanup:
@@ -2589,29 +2998,17 @@ cleanup:
         PMDRpcClientFreeMemory(pwszDnsServers->ppwszStrings);
     }
     PMDRpcClientFreeMemory(pwszDnsServers);
-    PMDFreeMemory(pwszIfname);
     return dwError;
 
 error:
-    if (pMode)
-    {
-        *pMode = DNS_MODE_UNKNOWN;
-    }
-    if (pCount)
-    {
-        *pCount = 0;
-    }
     if (pppszDnsServers)
     {
         *pppszDnsServers = NULL;
     }
-    if (pwszDnsServers && ppszDnsServers)
+    PMDFreeStringArrayWithCount(ppszDnsServers, nCount);
+    if (pCount)
     {
-        for (i = 0; i < pwszDnsServers->dwCount; ++i)
-        {
-            PMDFreeMemory(ppszDnsServers[i]);
-        }
-        PMDFreeMemory(ppszDnsServers);
+        *pCount = 0;
     }
     goto cleanup;
 }
@@ -2726,7 +3123,6 @@ error:
 uint32_t
 netmgr_client_get_dns_domains_w(
     PPMDHANDLE hHandle,
-    wstring_t pwszIfname,
     PPMD_WSTRING_ARRAY *ppwszDnsDomains
     )
 {
@@ -2743,7 +3139,6 @@ netmgr_client_get_dns_domains_w(
     {
         DO_RPC(netmgr_privsep_rpc_get_dns_domains(
                    hHandle->hRpc,
-                   pwszIfname,
                    &pwszDnsDomains),
                    dwError);
     }
@@ -2751,7 +3146,6 @@ netmgr_client_get_dns_domains_w(
     {
         DO_RPC(netmgr_rpc_get_dns_domains(
                    hHandle->hRpc,
-                   pwszIfname,
                    &pwszDnsDomains),
                    dwError);
     }
@@ -2773,7 +3167,6 @@ error:
 uint32_t
 netmgr_client_get_dns_domains(
     PPMDHANDLE hHandle,
-    char *pszIfname,
     size_t *pCount,
     char ***pppszDnsDomains
     )
@@ -2781,8 +3174,8 @@ netmgr_client_get_dns_domains(
     uint32_t dwError = 0;
     size_t i;
     PPMD_WSTRING_ARRAY pwszDnsDomains = NULL;
-    wstring_t pwszIfname = NULL;
     char **ppszDnsDomains = NULL;
+    size_t nCount = 0;
 
     if(!hHandle || !pCount || !pppszDnsDomains)
     {
@@ -2790,15 +3183,8 @@ netmgr_client_get_dns_domains(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
-    if (pszIfname)
-    {
-        dwError = PMDAllocateStringWFromA(pszIfname, &pwszIfname);
-        BAIL_ON_PMD_ERROR(dwError);
-    }
-
     dwError = netmgr_client_get_dns_domains_w(
                   hHandle,
-                  pwszIfname,
                   &pwszDnsDomains);
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -2813,10 +3199,11 @@ netmgr_client_get_dns_domains(
             dwError = PMDAllocateStringAFromW(pwszDnsDomains->ppwszStrings[i],
                                               &ppszDnsDomains[i]);
             BAIL_ON_PMD_ERROR(dwError);
+	    nCount = nCount + 1;
         }
     }
 
-    *pCount = (pwszDnsDomains != NULL) ? pwszDnsDomains->dwCount : 0;
+    *pCount = nCount;
     *pppszDnsDomains = ppszDnsDomains;
 
 cleanup:
@@ -2829,25 +3216,17 @@ cleanup:
         PMDRpcClientFreeMemory(pwszDnsDomains->ppwszStrings);
     }
     PMDRpcClientFreeMemory(pwszDnsDomains);
-    PMDFreeMemory(pwszIfname);
     return dwError;
 
 error:
-    if (pCount)
-    {
-        *pCount = 0;
-    }
     if (pppszDnsDomains)
     {
         *pppszDnsDomains = NULL;
     }
-    if (pwszDnsDomains && ppszDnsDomains)
+    PMDFreeStringArrayWithCount(ppszDnsDomains, nCount);
+    if (pCount)
     {
-        for (i = 0; i < pwszDnsDomains->dwCount; ++i)
-        {
-            PMDFreeMemory(ppszDnsDomains[i]);
-        }
-        PMDFreeMemory(ppszDnsDomains);
+        *pCount = 0;
     }
     goto cleanup;
 }
@@ -3600,15 +3979,260 @@ error:
 }
 
 uint32_t
+netmgr_client_get_addresses_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    PPMD_WSTRING_ARRAY *ppwszAddresses
+    )
+{
+    uint32_t dwError = 0;
+    PPMD_WSTRING_ARRAY pwszAddresses = NULL;
+
+    if(!hHandle || !ppwszAddresses || !pwszIfname)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(netmgr_privsep_rpc_get_addresses(
+                   hHandle->hRpc,
+                   pwszIfname,
+                   &pwszAddresses),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(netmgr_rpc_get_addresses(
+                   hHandle->hRpc,
+                   pwszIfname,
+                   &pwszAddresses),
+                   dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszAddresses = pwszAddresses;
+
+cleanup:
+    return dwError;
+
+error:
+    if (ppwszAddresses)
+    {
+        *ppwszAddresses = NULL;
+    }
+    goto cleanup;
+}
+
+uint32_t
+netmgr_client_get_addresses(
+    PPMDHANDLE hHandle,
+    char *pszIfname,
+    size_t *pnCount,
+    char ***pppszAddresses
+    )
+{
+    uint32_t dwError = 0;
+    size_t i = 0;
+    PPMD_WSTRING_ARRAY pwszAddresses = NULL;
+    char **ppszAddresses = NULL;
+    wstring_t pwszIfname = NULL;
+    size_t nCount = 0;
+
+    if(!hHandle || !pnCount || !pppszAddresses || IsNullOrEmptyString(pszIfname))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateStringWFromA(pszIfname, &pwszIfname);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_addresses_w(
+                  hHandle,
+                  pwszIfname,
+                  &pwszAddresses);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (pwszAddresses && pwszAddresses->dwCount)
+    {
+        dwError = PMDAllocateMemory(sizeof(char *) * pwszAddresses->dwCount,
+                                    (void **)&ppszAddresses);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        for (i = 0; i < pwszAddresses->dwCount; i++)
+        {
+            dwError = PMDAllocateStringAFromW(pwszAddresses->ppwszStrings[i],
+                                              &ppszAddresses[i]);
+            BAIL_ON_PMD_ERROR(dwError);
+	    nCount = nCount + 1;
+        }
+    }
+
+    *pnCount = nCount;
+    *pppszAddresses = ppszAddresses;
+
+cleanup:
+    if (pwszAddresses && pwszAddresses->ppwszStrings)
+    {
+        for (i = 0; i < pwszAddresses->dwCount; ++i)
+        {
+            PMDRpcClientFreeMemory(pwszAddresses->ppwszStrings[i]);
+        }
+        PMDRpcClientFreeMemory(pwszAddresses->ppwszStrings);
+    }
+    PMDRpcClientFreeMemory(pwszAddresses);
+    PMDFreeMemory(pwszIfname);
+    return dwError;
+
+error:
+    if (pppszAddresses)
+    {
+        *pppszAddresses = NULL;
+    }
+    PMDFreeStringArrayWithCount(ppszAddresses, nCount);
+    if (pnCount)
+    {
+        *pnCount = 0;
+    }
+    goto cleanup;
+}
+
+
+uint32_t
+netmgr_client_get_routes_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    PPMD_WSTRING_ARRAY *ppwszRoutes
+    )
+{
+    uint32_t dwError = 0;
+    PPMD_WSTRING_ARRAY pwszRoutes = NULL;
+
+    if(!hHandle || !ppwszRoutes || !pwszIfname)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(netmgr_privsep_rpc_get_routes(
+                   hHandle->hRpc,
+                   pwszIfname,
+                   &pwszRoutes),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(netmgr_rpc_get_routes(
+                   hHandle->hRpc,
+                   pwszIfname,
+                   &pwszRoutes),
+                   dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszRoutes = pwszRoutes;
+
+cleanup:
+    return dwError;
+
+error:
+    if (ppwszRoutes)
+    {
+        *ppwszRoutes = NULL;
+    }
+    goto cleanup;
+}
+
+uint32_t
+netmgr_client_get_routes(
+    PPMDHANDLE hHandle,
+    char *pszIfname,
+    size_t *pnCount,
+    char ***pppszRoutes
+    )
+{
+    uint32_t dwError = 0;
+    PPMD_WSTRING_ARRAY pwszRoutes = NULL;
+    char **ppszRoutes = NULL;
+    wstring_t pwszIfname = NULL;
+    size_t i = 0;
+    size_t nCount = 0;
+
+    if(!hHandle || !pnCount || !pppszRoutes || IsNullOrEmptyString(pszIfname))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateStringWFromA(pszIfname, &pwszIfname);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_routes_w(
+                  hHandle,
+                  pwszIfname,
+                  &pwszRoutes);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (pwszRoutes && pwszRoutes->dwCount)
+    {
+        dwError = PMDAllocateMemory(sizeof(char *) * pwszRoutes->dwCount,
+                                    (void **)&ppszRoutes);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        for (i = 0; i < pwszRoutes->dwCount; i++)
+        {
+            dwError = PMDAllocateStringAFromW(pwszRoutes->ppwszStrings[i],
+                                              &ppszRoutes[i]);
+            BAIL_ON_PMD_ERROR(dwError);
+	    nCount = nCount + 1;
+        }
+    }
+
+    *pnCount = nCount;
+    *pppszRoutes = ppszRoutes;
+
+cleanup:
+    if (pwszRoutes && pwszRoutes->ppwszStrings)
+    {
+        for (i = 0; i < pwszRoutes->dwCount; ++i)
+        {
+            PMDRpcClientFreeMemory(pwszRoutes->ppwszStrings[i]);
+        }
+        PMDRpcClientFreeMemory(pwszRoutes->ppwszStrings);
+    }
+    PMDRpcClientFreeMemory(pwszRoutes);
+    PMDFreeMemory(pwszIfname);
+    return dwError;
+
+error:
+    if (pppszRoutes)
+    {
+        *pppszRoutes = NULL;
+    }
+    PMDFreeStringArrayWithCount(ppszRoutes, nCount);
+    if (pnCount)
+    {
+        *pnCount = 0;
+    }
+    goto cleanup;
+}
+
+
+uint32_t
 netmgr_client_get_ntp_servers_w(
     PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
     PPMD_WSTRING_ARRAY *ppwszNtpServers
     )
 {
     uint32_t dwError = 0;
     PPMD_WSTRING_ARRAY pwszNtpServers = NULL;
 
-    if(!hHandle || !ppwszNtpServers)
+    if(!hHandle || !ppwszNtpServers || !pwszIfname)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
@@ -3618,6 +4242,7 @@ netmgr_client_get_ntp_servers_w(
     {
         DO_RPC(netmgr_privsep_rpc_get_ntp_servers(
                    hHandle->hRpc,
+                   pwszIfname,
                    &pwszNtpServers),
                    dwError);
     }
@@ -3625,6 +4250,7 @@ netmgr_client_get_ntp_servers_w(
     {
         DO_RPC(netmgr_rpc_get_ntp_servers(
                    hHandle->hRpc,
+                   pwszIfname,
                    &pwszNtpServers),
                    dwError);
     }
@@ -3646,6 +4272,7 @@ error:
 uint32_t
 netmgr_client_get_ntp_servers(
     PPMDHANDLE hHandle,
+    char *pszIfname,
     size_t *pnCount,
     char ***pppszNtpServers
     )
@@ -3653,15 +4280,22 @@ netmgr_client_get_ntp_servers(
     uint32_t dwError = 0;
     PPMD_WSTRING_ARRAY pwszNtpServers = NULL;
     char **ppszNtpServers = NULL;
+    wstring_t pwszIfname = NULL;
+    size_t i = 0;
+    size_t nCount = 0;
 
-    if(!hHandle || !pnCount || !pppszNtpServers)
+    if(!hHandle || !pnCount || !pppszNtpServers || IsNullOrEmptyString(pszIfname))
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
+    dwError = PMDAllocateStringWFromA(pszIfname, &pwszIfname);
+    BAIL_ON_PMD_ERROR(dwError);
+
     dwError = netmgr_client_get_ntp_servers_w(
                   hHandle,
+                  pwszIfname,
                   &pwszNtpServers);
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -3671,22 +4305,21 @@ netmgr_client_get_ntp_servers(
                                     (void **)&ppszNtpServers);
         BAIL_ON_PMD_ERROR(dwError);
 
-        size_t i = 0;
         for (i = 0; i < pwszNtpServers->dwCount; i++)
         {
             dwError = PMDAllocateStringAFromW(pwszNtpServers->ppwszStrings[i],
                                               &ppszNtpServers[i]);
             BAIL_ON_PMD_ERROR(dwError);
+	    nCount = nCount + 1;
         }
     }
 
-    *pnCount = (pwszNtpServers != NULL) ? pwszNtpServers->dwCount : 0;
+    *pnCount = nCount;
     *pppszNtpServers = ppszNtpServers;
 
 cleanup:
     if (pwszNtpServers && pwszNtpServers->ppwszStrings)
     {
-        size_t i = 0;
         for (i = 0; i < pwszNtpServers->dwCount; ++i)
         {
             PMDRpcClientFreeMemory(pwszNtpServers->ppwszStrings[i]);
@@ -3694,25 +4327,18 @@ cleanup:
         PMDRpcClientFreeMemory(pwszNtpServers->ppwszStrings);
     }
     PMDRpcClientFreeMemory(pwszNtpServers);
+    PMDFreeMemory(pwszIfname);
     return dwError;
 
 error:
-    if (pnCount)
-    {
-        *pnCount = 0;
-    }
     if (pppszNtpServers)
     {
         *pppszNtpServers = NULL;
     }
-    if (pwszNtpServers && ppszNtpServers)
+    PMDFreeStringArrayWithCount(ppszNtpServers, nCount);
+    if (pnCount)
     {
-        size_t i = 0;
-        for (i = 0; i < pwszNtpServers->dwCount; ++i)
-        {
-            PMDFreeMemory(ppszNtpServers[i]);
-        }
-        PMDFreeMemory(ppszNtpServers);
+        *pnCount = 0;
     }
     goto cleanup;
 }
@@ -3812,7 +4438,6 @@ error:
     {
         *ppwszHostname = NULL;
     }
-    PMDRpcClientFreeMemory(pwszHostname);
     goto cleanup;
 }
 

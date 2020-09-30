@@ -12,29 +12,35 @@
  * under the License.
  */
 
-
 #pragma once
 
-typedef uint32_t (*NetCommandRunFunction)(PPMDHANDLE hPMD, int argc, char **argv);
+#include <glib.h>
+
+typedef int (*NetmgmtCommandRunFunction)(int argc, char **argv);
 
 typedef struct Cli {
-        const char *name;
-        unsigned min_args, max_args;
-        bool default_command;
-        NetCommandRunFunction run;
-} NetCli;
+    const char *name;
+    NetmgmtCommandRunFunction run;
+} NetmgmtCli;
 
 typedef struct CliManager {
-        GHashTable *hash;
-        NetCli *commands;
-} NetCliManager;
+    GHashTable *hash;
+    NetmgmtCli *commands;
+} NetmgmtCliManager;
 
-typedef enum DHCPMode {
-        DHCP_MODE_NO,
-        DHCP_MODE_YES,
-        DHCP_MODE_IPV4,
-        DHCP_MODE_IPV6,
-        _DHCP_MODE_MAX,
-        _DHCP_MODE_INVALID = -1
-} DHCPMode;
+uint32_t
+netmgmt_cli_manager_new(
+    NetmgmtCliManager **pNetCliMgr
+    );
 
+void
+netmgmt_cli_unrefp(
+    NetmgmtCliManager **pNetCliMgr
+    );
+
+uint32_t
+netmgmt_cli_run_command(
+    const NetmgmtCliManager *pNetCliMgr,
+    int argc,
+    char *argv[]
+    );

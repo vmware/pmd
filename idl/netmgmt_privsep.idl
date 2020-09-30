@@ -30,6 +30,11 @@ interface netmgmt_privsep
         [out] wstring_t* pwszVersion
         );
 
+    unsigned32
+    netmgr_privsep_rpc_is_networkd_running(
+        [in] handle_t hBinding,
+        [out] wstring_t* pwszIsNetworkdRunning
+        );
 
     /*
      * Interface configuration APIs
@@ -67,6 +72,26 @@ interface netmgmt_privsep
         [in] handle_t hBinding,
         [in] wstring_t pwszInterfaceName,
         [in] unsigned32 mtu
+    );
+
+    unsigned32
+    netmgr_privsep_rpc_configure(
+        [in] handle_t hBinding,
+        [in] PPMD_WSTRING_ARRAY pwszArgv
+    );
+
+    unsigned32
+    netmgr_privsep_rpc_get_dhcp_mode(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszInterfaceName,
+        [out] unsigned32 *pDHCPMode
+    );
+
+    unsigned32
+    netmgr_privsep_rpc_get_dhcp_client_iaid(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszInterfaceName,
+        [out] unsigned32 *pIaid
     );
 
     unsigned32
@@ -183,6 +208,20 @@ interface netmgmt_privsep
         [out] NET_RPC_IP_ADDR_ARRAY **ppIpAddrArray
     );
 
+    unsigned32
+    netmgr_privsep_rpc_get_addresses(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszInterfaceName,
+        [out] PPMD_WSTRING_ARRAY *ppwszAddresses
+    );
+
+    unsigned32
+    netmgr_privsep_rpc_get_routes(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszInterfaceName,
+        [out] PPMD_WSTRING_ARRAY *ppwszRoutes
+    );
+
 
     /*
      * Route configuration APIs
@@ -235,8 +274,6 @@ interface netmgmt_privsep
     unsigned32
     netmgr_privsep_rpc_get_dns_servers(
         [in] handle_t hBinding,
-        [in] wstring_t pwszInterfaceName,
-        [out] NET_RPC_DNS_MODE *pdwMode,
         [out] PPMD_WSTRING_ARRAY *ppwszDnsServers
     );
 
@@ -264,7 +301,6 @@ interface netmgmt_privsep
     unsigned32
     netmgr_privsep_rpc_get_dns_domains(
         [in] handle_t hBinding,
-        [in] wstring_t pwszInterfaceName,
         [out] PPMD_WSTRING_ARRAY *ppwszDnsDomains
     );
 
@@ -306,6 +342,7 @@ interface netmgmt_privsep
     unsigned32
     netmgr_privsep_rpc_get_ntp_servers(
         [in] handle_t hBinding,
+        [in] wstring_t pwszInterfaceName,
         [out] PPMD_WSTRING_ARRAY *ppwszNtpServers
     );
 
