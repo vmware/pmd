@@ -5,11 +5,11 @@
 Summary:	Photon Management Daemon
 Name:		pmd
 Version:	@VERSION@
-Release:	7%{?dist}
+Release:	8%{?dist}
 License:	Apache 2.0
 URL:            https://www.github.com/vmware/pmd
 Group:		Applications/System
-Requires:       netmgmt
+Requires:       network-config-manager
 Requires:	systemd
 Requires:	tdnf >= 1.2.0
 Requires:	c-rest-engine
@@ -20,7 +20,7 @@ BuildRequires:	popt-devel
 BuildRequires:	rpm-devel
 BuildRequires:	tdnf-devel >= 1.2.0
 BuildRequires:	c-rest-engine-devel
-BuildRequires:	netmgmt-devel
+BuildRequires:  network-config-manager-devel
 BuildRequires:  jansson-devel
 BuildRequires:  copenapi-devel
 BuildRequires:	krb5-devel
@@ -38,7 +38,6 @@ Summary: photon management daemon libs
 photon management daemon libs used by server and clients
 
 %package cli
-BuildRequires:	netmgmt-cli-devel >= 1.0.4-2
 Summary: photon management daemon cmd line cli
 Requires: %{name}-libs = %{version}-%{release}
 
@@ -278,6 +277,9 @@ rm -rf %{buildroot}/*
     %{_python3_sitearch}/%{name}_python-*.egg-info
 
 %changelog
+*       Wed Dec 02 2020 Ankit Jain <ankitja@vmware.com> 0.1-8
+-       Added support for network-config-manager
+-       Removed support for netmgmt
 *       Tue Oct 20 2020 Tapas Kundu <tkundu@vmware.com> 0.1-7
 -       Remove likewise dependency
 *       Fri Oct 16 2020 Shreyas B <shreyasb@vmware.com> 0.1-6

@@ -22,7 +22,7 @@ netmgr_rpc_get_version(
     )
 {
     uint32_t dwError = 0;
-    char *pszVersion = NULL;
+    PPMDHANDLE hPMD = NULL;
     wstring_t pwszVersion = NULL;
 
     if(!hBinding || !ppwszVersion)
@@ -33,30 +33,65 @@ netmgr_rpc_get_version(
 
     CHECK_RPC_ACCESS(hBinding, dwError);
 
-    pszVersion = PACKAGE_VERSION;
-    if(IsNullOrEmptyString(pszVersion))
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-    }
+    dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = PMDRpcServerAllocateWFromA(pszVersion, &pwszVersion);
+    dwError = netmgr_client_get_version_w(
+                  hPMD,
+                  &pwszVersion);
     BAIL_ON_PMD_ERROR(dwError);
 
     *ppwszVersion = pwszVersion;
 
 cleanup:
+    rpc_free_handle(hPMD);
     return dwError;
-
 error:
-    if(ppwszVersion)
+    if (ppwszVersion)
     {
-        *ppwszVersion = NULL;
+        ppwszVersion = NULL;
     }
-    PMD_SAFE_FREE_MEMORY(pwszVersion);
     goto cleanup;
 }
 
+unsigned32
+netmgr_rpc_is_networkd_running(
+    handle_t hBinding,
+    wstring_t* ppwszIsNetworkdRunning
+    )
+{
+    uint32_t dwError = 0;
+    PPMDHANDLE hPMD = NULL;
+    wstring_t pwszIsNetworkdRunning = NULL;
+
+    if(!hBinding || !ppwszIsNetworkdRunning)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_is_networkd_running_w(
+                  hPMD,
+                  &pwszIsNetworkdRunning);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszIsNetworkdRunning = pwszIsNetworkdRunning;
+
+cleanup:
+    rpc_free_handle(hPMD);
+    return dwError;
+error:
+    if (ppwszIsNetworkdRunning)
+    {
+        pwszIsNetworkdRunning = NULL;
+    }
+    goto cleanup;
+}
 
 /*
  * Interface configuration APIs
@@ -106,13 +141,13 @@ netmgr_rpc_get_mac_addr(
     wstring_t pwszMacAddress = NULL;
     PPMDHANDLE hPMD = NULL;
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
-
-    if (!pwszIfname || !ppwszMacAddress)
+    if (!hBinding || !pwszIfname || !ppwszMacAddress)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
 
     dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
@@ -178,13 +213,13 @@ netmgr_rpc_get_link_mode(
     PPMDHANDLE hPMD = NULL;
     NET_RPC_LINK_MODE linkMode = RPC_LINK_MODE_UNKNOWN;
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
-
-    if (!pwszIfname || !pLinkMode)
+    if (!hBinding || !pwszIfname || !pLinkMode)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
 
     dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
@@ -237,6 +272,111 @@ error:
 }
 
 unsigned32
+netmgr_rpc_configure(
+    handle_t hBinding,
+    PPMD_WSTRING_ARRAY pwszIfname
+)
+{
+    uint32_t dwError = 0;
+    PPMDHANDLE hPMD = NULL;
+
+    if (!hBinding || !pwszIfname)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_configure_w(hPMD, pwszIfname);
+    BAIL_ON_PMD_ERROR(dwError);
+
+cleanup:
+    rpc_free_handle(hPMD);
+    return dwError;
+error:
+    goto cleanup;
+}
+
+unsigned32
+netmgr_rpc_get_dhcp_mode(
+    handle_t hBinding,
+    wstring_t pwszIfname,
+    unsigned32 *pDHCPMode
+)
+{
+    uint32_t dwError = 0, nDHCPMode = 0;
+    PPMDHANDLE hPMD = NULL;
+
+    if (!hBinding || !pDHCPMode || !pwszIfname)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_dhcp_mode_w(hPMD, pwszIfname, &nDHCPMode);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *pDHCPMode = nDHCPMode;
+
+cleanup:
+    rpc_free_handle(hPMD);
+    return dwError;
+error:
+    if (pDHCPMode)
+    {
+        *pDHCPMode = 0;
+    }
+    goto cleanup;
+}
+
+unsigned32
+netmgr_rpc_get_dhcp_client_iaid(
+    handle_t hBinding,
+    wstring_t pwszIfname,
+    unsigned32 *pIaid
+)
+{
+    uint32_t dwError = 0, dwIaid = 0;
+    PPMDHANDLE hPMD = NULL;
+
+    if (!hBinding || !pwszIfname || !pIaid)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_dhcp_client_iaid_w(hPMD, pwszIfname, &dwIaid);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *pIaid = dwIaid;
+
+cleanup:
+    rpc_free_handle(hPMD);
+    return dwError;
+error:
+    if (pIaid)
+    {
+        *pIaid = 0;
+    }
+    goto cleanup;
+}
+
+
+unsigned32
 netmgr_rpc_get_link_mtu(
     handle_t hBinding,
     wstring_t pwszIfname,
@@ -246,13 +386,13 @@ netmgr_rpc_get_link_mtu(
     uint32_t dwError = 0, mtu;
     PPMDHANDLE hPMD = NULL;
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
-
-    if (!pMtu)
+    if (!hBinding || !pwszIfname || !pMtu)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
 
     dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
@@ -1039,35 +1179,29 @@ error:
 unsigned32
 netmgr_rpc_get_dns_servers(
     handle_t hBinding,
-    wstring_t pwszIfname,
-    NET_RPC_DNS_MODE *pdwMode,
     PPMD_WSTRING_ARRAY *ppwszDnsServers
 )
 {
     uint32_t dwError = 0;
     PPMD_WSTRING_ARRAY pwszDnsServers = NULL;
     PPMDHANDLE hPMD = NULL;
-    NET_RPC_DNS_MODE mode = RPC_DNS_MODE_INVALID;
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
-
-    if (!pdwMode || !ppwszDnsServers)
+    if (!hBinding || !ppwszDnsServers)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
 
     dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = netmgr_client_get_dns_servers_w(
                   hPMD,
-                  pwszIfname,
-                  &mode,
                   &pwszDnsServers);
     BAIL_ON_PMD_ERROR(dwError);
 
-    *pdwMode = mode;
     *ppwszDnsServers = pwszDnsServers;
 
 cleanup:
@@ -1075,10 +1209,6 @@ cleanup:
     return dwError;
 
 error:
-    if (pdwMode)
-    {
-        *pdwMode = RPC_DNS_MODE_INVALID;
-    }
     if (ppwszDnsServers)
     {
         *ppwszDnsServers = NULL;
@@ -1194,7 +1324,6 @@ error:
 unsigned32
 netmgr_rpc_get_dns_domains(
     handle_t hBinding,
-    wstring_t pwszIfname,
     PPMD_WSTRING_ARRAY *ppwszDnsDomains
 )
 {
@@ -1202,20 +1331,19 @@ netmgr_rpc_get_dns_domains(
     PPMD_WSTRING_ARRAY pwszDnsDomains = NULL;
     PPMDHANDLE hPMD = NULL;
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
-
-    if (!ppwszDnsDomains)
+    if (!hBinding || !ppwszDnsDomains)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
 
     dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
     dwError = netmgr_client_get_dns_domains_w(
                   hPMD,
-                  pwszIfname,
                   &pwszDnsDomains);
     BAIL_ON_PMD_ERROR(dwError);
 
@@ -1278,13 +1406,13 @@ netmgr_rpc_get_iaid(
     uint32_t dwError = 0, iaid = 0;
     PPMDHANDLE hPMD = NULL;
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
-
-    if (!pwszIfname|| !pdwIaid)
+    if (!hBinding || !pwszIfname|| !pdwIaid)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
 
     dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
@@ -1468,8 +1596,89 @@ error:
 }
 
 unsigned32
+netmgr_rpc_get_addresses(
+    handle_t hBinding,
+    wstring_t pwszInterfaceName,
+    PPMD_WSTRING_ARRAY *ppwszAddresses
+    )
+{
+    uint32_t dwError = 0;
+    PPMD_WSTRING_ARRAY pwszAddresses = NULL;
+    PPMDHANDLE hPMD = NULL;
+
+    if (!hBinding || !ppwszAddresses || !pwszInterfaceName)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_addresses_w(hPMD, pwszInterfaceName, &pwszAddresses);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszAddresses = pwszAddresses;
+
+cleanup:
+    rpc_free_handle(hPMD);
+    return dwError;
+
+error:
+    if (ppwszAddresses)
+    {
+        *ppwszAddresses = NULL;
+    }
+    goto cleanup;
+}
+
+
+unsigned32
+netmgr_rpc_get_routes(
+    handle_t hBinding,
+    wstring_t pwszInterfaceName,
+    PPMD_WSTRING_ARRAY *ppwszRoutes
+    )
+{
+    uint32_t dwError = 0;
+    PPMD_WSTRING_ARRAY pwszRoutes = NULL;
+    PPMDHANDLE hPMD = NULL;
+
+    if (!hBinding || !ppwszRoutes || !pwszInterfaceName)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_routes_w(hPMD, pwszInterfaceName, &pwszRoutes);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszRoutes = pwszRoutes;
+
+cleanup:
+    rpc_free_handle(hPMD);
+    return dwError;
+
+error:
+    if (ppwszRoutes)
+    {
+        *ppwszRoutes = NULL;
+    }
+    goto cleanup;
+}
+
+
+unsigned32
 netmgr_rpc_get_ntp_servers(
     handle_t hBinding,
+    wstring_t pwszInterfaceName,
     PPMD_WSTRING_ARRAY *ppwszNtpServers
     )
 {
@@ -1477,18 +1686,18 @@ netmgr_rpc_get_ntp_servers(
     PPMD_WSTRING_ARRAY pwszNtpServers = NULL;
     PPMDHANDLE hPMD = NULL;
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
-
-    if (!ppwszNtpServers)
+    if (!hBinding || !ppwszNtpServers || !pwszInterfaceName)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
 
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
     dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);
 
-    dwError = netmgr_client_get_ntp_servers_w(hPMD, &pwszNtpServers);
+    dwError = netmgr_client_get_ntp_servers_w(hPMD, pwszInterfaceName, &pwszNtpServers);
     BAIL_ON_PMD_ERROR(dwError);
 
     *ppwszNtpServers = pwszNtpServers;
@@ -1549,13 +1758,13 @@ netmgr_rpc_get_hostname(
     wstring_t pwszHostname = NULL;
     PPMDHANDLE hPMD = NULL;
 
-    CHECK_RPC_ACCESS(hBinding, dwError);
-
-    if (!ppwszHostname)
+    if (!hBinding || !ppwszHostname)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
 
     dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
     BAIL_ON_PMD_ERROR(dwError);

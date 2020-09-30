@@ -82,9 +82,9 @@ CLEANFILES = \
     usermgmt_cstub.c \
     privsepd_cstub.c \
     pkgmgmt_privsep_cstub.c \
-    netgmgmt_privsep_cstub.c \
-    fwgmgmt_privsep_cstub.c \
-    usergmgmt_privsep_cstub.c \
+    netmgmt_privsep_cstub.c \
+    fwmgmt_privsep_cstub.c \
+    usermgmt_privsep_cstub.c \
     rolemgmt_cstub.c \
     rpmostree_cstub.c
 

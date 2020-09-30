@@ -329,6 +329,18 @@ fwmgmt_restore_w(
     );
 //netmgmt privsep
 uint32_t
+netmgr_client_get_version_w(
+    PPMDHANDLE hHandle,
+    wstring_t *ppwszVersion
+);
+
+uint32_t
+netmgr_client_is_networkd_running_w(
+    PPMDHANDLE hHandle,
+    wstring_t *ppwszIsNetworkdRunning
+);
+
+uint32_t
 netmgr_client_get_hostname_w(
     PPMDHANDLE hHandle,
     wstring_t *ppwszHostname
@@ -378,11 +390,32 @@ netmgr_client_set_network_param_w(
     const wstring_t pwszParamValue
     );
 
+
 uint32_t
 netmgr_client_set_link_mtu_w(
     PPMDHANDLE hHandle,
     const wstring_t pwszIfname,
     uint32_t mtu
+    );
+
+uint32_t
+netmgr_client_configure_w(
+    PPMDHANDLE hHandle,
+    PPMD_WSTRING_ARRAY pwszArgv
+    );
+
+uint32_t
+netmgr_client_get_dhcp_mode_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    uint32_t *pnDHCPMode
+    );
+
+uint32_t
+netmgr_client_get_dhcp_client_iaid_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    uint32_t *pnIaid
     );
 
 uint32_t
@@ -396,7 +429,7 @@ uint32_t
 netmgr_client_set_link_state_w(
     PPMDHANDLE hHandle,
     const wstring_t pwszIfname,
-    NET_LINK_STATE linkState
+    NET_RPC_LINK_STATE linkState
     );
 
 uint32_t
@@ -429,7 +462,7 @@ uint32_t
 netmgr_client_set_ipv4_addr_gateway_w(
     PPMDHANDLE hHandle,
     wstring_t pwszIfname,
-    NET_IPV4_ADDR_MODE mode,
+    NET_RPC_IPV4_ADDR_MODE mode,
     wstring_t pwszIPv4AddrPrefix,
     wstring_t pwszIPv4Gateway
     );
@@ -532,15 +565,13 @@ uint32_t
 netmgr_client_set_dns_servers_w(
     PPMDHANDLE hHandle,
     wstring_t pwszIfname,
-    NET_DNS_MODE mode,
+    NET_RPC_DNS_MODE mode,
     PPMD_WSTRING_ARRAY pwszDnsServers
     );
 
 uint32_t
 netmgr_client_get_dns_servers_w(
     PPMDHANDLE hHandle,
-    wstring_t pwszIfname,
-    NET_RPC_DNS_MODE *pMode,
     PPMD_WSTRING_ARRAY *ppwszDnsServers
     );
 
@@ -568,7 +599,6 @@ netmgr_client_set_dns_domains_w(
 uint32_t
 netmgr_client_get_dns_domains_w(
     PPMDHANDLE hHandle,
-    wstring_t pwszIfname,
     PPMD_WSTRING_ARRAY *ppwszDnsDomains
     );
 
@@ -619,8 +649,23 @@ netmgr_client_delete_ntp_servers_w(
     );
 
 uint32_t
+netmgr_client_get_addresses_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    PPMD_WSTRING_ARRAY *ppwszAddresses
+    );
+
+uint32_t
+netmgr_client_get_routes_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
+    PPMD_WSTRING_ARRAY *ppwszRoutes
+    );
+
+uint32_t
 netmgr_client_get_ntp_servers_w(
     PPMDHANDLE hHandle,
+    wstring_t pwszIfname,
     PPMD_WSTRING_ARRAY *ppwszNtpServers
     );
 
@@ -648,7 +693,7 @@ netmgr_client_wait_for_ip_w(
     PPMDHANDLE hHandle,
     const wstring_t pwszIfname,
     uint32_t dwTimeout,
-    NET_ADDR_TYPE dwAddrTypes
+    NET_RPC_ADDR_TYPE dwAddrTypes
     );
 
 uint32_t

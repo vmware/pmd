@@ -81,12 +81,18 @@ extern "C" {
 
 //netmgmt errors 4096 and up
 #define ERROR_PMD_NET_BASE             4096
+#define ERROR_PMD_NET_ALLOCATE_FAIL    (ERROR_PMD_NET_BASE + 1)
+#define ERROR_PMD_NET_CMD_FAIL         (ERROR_PMD_NET_BASE + 2)
+#define ERROR_PMD_NET_UNKNOWN_CLI_CMD  (ERROR_PMD_NET_BASE + 3)
+#define ERROR_PMD_NET_TOO_FEW_ARGS     (ERROR_PMD_NET_BASE + 4)
+#define ERROR_PMD_NET_TOO_MANY_ARGS    (ERROR_PMD_NET_BASE + 5)
+#define ERROR_PMD_NET_UNSUPPORTED_CMD  (ERROR_PMD_NET_BASE + 6)
 
 //netmgmt errors 4300 and up
 #define ERROR_PMD_USR_BASE             4300
 
 //usermgmt errors 4100 and up
-#define ERROR_PMD_USER_BASE             4100
+#define ERROR_PMD_USER_BASE            4100
 
 #ifdef __cplusplus
 }

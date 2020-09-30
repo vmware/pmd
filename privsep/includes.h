@@ -37,7 +37,7 @@
 
 #include <vmrest.h>
 #include <tdnf/tdnf.h>
-#include <netmgmt/netmgr.h>
+#include <network-config-manager.h>
 #include <pmd.h>
 #include <pmd_fwmgmt.h>
 #include <pmd_usermgmt.h>
@@ -62,3 +62,4 @@
 #include "security.h"
 #include "pkgmgmt.h"
 #include "global.h"
+#include "netmgmt_utils.h"
