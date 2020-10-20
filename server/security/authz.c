@@ -69,109 +69,6 @@ member_of_groups(
     return is_member;
 }
 
-uint32_t
-open_vmdir_connection(
-    char *pszDCName,
-    char *pszDomain,
-    char *pszAccount,
-    char *pszPassword,
-    PVMDIR_CONNECTION* ppConnection
-    )
-{
-    uint32_t dwError = 0;
-    char *pszURI = NULL;
-    PVMDIR_CONNECTION pConnection = NULL;
-
-    dwError = PMDAllocateStringPrintf(
-                &pszURI,
-                "ldap://%s:%d",
-                pszDCName,
-                LDAP_PORT);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = VmDirConnectionOpen(
-                pszURI,
-                pszDomain,
-                pszAccount,
-                pszPassword,
-                &pConnection);
-    BAIL_ON_PMD_ERROR(dwError);
-    *ppConnection = pConnection;
-cleanup:
-
-    PMDFreeMemory(pszURI);
-    return dwError;
-error:
-    if(ppConnection)
-    {
-        *ppConnection = NULL;
-    }
-    if(pConnection)
-    {
-        VmDirConnectionClose(pConnection);
-    }
-    goto cleanup;
-}
-
-static
-uint32_t
-get_vmdir_memberships(
-    const char* pszUPNName,
-    char  ***pppszMemberships,
-    uint32_t* pdwMemberships)
-{
-    uint32_t dwError = 0;
-    PVMDIR_CONNECTION pConn = NULL;
-    char* pszDCName = NULL;
-    char* pszAccount = NULL;
-    char* pszPassword = NULL;
-    char* pszDomain = NULL;
-    char **ppszMemberships = NULL;
-    uint32_t  dwMemberships = 0;
-
-    dwError = VmAfdGetDCNameA(NULL, &pszDCName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = VmAfdGetDomainName(NULL, &pszDomain);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = VmAfdGetMachineAccountInfoA(NULL, &pszAccount, &pszPassword);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = open_vmdir_connection(pszDCName,
-                            pszDomain,
-                            pszAccount,
-                            pszPassword,
-                            &pConn);
-
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = VmDirGetMemberships(
-                    pConn,
-                    pszUPNName,
-                    &ppszMemberships,
-                    &dwMemberships);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    *pppszMemberships = ppszMemberships;
-    *pdwMemberships = dwMemberships;
-cleanup:
-
-    if (pConn)
-    {
-        VmDirConnectionClose(pConn);
-    }
-
-    return dwError;
-
-error:
-    if (ppszMemberships != NULL && dwMemberships > 0)
-    {
-        VmDirFreeMemberships(ppszMemberships, dwMemberships);
-    }
-    goto cleanup;
-}
-
 static
 uint32_t
 get_local_memberships(
@@ -400,86 +297,12 @@ error:
 
 static
 uint32_t
-is_domain_group_member(
-    PSTR* ppszMemberships,
-    DWORD dwMemberships,
-    PCSTR pszGroupName
-    )
-{
-    uint32_t ret_val = 0;
-    uint32_t i = 0;
-
-    for (i = 0; i < dwMemberships; i++)
-    {
-        if(PMDStringCompareA(ppszMemberships[i], pszGroupName, FALSE) == 0)
-        {
-            ret_val = 1;
-            break;
-        }
-    }
-
-    return ret_val;
-}
-
-static
-uint32_t
 domain_group_membership_check(
     const char* upn,
     const char* domain_group,
     uint32_t* allowed)
 {
-    uint32_t dwError = 0;
-    PSTR pszDomainName = NULL;
-    PSTR pszDomainNameDN = NULL;
-    PSTR pszGroupName = NULL;
-    PSTR *ppszMemberships = NULL;
-    uint32_t dwMemberships = 0;
-    *allowed = 0;
-    if(IsNullOrEmptyString(upn))
-    {
-        dwError = ERROR_PMD_INVALID_PARAMETER;
-        BAIL_ON_PMD_ERROR(dwError);
-
-    }
-
-    dwError = get_vmdir_memberships(
-                      upn,
-                      &ppszMemberships,
-                      &dwMemberships);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = VmAfdGetDomainName(NULL, &pszDomainName);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = FQDN_to_DN(
-                     pszDomainName,
-                     &pszDomainNameDN);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    dwError = PMDAllocateStringPrintf(
-                     &pszGroupName,
-                     "cn=%s,cn=Builtin,%s",
-                     domain_group,
-                     pszDomainNameDN);
-    BAIL_ON_PMD_ERROR(dwError);
-
-    *allowed = is_domain_group_member(
-                    ppszMemberships,
-                    dwMemberships,
-                    pszGroupName);
-cleanup:
-
-    if (ppszMemberships != NULL && dwMemberships > 0)
-    {
-        VmDirFreeMemberships(ppszMemberships, dwMemberships);
-    }
-    PMDFreeMemory(pszDomainName);
-    PMDFreeMemory(pszDomainNameDN);
-    PMDFreeMemory(pszGroupName);
-    return dwError;
-
-error:
-    goto cleanup;
+    return ERROR_PMD_UNSUPPORTED_PROTOCOL;
 }
 
 uint32_t
