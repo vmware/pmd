@@ -1060,7 +1060,7 @@ pkg_free_repos(
         PMD_SAFE_FREE_MEMORY(pRepo->pszName);
         PMD_SAFE_FREE_MEMORY(pRepo->pszBaseUrl);
         PMD_SAFE_FREE_MEMORY(pRepo->pszMetaLink);
-        PMD_SAFE_FREE_MEMORY(pRepo->pszUrlGPGKey);
+        PMDFreeStringArray(pRepo->ppszUrlGPGKeys);
 
         pRepos = pRepo->pNext;
         PMD_SAFE_FREE_MEMORY(pRepo);

@@ -718,6 +718,8 @@ get_repodata_json_string(
     uint32_t dwError = 0;
     char *pszJson = NULL;
     json_t *pRoot = NULL;
+    json_t *pszUrlGPGKeyArray = NULL;
+    int i = 0;
 
     if(!pRepoData || !ppszJson)
     {
@@ -732,13 +734,27 @@ get_repodata_json_string(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
+    pszUrlGPGKeyArray = json_array();
+    if(!pszUrlGPGKeyArray)
+    {
+        dwError = ERROR_PMD_OUT_OF_MEMORY;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
     for(; pRepoData; pRepoData = pRepoData->pNext)
     {
         json_t *pRepoObj = json_object();
         json_object_set_new(pRepoObj, "id", json_string(pRepoData->pszId));
         json_object_set_new(pRepoObj, "name", json_string(pRepoData->pszName));
         json_object_set_new(pRepoObj, "baseurl", json_string(pRepoData->pszBaseUrl));
-        json_object_set_new(pRepoObj, "gpgkey", json_string(pRepoData->pszUrlGPGKey));
+        json_object_set_new(pRepoObj, "gpgkey", pszUrlGPGKeyArray);
+        if (pRepoData->ppszUrlGPGKeys != NULL)
+        {
+            for(i = 0; pRepoData->ppszUrlGPGKeys[i]; i++)
+            {
+                json_array_append_new(pszUrlGPGKeyArray, json_string(pRepoData->ppszUrlGPGKeys[i]));
+            }
+        }
         json_object_set_new(pRepoObj, "metadata_expire", json_integer(0));
         json_object_set_new(pRepoObj, "skip_if_unavailable", json_boolean(pRepoData->nSkipIfUnavailable));
         json_object_set_new(pRepoObj, "enabled", json_boolean(pRepoData->nEnabled));
