@@ -35,8 +35,19 @@ py_link_state_to_string(
     );
 
 const char *
+py_net_dhcp_modes_to_name(
+    int id
+    );
+
+const char *
 py_link_mode_to_string(
     NET_LINK_MODE mode
+    );
+
+uint32_t
+py_object_as_py_list(
+    PyObject *pyObj,
+    PyObject **pyList
     );
 
 uint32_t

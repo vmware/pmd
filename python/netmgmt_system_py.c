@@ -20,7 +20,6 @@ static char system__doc__[] = "";
 static void
 system_dealloc(PY_SYSTEM *self)
 {
-    Py_XDECREF(self->pDuid);
     Py_XDECREF(self->pDnsMode);
     Py_XDECREF(self->pServersList);
     Py_XDECREF(self->pDomainsList);
@@ -68,19 +67,17 @@ system_repr(
     pSystem = (PPY_SYSTEM)self;
     dwError = PMDAllocateStringPrintf(
                   &pszRepr,
-                  "{DUID: %s, DNS Mode: %s, DNS ServerList: %s, "
+                  "{DNS Mode: %s, DNS ServerList: %s, "
                   "DNS DomainList: %s, NTP ServerList: %s}",
-                  (pSystem->pDuid != Py_None) ?
-                  PyBytes_AsString(pSystem->pDuid) : "",
                   (pSystem->pDnsMode != Py_None) ?
-                  PyBytes_AsString(pSystem->pDnsMode) : "",
+                  PyBytes_AS_STRING(PyUnicode_AsEncodedString(PyObject_Str(pSystem->pDnsMode), "UTF-8", "strict")) : "",
                   (pSystem->pServersList != Py_None) ?
-                  PyBytes_AsString(PyObject_Str(pSystem->pServersList)) : "",
+                  PyBytes_AS_STRING(PyUnicode_AsEncodedString(PyObject_Str(pSystem->pServersList), "UTF-8", "strict")) : "",
                   (pSystem->pDomainsList != Py_None) ?
-                  PyBytes_AsString(PyObject_Str(pSystem->pDomainsList)) : "",
+                  PyBytes_AS_STRING(PyUnicode_AsEncodedString(PyObject_Str(pSystem->pDomainsList), "UTF-8", "strict")) : "",
                   (pSystem->pNtpServersList!= Py_None) ?
-                  PyBytes_AsString(PyObject_Str(pSystem->pNtpServersList)) :
-                  "");
+                  PyBytes_AS_STRING(PyUnicode_AsEncodedString(PyObject_Str(pSystem->pNtpServersList), "UTF-8", "strict")) : ""
+                  );
     BAIL_ON_PMD_ERROR(dwError);
 
     pyRepr = Py_BuildValue("s", pszRepr);
@@ -114,8 +111,6 @@ static PyMethodDef system_methods[] =
 
 static PyMemberDef system_members[] =
 {
-    {"duid", T_OBJECT_EX, offsetof(PY_SYSTEM, pDuid), 0,
-     "duid of the system"},
     {"dns_mode", T_OBJECT_EX, offsetof(PY_SYSTEM, pDnsMode), 0,
      "mode of dns"},
     {"dns_servers", T_OBJECT_EX, offsetof(PY_SYSTEM, pServersList), 0,

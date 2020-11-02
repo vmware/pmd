@@ -15,6 +15,16 @@
 
 #pragma once
 
+typedef enum _DHCPMode
+{
+        DHCP_MODE_NO,
+        DHCP_MODE_YES,
+        DHCP_MODE_IPV4,
+        DHCP_MODE_IPV6,
+        _DHCP_MODE_MAX,
+        _DHCP_MODE_INVALID = -1
+} DHCPMode;
+
 typedef struct _PY_NET_
 {
     PyObject_HEAD
@@ -26,7 +36,6 @@ typedef struct _PY_NET_
 typedef struct _PY_SYSTEM_
 {
     PyObject_HEAD
-    PyObject *pDuid;
     PyObject *pDnsMode;
     PyObject *pServersList;
     PyObject *pDomainsList;

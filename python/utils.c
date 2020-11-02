@@ -14,6 +14,8 @@
 
 #include "includes.h"
 
+#define ELEMENTSOF(x) (sizeof(x)/sizeof((x)[0]))
+
 static const char *szLinkStateString[] =
 {
     "down",
@@ -40,6 +42,29 @@ py_link_state_to_string(
     return szLinkStateString[state];
 }
 
+static const char *const net_dhcp_modes[_DHCP_MODE_MAX] = {
+    [DHCP_MODE_NO]   = "no",
+    [DHCP_MODE_YES]  = "yes",
+    [DHCP_MODE_IPV4] = "ipv4",
+    [DHCP_MODE_IPV6] = "ipv6",
+};
+
+const char *
+py_net_dhcp_modes_to_name(
+    int id
+    )
+{
+    if (id < 0)
+    {
+        return "n/a";
+    }
+    if ((size_t) id >= ELEMENTSOF(net_dhcp_modes))
+    {
+        return NULL;
+    }
+    return net_dhcp_modes[id];
+}
+
 const char *
 py_link_mode_to_string(
     NET_LINK_MODE mode
@@ -51,6 +76,57 @@ py_link_mode_to_string(
     }
     return szLinkModeString[mode];
 
+}
+
+uint32_t
+py_object_as_py_list(
+    PyObject *pyObj,
+    PyObject **pyList
+    )
+{
+    uint32_t dwError = 0;
+    PyObject *pList = NULL;
+    PyObject *iter = NULL;
+    PyObject *next = NULL;
+
+    if (!pyObj || !pyList)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+    iter = PyObject_GetIter(pyObj);
+    if (!iter) {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+    pList = PyList_New(0);
+    if (!pList)
+    {
+        dwError = ERROR_PMD_OUT_OF_MEMORY;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+    next = PyIter_Next(iter);
+    while (next)
+    {
+        PyList_Append(pList, next);
+        Py_DECREF(next);
+        next = PyIter_Next(iter);
+    }
+
+    *pyList = pList;
+cleanup:
+    return dwError;
+
+error:
+    if (pList)
+    {
+        Py_DECREF(pList);
+    }
+    if (pyList)
+    {
+        *pyList = NULL;
+    }
+    goto cleanup;
 }
 
 uint32_t
