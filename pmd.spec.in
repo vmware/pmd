@@ -5,7 +5,7 @@
 Summary:	Photon Management Daemon
 Name:		pmd
 Version:	@VERSION@
-Release:	9%{?dist}
+Release:	10%{?dist}
 License:	Apache 2.0
 URL:            https://www.github.com/vmware/pmd
 Group:		Applications/System
@@ -277,6 +277,9 @@ rm -rf %{buildroot}/*
     %{_python3_sitearch}/%{name}_python-*.egg-info
 
 %changelog
+*       Thu Dec 17 2020 Ankit Jain <ankitja@vmware.com> 0.1-10
+-       Added python3 support for network-config-manager
+-       Removed python3 support for netmgmt
 *       Tue Dec 15 2020 Tapas Kundu <tkundu@vmware.com> 0.1-9
 -       Fix coverity issues
 *       Wed Dec 02 2020 Ankit Jain <ankitja@vmware.com> 0.1-8
