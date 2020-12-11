@@ -213,7 +213,10 @@ cleanup:
     }
     return dwError;
 error:
-    *ppRpcCleanInfo = NULL;
+    if (ppRpcCleanInfo)
+    {
+        *ppRpcCleanInfo = NULL;
+    }
     if (pRpcCleanInfo && pRpcCleanInfo->pszReposUsed)
     {
         int i = 0;
@@ -269,6 +272,10 @@ cleanup:
     if(pPkgInfo)
     {
         TDNFFreePackageInfoArray(pPkgInfo, dwCount);
+    }
+    if (pArgs)
+    {
+        pkg_free_cmd_args(pArgs);
     }
     return dwError;
 error:

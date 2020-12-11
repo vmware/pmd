@@ -21,9 +21,9 @@ PMDWC16StringNumChars(
 {
     size_t len = 0;
 
-    if (pszString)
+    while (pszString && *pszString++)
     {
-        for(; pszString[len] != 0; len++);
+        len++;
     }
     return len;
 }

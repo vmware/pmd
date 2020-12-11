@@ -572,25 +572,17 @@ pkg_rest_alter(
 
     pszInputJson = pRestArgs->pszInputJson;
 
-    if(nAlterType == ALTER_INSTALL ||
-       nAlterType == ALTER_ERASE ||
-       nAlterType == ALTER_REINSTALL)
+    if(IsNullOrEmptyString(pszInputJson))
     {
-        if(IsNullOrEmptyString(pszInputJson))
-        {
-            dwError = ERROR_PMD_INVALID_PARAMETER;
-            BAIL_ON_PMD_ERROR(dwError);
-        }
-    }
-
-    if(pszInputJson)
-    {
-        dwError = pkg_json_get_array(pszInputJson,
-                                     "packages",
-                                     &ppszPackages,
-                                     &nPkgCount);
+        dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
+
+    dwError = pkg_json_get_array(pszInputJson,
+                                 "packages",
+                                 &ppszPackages,
+                                 &nPkgCount);
+    BAIL_ON_PMD_ERROR(dwError);
 
     dwError = pkg_get_cmd_string(nAlterType, &pszAlterCmd);
     BAIL_ON_PMD_ERROR(dwError);
