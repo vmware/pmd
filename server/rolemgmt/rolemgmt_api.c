@@ -529,9 +529,9 @@ pmd_rolemgmt_task_thread(
 {
     uint32_t dwError = 0;
     PPMD_PLUGIN_TASK_THREAD_INFO pTaskThreadInfo = pThreadInfo;
-    if(!pTaskThreadInfo ||
-       !pTaskThreadInfo->pModule ||
-       !pTaskThreadInfo->pTask)
+    if (!pTaskThreadInfo ||
+        !pTaskThreadInfo->pModule ||
+        !pTaskThreadInfo->pTask)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
@@ -545,7 +545,7 @@ pmd_rolemgmt_task_thread(
 
     pTaskThreadInfo->pTask->nStatus = ROLE_STATUS_SUCCESS;
 cleanup:
-    if(pTaskThreadInfo)
+    if (pTaskThreadInfo)
     {
         rolemgmt_archive_current_task(pTaskThreadInfo->pModule);
         PMDFreeMemory(pTaskThreadInfo);
@@ -554,7 +554,7 @@ cleanup:
     return NULL;
 
 error:
-    if(pTaskThreadInfo)
+    if (pTaskThreadInfo && pTaskThreadInfo->pTask)
     {
         pTaskThreadInfo->pTask->nStatus = ROLE_STATUS_FAILURE;
         pTaskThreadInfo->pTask->dwError = dwError;
@@ -853,11 +853,10 @@ rolemgmt_free_plugin_module_task(
     )
 {
     PPMD_PLUGIN_TASK pTask = NULL;
-    if(!pModule && pModule->pCurrentTask)
+    if (!pModule || !pModule->pCurrentTask)
     {
         return;
     }
-
     pTask = pModule->pCurrentTask;
     PMD_SAFE_FREE_MEMORY(pTask->pszTaskUUID);
     PMD_SAFE_FREE_MEMORY(pTask->pszConfigJson);

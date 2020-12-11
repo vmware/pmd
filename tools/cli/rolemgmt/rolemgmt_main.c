@@ -426,6 +426,7 @@ rolemgmt_cli_get_status_cmd(
     fprintf(stdout, "Status: %s\n", pszStatus);
 
 cleanup:
+    PMD_SAFE_FREE_MEMORY(pszStatus);
     return dwError;
 
 error:

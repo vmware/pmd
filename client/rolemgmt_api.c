@@ -451,6 +451,16 @@ error:
     {
         *ppTaskLogs = NULL;
     }
+    if (pTaskLogs)
+    {
+        i = 0;
+        while ((i < dwTaskLogCount) && pTaskLogs[i].pszLog)
+        {
+            PMD_SAFE_FREE_MEMORY(pTaskLogs[i].pszLog);
+            i++;
+        }
+        PMD_SAFE_FREE_MEMORY(pTaskLogs);
+    }
     if(pdwTaskLogCount)
     {
         *pdwTaskLogCount = 0;

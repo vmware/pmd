@@ -186,7 +186,7 @@ PMDRpcClientConvertCleanInfo(
     if(pRpcCleanInfo->pszReposUsed &&
        pRpcCleanInfo->pszReposUsed->dwCount)
     {
-        uint32_t dwCount = pRpcCleanInfo->pszReposUsed->dwCount;
+        dwCount = pRpcCleanInfo->pszReposUsed->dwCount;
 
         dwError = PMDAllocateMemory(
                       sizeof(char *) * (dwCount + 1),
@@ -212,6 +212,14 @@ cleanup:
     return dwError;
 
 error:
+    if (pCleanInfo)
+    {
+        if (pCleanInfo->ppszReposUsed)
+        {
+            PMDFreeStringArrayWithCount(pCleanInfo->ppszReposUsed, dwCount);
+        }
+        PMD_SAFE_FREE_MEMORY(pCleanInfo);
+    }
     goto cleanup;
 }
 

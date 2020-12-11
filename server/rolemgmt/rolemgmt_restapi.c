@@ -180,6 +180,7 @@ rolemgmt_rest_get_roleversion(
     *ppszOutputJson = pszOutputJson;
 
 cleanup:
+    PMD_SAFE_FREE_MEMORY(pszName);
     PMD_SAFE_FREE_MEMORY(pszVersion);
     if(pKeyValue)
     {

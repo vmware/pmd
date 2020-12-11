@@ -90,7 +90,7 @@ rolemgmt_status_to_string(
         "none",
         "success",
         "failure",
-        "not started"
+        "not started",
         "in progress"
     };
     nSize = sizeof(pszStrings)/sizeof(pszStrings[0]);

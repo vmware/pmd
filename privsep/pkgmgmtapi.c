@@ -127,7 +127,10 @@ cleanup:
     }
     return dwError;
 error:
-    *ppCleanInfo = NULL;
+    if (ppCleanInfo)
+    {
+        *ppCleanInfo = NULL;
+    }
     if(pCleanInfo)
     {
         TDNFFreeCleanInfo(pCleanInfo);
@@ -222,7 +225,7 @@ pkg_search_s(
 {
     uint32_t dwError = 0;
     int nLocked = 0;
-    PTDNF_PKG_INFO pPkgInfo;
+    PTDNF_PKG_INFO pPkgInfo = NULL;
     uint32_t dwCount = 0;
 
     if(!pTdnf || !pCmdArgs || !ppPkgInfo)
