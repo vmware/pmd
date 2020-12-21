@@ -1,4 +1,4 @@
-AC_INIT(pmd, 0.0.6)
+AC_INIT(pmd, 0.0.7)
 AC_MSG_NOTICE([pmd configuration])
 
 AC_CONFIG_MACRO_DIR([m4])

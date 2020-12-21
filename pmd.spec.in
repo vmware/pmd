@@ -5,7 +5,7 @@
 Summary:	Photon Management Daemon
 Name:		pmd
 Version:	@VERSION@
-Release:	11%{?dist}
+Release:	beta%{?dist}
 License:	Apache 2.0
 URL:            https://www.github.com/vmware/pmd
 Group:		Applications/System
@@ -286,6 +286,8 @@ rm -rf %{buildroot}/*
     %{_python3_sitearch}/%{name}_python-*.egg-info
 
 %changelog
+*       Tue Dec 22 2020 Tapas Kundu <tkundu@vmware.com> 0.0.7-beta
+-       Update to 0.0.7-beta release
 *       Thu Dec 17 2020 Ankit Jain <ankitja@vmware.com> 0.1-11
 -       Added %check to verify the changes locally.
 *       Thu Dec 17 2020 Ankit Jain <ankitja@vmware.com> 0.1-10
