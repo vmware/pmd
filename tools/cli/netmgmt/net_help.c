@@ -300,48 +300,72 @@ net_cli_run_command(
     )
 {
     NetCli *pNetCmd = NULL;
-    int remaining_argc = 0;
+    int remaining_argc = argc - 2;
     char *pszName = NULL;
     uint32_t dwError = 0;
+    int i = 0;
+    char c;
+    static const struct option options[] = {
+        { "help",       no_argument,       NULL, 'h' },
+        { "version",    no_argument,       NULL, 'v' },
+        { "servername", required_argument, NULL, 's' },
+        { "user",       required_argument, NULL, 'u' },
+        {}
+    };
 
     if (!pNetCliMgr || !pHandle || !argv || (argc <= 0))
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
     }
-    optind = 2;
-    remaining_argc = argc - optind;
 
-    argv += optind;
-    pszName = argv[0];
-
-    while (pszName && (pszName[0] == '-'))
+    optind = 0;
+    while ((c = getopt_long(argc, argv, "s:u:hv", options, NULL)) >= 0)
     {
-        argv += 1;
-	pszName = argv[0];
+        switch (c)
+        {
+            case 'h':
+                dwError = net_show_help();
+                BAIL_ON_CLI_ERROR(dwError);
+                goto cleanup;
+            case 'v':
+                pszName = "version";
+                break;
+            case 's':
+                remaining_argc--;
+                break;
+            case 'u':
+                remaining_argc--;
+                break;
+            default:
+                dwError = ERROR_PMD_INVALID_PARAMETER;
+                BAIL_ON_CLI_ERROR(dwError);
+        }
+    }
+
+    argv += (optind + 1);
+
+    if (!pszName)
+    {
+        pszName = argv[0];
     }
     /* run default if no command specified */
     if (!pszName)
     {
-        int i;
-
-        for (i = 0;; i++)
-	{
-            if (pNetCliMgr->commands[i].default_command)
+        for (i = 0; pNetCliMgr->commands[i].default_command; i++)
+        {
+            pNetCmd = pNetCliMgr->commands;
+            if (strcmp(pNetCmd->name, "help"))
             {
-                pNetCmd = pNetCliMgr->commands;
-	        if (strcmp(pNetCmd->name, "help"))
-                {
-                    dwError = net_show_help();
-	        }
-	        else
-                {
-                    remaining_argc = 1;
-                    dwError = pNetCmd->run(pHandle, remaining_argc, argv);
-	        }
-                BAIL_ON_PMD_ERROR(dwError);
-                goto cleanup;
+                dwError = net_show_help();
             }
+            else
+            {
+                remaining_argc = 1;
+                dwError = pNetCmd->run(pHandle, remaining_argc, argv);
+            }
+            BAIL_ON_PMD_ERROR(dwError);
+            goto cleanup;
         }
     }
 
