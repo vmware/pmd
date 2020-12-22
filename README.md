@@ -8,7 +8,7 @@ resources on linux machines.
 
 pmd manages the following resources
 * iptable rules
-* network via netmgmt component
+* network via network-config-manager component
 * packages via tdnf
 * users and groups
 
@@ -16,7 +16,7 @@ pmd provides the following ways to interact with the server
 * cmd line client (pmd-cli) uses dce-rpc and srp to securely authenticate
 * REST api (spec driven with openapi swagger 2.0)
 * server openapi spec driven REST cmd line client (copenapi)
-* python2/3 api
+* python3 api
 
 
 ## Try it out
@@ -24,10 +24,13 @@ pmd provides the following ways to interact with the server
 ### Prerequisites
 
 * vmware-rest, copenapi
-* likewise-open
-* lightwave directory client, lightwave afd client
-* tdnf, netmgmt
+* dcerpc
+* gssapi-unix
+* tdnf, network-config-manager
 * rpm, jansson, krb5, curl, glib
+* openldap, shadow, systemd
+* c-rest-engine, python3, e2fsprogs
+* openssl
 
 ### Build & Run
 
@@ -35,7 +38,7 @@ pmd provides the following ways to interact with the server
 2. From the source root directory, ./rebuild.sh
 3. mkdir /etc/pmd && cp conf/* /etc/pmd
 4. Server binary is server/pmd. run it in the background ./server/pmd &
-5. ./tools/cli/pmd-cli and follow cmd line help. For eg: pmd-cli net dns_servers --get
+5. ./tools/cli/pmd-cli and follow cmd line help. For eg: pmd-cli net get-hostname
 
 ## Documentation
 ### pmd-cli
@@ -50,15 +53,11 @@ usage: pmd-cli [connection/auth options] <component> <command> [command options]
 For local connections, use: pmd-cli <component> <cmd> <options>.
 Current logged in user permissions will apply when executing commands.
 This is the same as specifying --servername localhost.
-For remote servers, use one of 3 methods mentioned below.
-Password is never sent out in clear to the remote in any of the below auth scenarios.
+For remote servers, use method mentioned below.
+Password is never sent out in clear to the remote in the below auth scenario.
 When --user is specified, you will be prompted for password.
 1. System user.
-   pmd-cli --servername <server> --user <user>
-2. Lightwave user (pmd server must be joined or should be part of embedded lightwave)
-   pmd-cli --servername <server> --user <user> --domain <lightwave domain>
-3. Kerberos spn (client must successfully run kinit before using this method)
-   pmd-cli --servername <server> --spn <service principal name>
+   pmd-cli <component> <cmd> <options> --servername <server> --user <user>
 
 ### REST interface
 self documenting via conf/restapispec.json or copenapi client
