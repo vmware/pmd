@@ -32,17 +32,11 @@ show_help(
     printf("For local connections, use: pmd-cli <component> <cmd> <options>.\n");
     printf("Current logged in user permissions will apply when executing commands.\n");
     printf("This is the same as specifying --%s localhost.\n", OPT_SERVERNAME);
-    printf("For remote servers, use one of 3 methods mentioned below. Password is never sent out to the remote in any of the below auth scenarios.\n");
+    printf("For remote servers, use method mentioned below. Password is never sent out to the remote in the below auth scenario.\n");
     printf("When --%s is specified, you will be prompted for password.\n", OPT_USERNAME);
     printf("1. System user.\n");
-    printf("   pmd-cli --%s <server> --%s <user>\n",
+    printf("   pmd-cli <component> <cmd> <options> --%s <server> --%s <user>\n",
     OPT_SERVERNAME, OPT_USERNAME);
-    printf("2. Lightwave user (pmd server must be joined or should be part of embedded lightwave)\n");
-    printf("   pmd-cli --%s <server> --%s <user> --%s <lightwave domain>\n",
-    OPT_SERVERNAME, OPT_USERNAME, OPT_DOMAINNAME);
-    printf("3. Kerberos spn (client must successfully run kinit before using this method)\n");
-    printf("   pmd-cli --%s <server> --%s <service principal name>\n",
-    OPT_SERVERNAME, OPT_SPN);
 }
 
 void
