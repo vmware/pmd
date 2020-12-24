@@ -406,59 +406,6 @@ error:
     goto cleanup;
 }
 
-
-static uint32_t
-ncmcli_parse_argv(
-    int argc,
-    char * const* argv
-    )
-{
-	uint32_t dwError = 1;
-        static const struct option options[] = {
-                { "help",       no_argument,       NULL, 'h' },
-                { "version",    no_argument,       NULL, 'v' },
-                { "servername", required_argument, NULL, 's' },
-                { "user",       required_argument, NULL, 'u' },
-                {}
-        };
-        char c;
-
-	if ((argc < 0) || !argv)
-	{
-		dwError = ERROR_PMD_INVALID_PARAMETER;
-		BAIL_ON_CLI_ERROR(dwError);
-	}
-        optind = 0;
-        while ((c = getopt_long(argc, argv, "hvs:u:", options, NULL)) >= 0)
-        {
-
-                switch (c)
-                {
-
-                case 'h':
-			dwError = net_show_help();
-			BAIL_ON_CLI_ERROR(dwError);
-			goto cleanup;
-
-                case 'v':
-                        strcpy(argv[2], "version");
-			goto cleanup;
-
-                case 's':
-                case 'u':
-			goto cleanup;
-
-                default:
-                        dwError = ERROR_PMD_INVALID_PARAMETER;
-			BAIL_ON_CLI_ERROR(dwError);
-                }
-        }
-cleanup:
-	return dwError;
-error:
-	goto cleanup;
-}
-
 uint32_t
 netmgr_main(
     int argc,
@@ -469,20 +416,12 @@ netmgr_main(
     PPMDHANDLE hPMD = NULL;
     NetCliManager *pNetCliMgr = NULL;
 
-    dwError = ncmcli_parse_argv(argc, argv);
-    if (dwError == ERROR_PMD_INVALID_PARAMETER)
+    if ((argc <= 0) || !argv)
     {
-	BAIL_ON_CLI_ERROR(dwError);
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
 
-    }
-    else if (dwError == 0)
-    {
-	goto cleanup;
-    }
-    if (optind > 1)
-    {
-        argc = optind - 1;
-    }
     dwError = net_cli_manager_new(&pNetCliMgr);
     BAIL_ON_CLI_ERROR(dwError);
 
@@ -501,7 +440,7 @@ netmgr_main(
 cleanup:
     if (pNetCliMgr)
     {
-	net_cli_unrefp(&pNetCliMgr);
+        net_cli_unrefp(&pNetCliMgr);
     }
     if(hPMD)
     {
@@ -512,7 +451,7 @@ cleanup:
 error:
     if(net_print_error(dwError) == 0)
     {
-	/* already handled */
+        /* already handled */
         dwError = ERROR_PMD_FAIL;
     }
     goto cleanup;
