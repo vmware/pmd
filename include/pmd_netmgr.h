@@ -170,6 +170,13 @@ netmgr_client_configure(
 );
 
 uint32_t
+netmgr_client_get_dhcp4_client_identifier(
+    PPMDHANDLE hHandle,
+    const char *pszIfname,
+    char **ppszDHCPClientIndentifier
+);
+
+uint32_t
 netmgr_client_get_dhcp_mode(
     PPMDHANDLE hHandle,
     const char *pszIfname,
@@ -439,7 +446,34 @@ netmgr_client_get_ntp_servers(
     PPMDHANDLE hHandle,
     char *pszIfname,
     size_t *pnCount,
-    char ***pppszNtpServers);
+    char ***pppszNtpServers
+    );
+
+uint32_t
+netmgr_client_nft_get_tables(
+    PPMDHANDLE hHandle,
+    char *pszFamily,
+    char *pszTable,
+    size_t *pnCount,
+    char ***pppszNftables
+    );
+
+uint32_t
+netmgr_client_nft_get_chains(
+    PPMDHANDLE hHandle,
+    char *pszFamily,
+    char *pszTable,
+    char *pszChains,
+    size_t *pnCount,
+    char ***pppszNftablesChains
+    );
+
+uint32_t
+netmgr_client_get_nft_rules(
+    PPMDHANDLE hHandle,
+    const char *pszTable,
+    char **ppszNftableRules
+    );
 
 uint32_t
 netmgr_client_set_hostname(

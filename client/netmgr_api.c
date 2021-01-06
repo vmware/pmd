@@ -762,6 +762,103 @@ error:
 }
 
 uint32_t
+netmgr_client_get_dhcp4_client_identifier_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    wstring_t *ppwszDHCPClientIndentifier
+)
+{
+    uint32_t dwError = 0;
+    wstring_t pwszDHCPClientIndentifier = NULL;
+
+    if(!hHandle || !pwszIfname || !ppwszDHCPClientIndentifier)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(netmgr_privsep_rpc_get_dhcp4_client_identifier(
+                   hHandle->hRpc,
+                   pwszIfname,
+                   &pwszDHCPClientIndentifier),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(netmgr_rpc_get_dhcp4_client_identifier(
+                   hHandle->hRpc,
+                   pwszIfname,
+                   &pwszDHCPClientIndentifier),
+                   dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszDHCPClientIndentifier = pwszDHCPClientIndentifier;
+
+cleanup:
+    return dwError;
+
+error:
+    if (ppwszDHCPClientIndentifier)
+    {
+        *ppwszDHCPClientIndentifier = NULL;
+    }
+    goto cleanup;
+}
+
+uint32_t
+netmgr_client_get_dhcp4_client_identifier(
+    PPMDHANDLE hHandle,
+    const char *pszIfname,
+    char **ppszDHCPClientIndentifier
+)
+{
+    uint32_t dwError = 0;
+    wstring_t pwszIfname = NULL;
+    wstring_t pwszDHCPClientIndentifier = NULL;
+    char *pszDHCPClientIndentifier = NULL;
+
+    if(!hHandle || IsNullOrEmptyString(pszIfname) || !ppszDHCPClientIndentifier)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateStringWFromA(pszIfname, &pwszIfname);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_dhcp4_client_identifier_w(
+                  hHandle,
+                  pwszIfname,
+                  &pwszDHCPClientIndentifier);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (pwszDHCPClientIndentifier)
+    {
+        dwError = PMDAllocateStringAFromW(pwszDHCPClientIndentifier,
+                                          &pszDHCPClientIndentifier);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    *ppszDHCPClientIndentifier = pszDHCPClientIndentifier;
+
+cleanup:
+    PMDFreeMemory(pwszIfname);
+    PMDRpcClientFreeMemory(pwszDHCPClientIndentifier);
+    return dwError;
+
+error:
+    if (ppszDHCPClientIndentifier)
+    {
+        *ppszDHCPClientIndentifier = NULL;
+    }
+    PMD_SAFE_FREE_MEMORY(pszDHCPClientIndentifier);
+    goto cleanup;
+}
+
+uint32_t
 netmgr_client_get_dhcp_client_iaid_w(
     PPMDHANDLE hHandle,
     const wstring_t pwszIfname,
@@ -4340,6 +4437,377 @@ error:
     {
         *pnCount = 0;
     }
+    goto cleanup;
+}
+
+uint32_t
+netmgr_client_nft_get_tables_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszFamily,
+    wstring_t pwszTable,
+    PPMD_WSTRING_ARRAY *ppwszNftables
+    )
+{
+    uint32_t dwError = 0;
+    PPMD_WSTRING_ARRAY pwszNftables = NULL;
+
+    if(!hHandle || !ppwszNftables || !pwszFamily || !pwszTable)
+    {
+       dwError = ERROR_PMD_INVALID_PARAMETER;
+       BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(netmgr_privsep_rpc_nft_get_tables(
+                   hHandle->hRpc,
+                   pwszFamily,
+                   pwszTable,
+                   &pwszNftables),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(netmgr_rpc_nft_get_tables(
+                   hHandle->hRpc,
+                   pwszFamily,
+                   pwszTable,
+                   &pwszNftables),
+                   dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszNftables = pwszNftables;
+
+cleanup:
+    return dwError;
+
+error:
+    if (ppwszNftables)
+    {
+        *ppwszNftables = NULL;
+    }
+    goto cleanup;
+}
+
+
+uint32_t
+netmgr_client_nft_get_tables(
+    PPMDHANDLE hHandle,
+    char *pszFamily,
+    char *pszTable,
+    size_t *pnCount,
+    char ***pppszNftables
+    )
+{
+    uint32_t dwError = 0;
+    PPMD_WSTRING_ARRAY pwszNftables = NULL;
+    char **ppszNftables = NULL;
+    wstring_t pwszFamily = NULL;
+    wstring_t pwszTable = NULL;
+    size_t nCount = 0;
+    size_t i = 0;
+
+    if(!hHandle || !pnCount || !pppszNftables || IsNullOrEmptyString(pszFamily) || IsNullOrEmptyString(pszTable))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateStringWFromA(pszFamily, &pwszFamily);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateStringWFromA(pszTable, &pwszTable);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_nft_get_tables_w(
+                  hHandle,
+                  pwszFamily,
+                  pwszTable,
+                  &pwszNftables);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (pwszNftables && pwszNftables->dwCount)
+    {
+        dwError = PMDAllocateMemory(sizeof(char *) * pwszNftables->dwCount,
+                                    (void **)&ppszNftables);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        for (i = 0; i < pwszNftables->dwCount; i++)
+        {
+            dwError = PMDAllocateStringAFromW(pwszNftables->ppwszStrings[i],
+                                              &ppszNftables[i]);
+            BAIL_ON_PMD_ERROR(dwError);
+	    nCount = nCount + 1;
+        }
+    }
+
+    *pnCount = nCount;
+    *pppszNftables = ppszNftables;
+
+cleanup:
+    if (pwszNftables && pwszNftables->ppwszStrings)
+    {
+        for (i = 0; i < pwszNftables->dwCount; ++i)
+        {
+            PMDRpcClientFreeMemory(pwszNftables->ppwszStrings[i]);
+        }
+        PMDRpcClientFreeMemory(pwszNftables->ppwszStrings);
+    }
+    PMDRpcClientFreeMemory(pwszNftables);
+    PMDFreeMemory(pwszFamily);
+    PMDFreeMemory(pwszTable);
+    return dwError;
+
+error:
+    if (pppszNftables)
+    {
+        *pppszNftables = NULL;
+    }
+    PMDFreeStringArrayWithCount(ppszNftables, nCount);
+    if (pnCount)
+    {
+        *pnCount = 0;
+    }
+    goto cleanup;
+}
+
+uint32_t
+netmgr_client_nft_get_chains_w(
+    PPMDHANDLE hHandle,
+    wstring_t pwszFamily,
+    wstring_t pwszTable,
+    wstring_t pwszChains,
+    PPMD_WSTRING_ARRAY *ppwszNftablesChains
+    )
+{
+    uint32_t dwError = 0;
+    PPMD_WSTRING_ARRAY pwszNftablesChains = NULL;
+
+    if(!hHandle || !ppwszNftablesChains || !pwszFamily || !pwszTable || !pwszChains)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(netmgr_privsep_rpc_nft_get_chains(
+                   hHandle->hRpc,
+                   pwszFamily,
+                   pwszTable,
+                   pwszChains,
+                   &pwszNftablesChains),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(netmgr_rpc_nft_get_chains(
+                   hHandle->hRpc,
+                   pwszFamily,
+                   pwszTable,
+                   pwszChains,
+                   &pwszNftablesChains),
+                   dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszNftablesChains = pwszNftablesChains;
+
+cleanup:
+    return dwError;
+
+error:
+    if (ppwszNftablesChains)
+    {
+        *ppwszNftablesChains = NULL;
+    }
+    goto cleanup;
+}
+
+uint32_t
+netmgr_client_nft_get_chains(
+    PPMDHANDLE hHandle,
+    char *pszFamily,
+    char *pszTable,
+    char *pszChains,
+    size_t *pnCount,
+    char ***pppszNftablesChains
+    )
+{
+    uint32_t dwError = 0;
+    PPMD_WSTRING_ARRAY pwszNftablesChains = NULL;
+    char **ppszNftablesChains = NULL;
+    wstring_t pwszFamily = NULL;
+    wstring_t pwszTable = NULL;
+    wstring_t pwszChains = NULL;
+    size_t nCount = 0;
+    size_t i = 0;
+
+    if(!hHandle || !pnCount || !pppszNftablesChains || IsNullOrEmptyString(pszFamily) || IsNullOrEmptyString(pszTable) || IsNullOrEmptyString(pszChains))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateStringWFromA(pszFamily, &pwszFamily);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateStringWFromA(pszTable, &pwszTable);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateStringWFromA(pszChains, &pwszChains);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_nft_get_chains_w(
+                  hHandle,
+                  pwszFamily,
+                  pwszTable,
+                  pwszChains,
+                  &pwszNftablesChains);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (pwszNftablesChains && pwszNftablesChains->dwCount)
+    {
+        dwError = PMDAllocateMemory(sizeof(char *) * pwszNftablesChains->dwCount,
+                                    (void **)&ppszNftablesChains);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        for (i = 0; i < pwszNftablesChains->dwCount; i++)
+        {
+            dwError = PMDAllocateStringAFromW(pwszNftablesChains->ppwszStrings[i],
+                                              &ppszNftablesChains[i]);
+            BAIL_ON_PMD_ERROR(dwError);
+	    nCount = nCount + 1;
+        }
+    }
+
+    *pnCount = nCount;
+    *pppszNftablesChains = ppszNftablesChains;
+
+cleanup:
+    if (pwszNftablesChains && pwszNftablesChains->ppwszStrings)
+    {
+        for (i = 0; i < pwszNftablesChains->dwCount; ++i)
+        {
+            PMDRpcClientFreeMemory(pwszNftablesChains->ppwszStrings[i]);
+        }
+       PMDRpcClientFreeMemory(pwszNftablesChains->ppwszStrings);
+    }
+    PMDRpcClientFreeMemory(pwszNftablesChains);
+    PMDFreeMemory(pwszFamily);
+    PMDFreeMemory(pwszTable);
+    PMDFreeMemory(pwszChains);
+    return dwError;
+
+error:
+    if (pppszNftablesChains)
+    {
+        *pppszNftablesChains = NULL;
+    }
+    PMDFreeStringArrayWithCount(ppszNftablesChains, nCount);
+    if (pnCount)
+    {
+        *pnCount = 0;
+    }
+    goto cleanup;
+}
+
+uint32_t
+netmgr_client_get_nft_rules_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszTable,
+    wstring_t *ppwszNftableRules
+)
+{
+    uint32_t dwError = 0;
+    wstring_t pwszNftableRules = NULL;
+
+    if(!hHandle || !pwszTable || !ppwszNftableRules)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(netmgr_privsep_rpc_get_nft_rules(
+                   hHandle->hRpc,
+                   pwszTable,
+                   &pwszNftableRules),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(netmgr_rpc_get_nft_rules(
+                   hHandle->hRpc,
+                   pwszTable,
+                   &pwszNftableRules),
+                   dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszNftableRules = pwszNftableRules;
+
+cleanup:
+    return dwError;
+
+error:
+    if (ppwszNftableRules)
+    {
+        *ppwszNftableRules = NULL;
+    }
+    goto cleanup;
+}
+
+
+uint32_t
+netmgr_client_get_nft_rules(
+    PPMDHANDLE hHandle,
+    const char *pszTable,
+    char **ppszNftableRules
+)
+{
+    uint32_t dwError = 0;
+    wstring_t pwszTable = NULL;
+    wstring_t pwszNftableRules = NULL;
+    char *pszNftableRules = NULL;
+
+    if(!hHandle || IsNullOrEmptyString(pszTable) || !ppszNftableRules)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateStringWFromA(pszTable, &pwszTable);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_nft_rules_w(
+                  hHandle,
+                  pwszTable,
+                  &pwszNftableRules);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (pwszNftableRules)
+    {
+        dwError = PMDAllocateStringAFromW(pwszNftableRules,
+                                          &pszNftableRules);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    *ppszNftableRules = pszNftableRules;
+
+cleanup:
+    PMDFreeMemory(pwszTable);
+    PMDRpcClientFreeMemory(pwszNftableRules);
+    return dwError;
+
+error:
+    if (ppszNftableRules)
+    {
+        *ppszNftableRules = NULL;
+    }
+    PMD_SAFE_FREE_MEMORY(pszNftableRules);
     goto cleanup;
 }
 

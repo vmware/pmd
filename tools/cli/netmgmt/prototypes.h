@@ -140,3 +140,32 @@ ncmcli_link_get_mtu(
     int argc,
     char *argv[]
 );
+
+uint32_t
+ncmcli_link_get_dhcp4_client_identifier(
+    PPMDHANDLE hPMD,
+    int argc,
+    char *argv[]
+);
+
+uint32_t
+ncmcli_nft_get_tables(
+    PPMDHANDLE hPMD,
+    int argc,
+    char *argv[]
+);
+
+uint32_t
+ncmcli_nft_get_chains(
+    PPMDHANDLE hPMD,
+    int argc,
+    char *argv[]
+);
+
+uint32_t
+ncmcli_get_nft_rules(
+    PPMDHANDLE hPMD,
+    int argc,
+    char *argv[]
+);
+
