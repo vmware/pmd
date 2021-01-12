@@ -165,7 +165,7 @@ cleanup:
 error:
     if (ppwszMacAddress)
     {
-        ppwszMacAddress = NULL;
+        *ppwszMacAddress = NULL;
     }
     goto cleanup;
 }
@@ -304,6 +304,53 @@ error:
     if (pDHCPMode)
     {
         *pDHCPMode = 0;
+    }
+    goto cleanup;
+}
+
+unsigned32
+netmgr_privsep_rpc_get_dhcp4_client_identifier(
+    handle_t hBinding,
+    wstring_t pwszInterfaceName,
+    wstring_t *ppwszDHCP4ClientIndentifier
+)
+{
+    uint32_t dwError = 0;
+    char *pszIfName = NULL;
+    char *pszDHCP4ClientIndentifier = NULL;
+    wstring_t pwszDHCP4ClientIndentifier = NULL;
+
+    if (!hBinding || !pwszInterfaceName || !ppwszDHCP4ClientIndentifier)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (ncm_link_get_dhcp4_client_identifier(pszIfName, &pszDHCP4ClientIndentifier) < 0)
+    {
+       dwError = ERROR_PMD_NET_CMD_FAIL;
+       BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDRpcServerAllocateWFromA(pszDHCP4ClientIndentifier, &pwszDHCP4ClientIndentifier);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszDHCP4ClientIndentifier = pwszDHCP4ClientIndentifier;
+
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pszIfName);
+    PMD_SAFE_FREE_MEMORY(pszDHCP4ClientIndentifier);
+    return dwError;
+error:
+    if (ppwszDHCP4ClientIndentifier)
+    {
+        *ppwszDHCP4ClientIndentifier = NULL;
     }
     goto cleanup;
 }
@@ -1273,6 +1320,233 @@ error:
         }
         PMDRpcServerFreeMemory(pwszNtpServers->ppwszStrings);
         PMDRpcServerFreeMemory(pwszNtpServers);
+    }
+    goto cleanup;
+}
+
+unsigned32
+netmgr_privsep_rpc_nft_get_tables(
+    handle_t hBinding,
+    wstring_t pwszFamily,
+    wstring_t pwszTable,
+    PPMD_WSTRING_ARRAY *ppwszNftables
+    )
+{
+    uint32_t dwError = 0;
+    size_t nCount = 0;
+    size_t i = 0;
+    char *pszFamily = NULL;
+    char *pszTable = NULL;
+    char **ppszNftables = NULL;
+    PPMD_WSTRING_ARRAY pwszNftables = NULL;
+
+    if (!hBinding || !pwszFamily || !pwszTable || !ppwszNftables)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateStringAFromW(pwszFamily, &pszFamily);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateStringAFromW(pwszTable, &pszTable);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (ncm_nft_get_tables(pszFamily, pszTable, &ppszNftables) < 0)
+    {
+       dwError = ERROR_PMD_NET_CMD_FAIL;
+       BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if (ppszNftables)
+    {
+       nCount = g_strv_length(ppszNftables);
+    }
+    dwError = PMDRpcServerAllocateMemory(sizeof(PMD_WSTRING_ARRAY),
+                                         (void **)&pwszNftables);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pwszNftables->dwCount = 0;
+    if (nCount > 0)
+    {
+        dwError = PMDRpcServerAllocateMemory(
+                      sizeof(wstring_t) * nCount,
+                      (void **)&pwszNftables->ppwszStrings);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        for (i = 0; i < nCount; i++)
+        {
+            dwError = PMDRpcServerAllocateWFromA(
+                          ppszNftables[i],
+                          &pwszNftables->ppwszStrings[i]);
+            BAIL_ON_PMD_ERROR(dwError);
+	    pwszNftables->dwCount = pwszNftables->dwCount + 1;
+        }
+    }
+    *ppwszNftables = pwszNftables;
+
+cleanup:
+    PMDFreeStringArrayWithCount(ppszNftables, nCount);
+    PMD_SAFE_FREE_MEMORY(pszFamily);
+    PMD_SAFE_FREE_MEMORY(pszTable);
+    return dwError;
+
+error:
+    if (ppwszNftables)
+    {
+        *ppwszNftables = NULL;
+    }
+    if (pwszNftables != NULL)
+    {
+        for (i = 0; i < pwszNftables->dwCount; i++)
+        {
+            PMDRpcServerFreeMemory(pwszNftables->ppwszStrings[i]);
+        }
+        PMDRpcServerFreeMemory(pwszNftables->ppwszStrings);
+        PMDRpcServerFreeMemory(pwszNftables);
+    }
+    goto cleanup;
+}
+
+unsigned32
+netmgr_privsep_rpc_nft_get_chains(
+    handle_t hBinding,
+    wstring_t pwszFamily,
+    wstring_t pwszTable,
+    wstring_t pwszChains,
+    PPMD_WSTRING_ARRAY *ppwszNftablesChains
+    )
+{
+    uint32_t dwError = 0;
+    size_t nCount = 0;
+    size_t i = 0;
+    char *pszFamily = NULL;
+    char *pszTable = NULL;
+    char *pszChains = NULL;
+    char **ppszNftablesChains = NULL;
+    PPMD_WSTRING_ARRAY pwszNftablesChains = NULL;
+
+    if (!hBinding || !pwszFamily || !pwszTable || !pwszChains || !ppwszNftablesChains)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateStringAFromW(pwszFamily, &pszFamily);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateStringAFromW(pwszTable, &pszTable);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateStringAFromW(pwszChains, &pszChains);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (ncm_nft_get_chains(pszFamily, pszTable, pszChains, &ppszNftablesChains) < 0)
+    {
+       dwError = ERROR_PMD_NET_CMD_FAIL;
+       BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if (ppszNftablesChains)
+    {
+       nCount = g_strv_length(ppszNftablesChains);
+    }
+    dwError = PMDRpcServerAllocateMemory(sizeof(PMD_WSTRING_ARRAY),
+                                         (void **)&pwszNftablesChains);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pwszNftablesChains->dwCount = 0;
+    if (nCount > 0)
+    {
+        dwError = PMDRpcServerAllocateMemory(
+                      sizeof(wstring_t) * nCount,
+                      (void **)&pwszNftablesChains->ppwszStrings);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        for (i = 0; i < nCount; i++)
+        {
+            dwError = PMDRpcServerAllocateWFromA(
+                          ppszNftablesChains[i],
+                          &pwszNftablesChains->ppwszStrings[i]);
+            BAIL_ON_PMD_ERROR(dwError);
+	    pwszNftablesChains->dwCount = pwszNftablesChains->dwCount + 1;
+        }
+    }
+    *ppwszNftablesChains = pwszNftablesChains;
+
+cleanup:
+    PMDFreeStringArrayWithCount(ppszNftablesChains, nCount);
+    PMD_SAFE_FREE_MEMORY(pszFamily);
+    PMD_SAFE_FREE_MEMORY(pszTable);
+    PMD_SAFE_FREE_MEMORY(pszChains);
+    return dwError;
+
+error:
+    if (ppwszNftablesChains)
+    {
+        *ppwszNftablesChains = NULL;
+    }
+    if (pwszNftablesChains != NULL)
+    {
+        for (i = 0; i < pwszNftablesChains->dwCount; i++)
+        {
+            PMDRpcServerFreeMemory(pwszNftablesChains->ppwszStrings[i]);
+        }
+        PMDRpcServerFreeMemory(pwszNftablesChains->ppwszStrings);
+        PMDRpcServerFreeMemory(pwszNftablesChains);
+    }
+    goto cleanup;
+}
+
+unsigned32
+netmgr_privsep_rpc_get_nft_rules(
+    handle_t hBinding,
+    wstring_t pwszTable,
+    wstring_t *ppwszNftableRules
+)
+{
+    uint32_t dwError = 0;
+    char *pszTable = NULL;
+    char *pszNftableRules = NULL;
+    wstring_t pwszNftableRules = NULL;
+
+    if (!hBinding || !pwszTable || !ppwszNftableRules)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateStringAFromW(pwszTable, &pszTable);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (ncm_get_nft_rules(pszTable, &pszNftableRules) < 0)
+    {
+       dwError = ERROR_PMD_NET_CMD_FAIL;
+       BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDRpcServerAllocateWFromA(pszNftableRules, &pwszNftableRules);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszNftableRules = pwszNftableRules;
+
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pszTable);
+    PMD_SAFE_FREE_MEMORY(pszNftableRules);
+    return dwError;
+error:
+    if (ppwszNftableRules)
+    {
+        *ppwszNftableRules = NULL;
     }
     goto cleanup;
 }

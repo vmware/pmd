@@ -81,6 +81,13 @@ interface netmgmt_privsep
     );
 
     unsigned32
+    netmgr_privsep_rpc_get_dhcp4_client_identifier(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszInterfaceName,
+        [out] wstring_t *ppwszDHCP4ClientIndentifier
+    );
+
+    unsigned32
     netmgr_privsep_rpc_get_dhcp_mode(
         [in] handle_t hBinding,
         [in] wstring_t pwszInterfaceName,
@@ -362,6 +369,33 @@ interface netmgmt_privsep
     netmgr_privsep_rpc_delete_ntp_servers(
         [in] handle_t hBinding,
         [in] PPMD_WSTRING_ARRAY pwszNtpServers
+    );
+
+    /*
+     * nft APIs
+     */
+    unsigned32
+    netmgr_privsep_rpc_nft_get_tables(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszFamily,
+        [in] wstring_t pwszTable,
+        [out] PPMD_WSTRING_ARRAY *ppwszNftables
+    );
+
+    unsigned32
+    netmgr_privsep_rpc_nft_get_chains(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszFamily,
+        [in] wstring_t pwszTable,
+        [in] wstring_t pwszChains,
+        [out] PPMD_WSTRING_ARRAY *ppwszNftablesChains
+    );
+
+    unsigned32
+    netmgr_privsep_rpc_get_nft_rules(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszTable,
+        [out] wstring_t *ppwszNftableRules
     );
 
     /*

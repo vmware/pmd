@@ -166,7 +166,7 @@ cleanup:
 error:
     if (ppwszMacAddress)
     {
-        ppwszMacAddress = NULL;
+        *ppwszMacAddress = NULL;
     }
     goto cleanup;
 }
@@ -298,6 +298,47 @@ cleanup:
     rpc_free_handle(hPMD);
     return dwError;
 error:
+    goto cleanup;
+}
+
+unsigned32
+netmgr_rpc_get_dhcp4_client_identifier(
+    handle_t hBinding,
+    wstring_t pwszIfname,
+    wstring_t *ppwszDHCPClientIndentifier
+)
+{
+    uint32_t dwError = 0;
+    wstring_t pwszDHCPClientIndentifier = NULL;
+    PPMDHANDLE hPMD = NULL;
+
+    if (!hBinding || !pwszIfname || !ppwszDHCPClientIndentifier)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_dhcp4_client_identifier_w(
+                  hPMD,
+                  pwszIfname,
+                  &pwszDHCPClientIndentifier);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszDHCPClientIndentifier = pwszDHCPClientIndentifier;
+
+cleanup:
+    rpc_free_handle(hPMD);
+    return dwError;
+error:
+    if (ppwszDHCPClientIndentifier)
+    {
+        *ppwszDHCPClientIndentifier = NULL;
+    }
     goto cleanup;
 }
 
@@ -1714,6 +1755,127 @@ error:
     goto cleanup;
 }
 
+unsigned32
+netmgr_rpc_nft_get_tables(
+    handle_t hBinding,
+    wstring_t pwszFamily,
+    wstring_t pwszTable,
+    PPMD_WSTRING_ARRAY *ppwszNftables
+    )
+{
+    uint32_t dwError = 0;
+    PPMD_WSTRING_ARRAY pwszNftables = NULL;
+    PPMDHANDLE hPMD = NULL;
+
+    if (!hBinding || !pwszFamily || !pwszTable || !ppwszNftables)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_nft_get_tables_w(hPMD, pwszFamily, pwszTable, &pwszNftables);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszNftables = pwszNftables;
+
+cleanup:
+    rpc_free_handle(hPMD);
+    return dwError;
+
+error:
+    if (ppwszNftables)
+    {
+        *ppwszNftables = NULL;
+    }
+    goto cleanup;
+}
+
+unsigned32
+netmgr_rpc_nft_get_chains(
+    handle_t hBinding,
+    wstring_t pwszFamily,
+    wstring_t pwszTable,
+    wstring_t pwszChains,
+    PPMD_WSTRING_ARRAY *ppwszNftablesChains
+    )
+{
+    uint32_t dwError = 0;
+    PPMD_WSTRING_ARRAY pwszNftablesChains = NULL;
+    PPMDHANDLE hPMD = NULL;
+
+    if (!hBinding || !pwszFamily || !pwszTable || !pwszChains || !ppwszNftablesChains)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_nft_get_chains_w(hPMD, pwszFamily, pwszTable, pwszChains, &pwszNftablesChains);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszNftablesChains = pwszNftablesChains;
+
+cleanup:
+    rpc_free_handle(hPMD);
+    return dwError;
+
+error:
+    if (ppwszNftablesChains)
+    {
+        *ppwszNftablesChains = NULL;
+    }
+    goto cleanup;
+}
+
+unsigned32
+netmgr_rpc_get_nft_rules(
+    handle_t hBinding,
+    const wstring_t pwszTable,
+    wstring_t *ppwszNftableRules
+)
+{
+    uint32_t dwError = 0;
+    wstring_t pwszNftableRules = NULL;
+    PPMDHANDLE hPMD = NULL;
+
+    if (!hBinding || !pwszTable || !ppwszNftableRules)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_nft_rules_w(
+                  hPMD,
+                  pwszTable,
+                  &pwszNftableRules);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszNftableRules = pwszNftableRules;
+
+cleanup:
+    rpc_free_handle(hPMD);
+    return dwError;
+error:
+    if (ppwszNftableRules)
+    {
+        *ppwszNftableRules = NULL;
+    }
+    goto cleanup;
+}
 
 /*
  * Misc APIs

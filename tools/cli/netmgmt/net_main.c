@@ -92,6 +92,32 @@ error:
 }
 
 uint32_t
+ncmcli_link_get_dhcp4_client_identifier(
+    PPMDHANDLE hPMD,
+    int argc,
+    char *argv[]
+)
+{
+    uint32_t dwError = 0;
+    char *pszGetDhcp4ClientIdentifier = NULL;
+
+    if(!hPMD || (argc <= 0) || !argv[1])
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+    dwError = netmgr_client_get_dhcp4_client_identifier(hPMD, argv[1], &pszGetDhcp4ClientIdentifier);
+    BAIL_ON_CLI_ERROR(dwError);
+    fprintf(stdout, "DHCP4ClientIndentifier=%s\n", pszGetDhcp4ClientIdentifier);
+cleanup:
+    /* Free allocated memory */
+    PMD_SAFE_FREE_MEMORY(pszGetDhcp4ClientIdentifier);
+    return dwError;
+error:
+    goto cleanup;
+}
+
+uint32_t
 ncmcli_link_get_dhcp_client_iaid(
     PPMDHANDLE hPMD,
     int argc,
@@ -157,7 +183,7 @@ ncmcli_link_get_mac_addr(
     uint32_t dwError = 0;
     char *ppszGetMacAddr = NULL;
 
-    if(!hPMD || !argv[1])
+    if(!hPMD || (argc <= 0) || !argv[1])
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_CLI_ERROR(dwError);
@@ -183,7 +209,7 @@ ncmcli_link_get_dhcp_mode(
     uint32_t dwError = 0;
     uint32_t nDHCPMode = 0;
 
-    if(!hPMD || !argv[1])
+    if(!hPMD || (argc <= 0) || !argv[1])
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_CLI_ERROR(dwError);
@@ -212,7 +238,7 @@ ncmcli_link_get_addresses(
     char **ppszAddresses = NULL;
     size_t nCount = 0;
 
-    if(!hPMD || !argv[1])
+    if(!hPMD || (argc <= 0) || !argv[1])
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_CLI_ERROR(dwError);
@@ -247,7 +273,7 @@ ncmcli_link_get_routes(
     char **ppszRoutes = NULL;
     size_t nCount = 0;
 
-    if(!hPMD || !argv[1])
+    if(!hPMD || (argc <= 0) || !argv[1])
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_CLI_ERROR(dwError);
@@ -282,7 +308,7 @@ ncmcli_link_get_ntp(
     char **ppszServers = NULL;
     size_t nServers = 0;
 
-    if(!hPMD || !argv[1])
+    if(!hPMD || (argc <= 0) || !argv[1])
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_CLI_ERROR(dwError);
@@ -318,7 +344,7 @@ ncmcli_get_dns_domains(
     size_t dwCount = 0, i = 0;
     char *pszDnsDomains = NULL, **ppszDnsDomains = NULL;
 
-    if(!hPMD)
+    if(!hPMD || (argc <= 0) || !argv)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_CLI_ERROR(dwError);
@@ -354,7 +380,7 @@ ncmcli_get_dns_server(
     size_t dwCount = 0, i = 0;
     char *s1, *s2, *pszServers = NULL, **ppszDnsServersList = NULL;
 
-    if(!hPMD)
+    if(!hPMD || (argc <= 0) || !argv)
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_CLI_ERROR(dwError);
@@ -374,6 +400,100 @@ ncmcli_get_dns_server(
 cleanup:
     /* Free allocated memory */
     PMDFreeStringArrayWithCount(ppszDnsServersList, dwCount);
+    return dwError;
+error:
+    goto cleanup;
+}
+
+uint32_t
+ncmcli_nft_get_tables(
+    PPMDHANDLE hPMD,
+    int argc,
+    char *argv[]
+)
+{
+    uint32_t dwError = 0, i = 0;
+    char **ppszNftTables = NULL;
+    size_t nCount = 0;
+
+    if(!hPMD || (argc <= 0) || !argv[1] || !argv[2])
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+    dwError = netmgr_client_nft_get_tables(hPMD, argv[1], argv[2], &nCount, &ppszNftTables);
+    BAIL_ON_CLI_ERROR(dwError);
+    fprintf(stdout, "Family:Tables\n");
+    for(i = 0; i < nCount; ++i)
+    {
+       fprintf(stdout,
+               "%s\n",
+               ppszNftTables[i]);
+    }
+
+cleanup:
+    /* Free allocated memory */
+    PMDFreeStringArrayWithCount(ppszNftTables, nCount);
+    return dwError;
+error:
+    goto cleanup;
+}
+
+uint32_t
+ncmcli_nft_get_chains(
+    PPMDHANDLE hPMD,
+    int argc,
+    char *argv[]
+)
+{
+    uint32_t dwError = 0, i = 0;
+    char **ppszNftChains = NULL;
+    size_t nCount = 0;
+
+    if(!hPMD || (argc <= 0) || !argv[1] || !argv[2] || !argv[3])
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+    dwError = netmgr_client_nft_get_chains(hPMD, argv[1], argv[2], argv[3], &nCount, &ppszNftChains);
+    BAIL_ON_CLI_ERROR(dwError);
+    fprintf(stdout, "Family:Tables:Chains\n");
+    for(i = 0; i < nCount; ++i)
+    {
+       fprintf(stdout,
+               "%s\n",
+               ppszNftChains[i]);
+    }
+cleanup:
+    /* Free allocated memory */
+    PMDFreeStringArrayWithCount(ppszNftChains, nCount);
+    return dwError;
+error:
+    goto cleanup;
+}
+
+uint32_t
+ncmcli_get_nft_rules(
+    PPMDHANDLE hPMD,
+    int argc,
+    char *argv[]
+)
+{
+    uint32_t dwError = 0;
+    char *ppszNftRules = NULL;
+
+    if(!hPMD || (argc <= 0) || !argv[1])
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+    dwError = netmgr_client_get_nft_rules(hPMD, argv[1], &ppszNftRules);
+    BAIL_ON_CLI_ERROR(dwError);
+    fprintf(stdout, "NFT Rules for table %s:\n", argv[1]);
+    fprintf(stdout, "%s\n",ppszNftRules);
+cleanup:
+    /* Free allocated memory */
+    PMD_SAFE_FREE_MEMORY(ppszNftRules);
     return dwError;
 error:
     goto cleanup;
