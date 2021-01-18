@@ -303,8 +303,8 @@ cleanup:
             ++pwszReposUsed;
         }
         PMD_SAFE_FREE_MEMORY(pCleanInfo->ppszReposUsed);
-        PMD_SAFE_FREE_MEMORY(pCleanInfo);
     }
+    PMD_SAFE_FREE_MEMORY(pCleanInfo);
     return pyPackageList;
 
 error:

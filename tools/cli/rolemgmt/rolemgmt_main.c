@@ -262,6 +262,7 @@ rolemgmt_cli_get_logs_cmd(
     uint32_t dwOffset = 0;
     uint32_t dwTaskLogCount = 0;
     PMD_ROLE_STATUS nStatus = ROLE_STATUS_NONE;
+    uint32_t i = 0;
 
     if(!hPMD || !pCmdArgs || IsNullOrEmptyString(pCmdArgs->pszTaskUUID))
     {
@@ -310,6 +311,14 @@ rolemgmt_cli_get_logs_cmd(
     }while(dwTaskLogCount > 0);
 
 cleanup:
+    if (pTaskLogs)
+    {
+        for(i = 0; i < dwTaskLogCount; ++i)
+        {
+            PMD_SAFE_FREE_MEMORY(pTaskLogs[i].pszLog);
+        }
+        PMD_SAFE_FREE_MEMORY(pTaskLogs);
+    }
     return dwError;
 
 error:
@@ -388,6 +397,15 @@ rolemgmt_cli_get_prereqs_cmd(
         }
     }
 cleanup:
+    if (pPrereqs)
+    {
+        for(i = 0; i < dwPrereqCount; ++i)
+        {
+            PMD_SAFE_FREE_MEMORY(pPrereqs[i].pszName);
+            PMD_SAFE_FREE_MEMORY(pPrereqs[i].pszDescription);
+        }
+        PMD_SAFE_FREE_MEMORY(pPrereqs);
+    }
     return dwError;
 
 error:
@@ -448,6 +466,7 @@ rolemgmt_cli_alter_cmd(
     PPMD_ROLEMGMT_TASK_LOG pTaskLogs = NULL;
     uint32_t dwTaskLogCount = 0;
     PMD_ROLE_STATUS nStatus = ROLE_STATUS_NONE;
+    uint32_t i = 0;
 
     if(!hPMD ||
        !pCmdArgs ||
@@ -522,6 +541,14 @@ rolemgmt_cli_alter_cmd(
     }
 
 cleanup:
+    if (pTaskLogs)
+    {
+        for(i = 0; i < dwTaskLogCount; ++i)
+        {
+            PMD_SAFE_FREE_MEMORY(pTaskLogs[i].pszLog);
+        }
+        PMD_SAFE_FREE_MEMORY(pTaskLogs);
+    }
     PMD_SAFE_FREE_MEMORY(pszConfigJson);
     PMD_SAFE_FREE_MEMORY(pszTaskUUID);
     return dwError;

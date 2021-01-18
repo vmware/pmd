@@ -5,7 +5,7 @@
 Summary:	Photon Management Daemon
 Name:		pmd
 Version:	@VERSION@
-Release:	beta1%{?dist}
+Release:	beta2%{?dist}
 License:	Apache 2.0
 URL:            https://www.github.com/vmware/pmd
 Group:		Applications/System
@@ -288,6 +288,8 @@ rm -rf %{buildroot}/*
     %{_python3_sitearch}/%{name}_python-*.egg-info
 
 %changelog
+*       Mon Jan 18 2021 Tapas Kundu <tkundu@vmware.com> 0.0.7-beta2
+-       Fixes based on coverity
 *       Wed Jan 06 2021 Tapas Kundu <tkundu@vmware.com> 0.0.7-beta1
 -       Check for /var/log/%{name}/restServer.log before replacing
 *       Tue Dec 22 2020 Tapas Kundu <tkundu@vmware.com> 0.0.7-beta

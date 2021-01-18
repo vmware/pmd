@@ -338,13 +338,7 @@ demo_rest_get_fav_json(
     void **ppOutputJson
     )
 {
-    uint32_t dwError = 0;
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    return dwError;
-error:
-    goto cleanup;
+    return 0;
 }
 
 uint32_t
@@ -353,13 +347,7 @@ demo_rest_set_fav_json(
     void **ppOutputJson
     )
 {
-    uint32_t dwError = 0;
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    return dwError;
-error:
-    goto cleanup;
+    return 0;
 }
 
 uint32_t
@@ -368,13 +356,7 @@ demo_rest_delete_fav_json(
     void **ppOutputJson
     )
 {
-    uint32_t dwError = 0;
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    return dwError;
-error:
-    goto cleanup;
+    return 0;
 }
 
 uint32_t
@@ -383,11 +365,5 @@ demo_rest_update_fav_json(
     void **ppOutputJson
     )
 {
-    uint32_t dwError = 0;
-    BAIL_ON_PMD_ERROR(dwError);
-
-cleanup:
-    return dwError;
-error:
-    goto cleanup;
+    return 0;
 }

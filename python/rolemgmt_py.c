@@ -239,6 +239,15 @@ rolemgmt_py_prereqs(
     }
 
 cleanup:
+    if (pPrereqs)
+    {
+        for(i = 0; i < dwPrereqCount; ++i)
+        {
+            PMD_SAFE_FREE_MEMORY(pPrereqs[i].pszName);
+            PMD_SAFE_FREE_MEMORY(pPrereqs[i].pszDescription);
+        }
+        PMD_SAFE_FREE_MEMORY(pPrereqs);
+    }
     return pyPrereqList;
 
 error:
@@ -408,6 +417,14 @@ printf("i = %d\n", i);
     }
 
 cleanup:
+    if (pTaskLogs)
+    {
+        for(i = 0; i < dwLogCount; ++i)
+        {
+            PMD_SAFE_FREE_MEMORY(pTaskLogs[i].pszLog);
+        }
+        PMD_SAFE_FREE_MEMORY(pTaskLogs);
+    }
     return pyTaskLogList;
 
 error:
