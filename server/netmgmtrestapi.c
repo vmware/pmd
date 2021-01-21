@@ -2217,6 +2217,7 @@ net_rest_get_link_info(
     json_t *pJson = NULL;
     const char *pszInputJson = NULL;
     NET_LINK_INFO *pLinkInfo = NULL;
+    NET_LINK_INFO *temp = NULL;
     PPMDHANDLE hPMD = NULL;
     PREST_FN_ARGS pArgs = (PREST_FN_ARGS)pInput;
 
@@ -2252,6 +2253,14 @@ cleanup:
         json_decref(pJson);
     }
     rpc_free_handle(hPMD);
+    while(pLinkInfo)
+    {
+        temp = pLinkInfo;
+        pLinkInfo = pLinkInfo->pNext;
+        PMD_SAFE_FREE_MEMORY(temp->pszInterfaceName);
+        PMD_SAFE_FREE_MEMORY(temp->pszMacAddress);
+        PMD_SAFE_FREE_MEMORY(temp);
+    }
     return dwError;
 
 error:
@@ -2511,6 +2520,7 @@ net_rest_put_link_mtu(
 cleanup:
     PMD_SAFE_FREE_MEMORY(pszIfName);
     PMD_SAFE_FREE_MEMORY(pszLinkMTU);
+    PMDFreeStringArrayWithCount(argv, argc);
     if(pJson)
     {
         json_decref(pJson);

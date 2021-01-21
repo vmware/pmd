@@ -277,6 +277,12 @@ pkg_py_clean(
     char *ppszCmdsC[] = {"clean"};
     char **pwszReposUsed = NULL;
 
+    if(!self || !self->hHandle)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
     stArgs.nCmdCount = 1;
     stArgs.ppszCmds = ppszCmdsC;
 

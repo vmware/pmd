@@ -359,6 +359,7 @@ pkg_rest_get_repolist(
     char *pszOutputJson = NULL;
     PTDNF_CMD_ARGS pArgs = NULL;
     PTDNF_REPO_DATA pRepoData = NULL;
+    PTDNF_REPO_DATA pRepo = NULL;
     const char *ppszCmds[] = {"repolist"};
     PPMDHANDLE hPMD = NULL;
     PREST_FN_ARGS pRestArgs = (PREST_FN_ARGS)pInput;
@@ -390,6 +391,18 @@ pkg_rest_get_repolist(
 cleanup:
     pkg_free_cmd_args(pArgs);
     rpc_free_handle(hPMD);
+    while(pRepoData)
+    {
+        pRepo = pRepoData;
+        PMD_SAFE_FREE_MEMORY(pRepo->pszId);
+        PMD_SAFE_FREE_MEMORY(pRepo->pszName);
+        PMD_SAFE_FREE_MEMORY(pRepo->pszBaseUrl);
+        PMD_SAFE_FREE_MEMORY(pRepo->pszMetaLink);
+        PMDFreeStringArray(pRepo->ppszUrlGPGKeys);
+
+        pRepoData = pRepo->pNext;
+        PMD_SAFE_FREE_MEMORY(pRepo);
+    }
     return dwError;
 
 error:

@@ -108,7 +108,11 @@ py_object_as_py_list(
     next = PyIter_Next(iter);
     while (next)
     {
-        PyList_Append(pList, next);
+        if (PyList_Append(pList, next) == -1)
+        {
+            dwError = ERROR_PMD_OUT_OF_MEMORY;
+            BAIL_ON_PMD_ERROR(dwError);
+        }
         Py_DECREF(next);
         next = PyIter_Next(iter);
     }
