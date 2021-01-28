@@ -93,7 +93,9 @@ rolemgmt_status_to_string(
         "not started",
         "in progress"
     };
-    nSize = sizeof(pszStrings)/sizeof(pszStrings[0]);
+
+    //substract nSize by 1 as index starts from 0
+    nSize = sizeof(pszStrings)/sizeof(pszStrings[0]) - 1;
 
     if(nStatus <= ROLE_STATUS_NONE ||
        nStatus > nSize ||

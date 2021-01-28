@@ -332,6 +332,38 @@ error:
 }
 
 static PyObject *
+get_link_dhcp4_client_identifier(
+    PPY_NET self,
+    PyObject *arg,
+    PyObject *kwds
+    )
+{
+    uint32_t dwError = 0;
+    char *pszDHCP4ClientIdentifier = NULL;
+    char *pszInterfaceName = NULL;
+    static char *kwlist[] = {"ifname", NULL};
+    PyObject *pyRes = Py_None;
+
+    if (!PyArg_ParseTupleAndKeywords(arg, kwds, "s", kwlist, &pszInterfaceName))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = netmgr_client_get_dhcp4_client_identifier(self->hHandle, pszInterfaceName, &pszDHCP4ClientIdentifier);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pyRes = Py_BuildValue("s", pszDHCP4ClientIdentifier);
+
+cleanup:
+    PMDFreeMemory(pszDHCP4ClientIdentifier);
+    return pyRes;
+error:
+    raise_netmgr_exception(self, dwError);
+    goto cleanup;
+}
+
+static PyObject *
 get_link_Addresses(
     PPY_NET self,
     PyObject *arg,
@@ -565,7 +597,7 @@ get_ntp_servers(
     PyObject *ptoAppend = Py_None;
     static char *kwlist[] = {"ifname", NULL};
 
-    if(!PyArg_ParseTupleAndKeywords(arg, kwds, "|s", kwlist, &pszInterfaceName))
+    if(!PyArg_ParseTupleAndKeywords(arg, kwds, "s", kwlist, &pszInterfaceName))
     {
         dwError = ERROR_PMD_INVALID_PARAMETER;
         BAIL_ON_PMD_ERROR(dwError);
@@ -592,6 +624,142 @@ get_ntp_servers(
 
 cleanup:
     PMDFreeStringArrayWithCount(ppszNtpServers, count);
+    return pyRes;
+error:
+    raise_netmgr_exception(self, dwError);
+    goto cleanup;
+}
+
+static PyObject *
+get_nft_tables(
+    PPY_NET self,
+    PyObject *arg,
+    PyObject *kwds
+    )
+{
+    uint32_t dwError = 0;
+    size_t i = 0, count = 0;
+    char *pszFamily = NULL;
+    char *pszTable = NULL;
+    char **ppszNftTables = NULL;
+    PyObject *pPyNftTablesList = Py_None;
+    PyObject *pyRes = Py_None;
+    PyObject *ptoAppend = Py_None;
+    static char *kwlist[] = {"family", "table", NULL};
+
+    if(!PyArg_ParseTupleAndKeywords(arg, kwds, "ss", kwlist, &pszFamily, &pszTable))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = netmgr_client_nft_get_tables(self->hHandle,
+                                            pszFamily,
+                                            pszTable,
+                                            &count,
+                                            &ppszNftTables);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pPyNftTablesList = PyList_New(0);
+    for (i = 0; i < count; i++)
+    {
+        ptoAppend = Py_BuildValue("s", ppszNftTables[i]);
+        if (PyList_Append(pPyNftTablesList, ptoAppend) == -1)
+        {
+            dwError = ERROR_PMD_OUT_OF_MEMORY;
+            BAIL_ON_PMD_ERROR(dwError);
+        }
+    }
+
+    pyRes = pPyNftTablesList;
+
+cleanup:
+    PMDFreeStringArrayWithCount(ppszNftTables, count);
+    return pyRes;
+error:
+    raise_netmgr_exception(self, dwError);
+    goto cleanup;
+}
+
+static PyObject *
+get_nft_chains(
+    PPY_NET self,
+    PyObject *arg,
+    PyObject *kwds
+    )
+{
+    uint32_t dwError = 0;
+    size_t i = 0, count = 0;
+    char *pszFamily = NULL;
+    char *pszTable = NULL;
+    char *pszChain = NULL;
+    char **ppszNftChains = NULL;
+    PyObject *pPyNftChainsList = Py_None;
+    PyObject *pyRes = Py_None;
+    PyObject *ptoAppend = Py_None;
+    static char *kwlist[] = {"family", "table", "chain", NULL};
+
+    if(!PyArg_ParseTupleAndKeywords(arg, kwds, "sss", kwlist, &pszFamily, &pszTable, &pszChain))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = netmgr_client_nft_get_chains(self->hHandle,
+                                            pszFamily,
+                                            pszTable,
+                                            pszChain,
+                                            &count,
+                                            &ppszNftChains);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pPyNftChainsList = PyList_New(0);
+    for (i = 0; i < count; i++)
+    {
+        ptoAppend = Py_BuildValue("s", ppszNftChains[i]);
+        if (PyList_Append(pPyNftChainsList, ptoAppend) == -1)
+        {
+            dwError = ERROR_PMD_OUT_OF_MEMORY;
+            BAIL_ON_PMD_ERROR(dwError);
+        }
+    }
+
+    pyRes = pPyNftChainsList;
+
+cleanup:
+    PMDFreeStringArrayWithCount(ppszNftChains, count);
+    return pyRes;
+error:
+    raise_netmgr_exception(self, dwError);
+    goto cleanup;
+}
+
+static PyObject *
+get_nft_rules(
+    PPY_NET self,
+    PyObject *arg,
+    PyObject *kwds
+    )
+{
+    uint32_t dwError = 0;
+    char *pszNftRules = NULL;
+    char *pszTable = NULL;
+    static char *kwlist[] = {"table", NULL};
+    PyObject *pyRes = Py_None;
+
+    if (!PyArg_ParseTupleAndKeywords(arg, kwds, "s", kwlist, &pszTable))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = netmgr_client_get_nft_rules(self->hHandle, pszTable, &pszNftRules);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pyRes = Py_BuildValue("s", pszNftRules);
+
+cleanup:
+    PMDFreeMemory(pszNftRules);
     return pyRes;
 error:
     raise_netmgr_exception(self, dwError);
@@ -771,6 +939,10 @@ static PyMethodDef net_methods[] =
      METH_VARARGS|METH_KEYWORDS,
      "net.get_link_mtu(ifname = interfacename\") \n\
      gets link mtu. returns link MTU if successful, exception on failure.\n"},
+    {"get_link_dhcp4_client_identifier", (PyCFunction)get_link_dhcp4_client_identifier,
+     METH_VARARGS|METH_KEYWORDS,
+     "net.get_link_dhcp4_client_identifier(ifname = interfacename\") \n\
+     gets link dhcp4 client identifier. returns link dhcp4 client identifier if successful, exception on failure.\n"},
     {"get_link_Addresses", (PyCFunction)get_link_Addresses,
      METH_VARARGS|METH_KEYWORDS,
      "net.get_link_Addresses(ifname = interfacename) \n\
@@ -798,6 +970,18 @@ static PyMethodDef net_methods[] =
      METH_VARARGS|METH_KEYWORDS,
      "net.get_ntp_servers() \n\
      get ntp servers. returns NTP servers list if successful, exception on failure.\n"},
+    {"get_nft_tables", (PyCFunction)get_nft_tables,
+     METH_VARARGS|METH_KEYWORDS,
+     "net.get_nft_tables(family = familyname, table = tablename) \n\
+     get nft tables. returns NFT Table list if successful, exception on failure.\n"},
+    {"get_nft_chains", (PyCFunction)get_nft_chains,
+     METH_VARARGS|METH_KEYWORDS,
+     "net.get_nft_chains(family = familyname, table = tablename, chain = chainname) \n\
+     get nft tables chains. returns NFT Table chain list if successful, exception on failure.\n"},
+    {"get_nft_rules", (PyCFunction)get_nft_rules,
+     METH_VARARGS|METH_KEYWORDS,
+     "net.get_nft_rules(table = tablename) \n\
+     get nft table rules. returns NFT Table rule list if successful, exception on failure.\n"},
     {"get_system_network_info", (PyCFunction)get_system_network_info,
      METH_VARARGS|METH_KEYWORDS, "net.get_system_network_info(ifname = interfacename)\n\
      get network info common to the entire system.\n"},

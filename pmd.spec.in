@@ -5,7 +5,7 @@
 Summary:	Photon Management Daemon
 Name:		pmd
 Version:	@VERSION@
-Release:	beta%{?dist}
+Release:	beta3%{?dist}
 License:	Apache 2.0
 URL:            https://www.github.com/vmware/pmd
 Group:		Applications/System
@@ -196,7 +196,9 @@ if [ $1 -eq 0 ] ; then
     if getent group %{name} >/dev/null; then
         /sbin/groupdel %{name}
     fi
-    mv /var/log/%{name}/restServer.log /var/log/%{name}/restServer.log.old
+    if [ -f /var/log/%{name}/restServer.log ]; then
+        mv /var/log/%{name}/restServer.log /var/log/%{name}/restServer.log.old
+    fi
 fi
 
 
@@ -286,6 +288,12 @@ rm -rf %{buildroot}/*
     %{_python3_sitearch}/%{name}_python-*.egg-info
 
 %changelog
+*       Thu Jan 21 2021 Tapas Kundu <tkundu@vmware.com> 0.0.7-beta3
+-       Fixed some more memory leaks
+*       Mon Jan 18 2021 Tapas Kundu <tkundu@vmware.com> 0.0.7-beta2
+-       Fixes based on coverity
+*       Wed Jan 06 2021 Tapas Kundu <tkundu@vmware.com> 0.0.7-beta1
+-       Check for /var/log/%{name}/restServer.log before replacing
 *       Tue Dec 22 2020 Tapas Kundu <tkundu@vmware.com> 0.0.7-beta
 -       Update to 0.0.7-beta release
 *       Thu Dec 17 2020 Ankit Jain <ankitja@vmware.com> 0.1-11

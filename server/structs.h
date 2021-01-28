@@ -38,7 +38,7 @@ typedef struct _PMD_ROLES_CONFIG_
 
 typedef struct _PMD_CONFIG_
 {
-    int nServerType;
+    uint32_t nServerType;
     char* pszCurrentHash;
     char* pszServerUrl;
     char* pszComposeServer;

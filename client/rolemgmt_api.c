@@ -187,6 +187,7 @@ rolemgmt_get_prereqs(
     PPMD_RPC_ROLEMGMT_PREREQ_ARRAY pPrereqArray = NULL;
     PPMD_ROLE_PREREQ pPrereqs = NULL;
     uint32_t dwPrereqCount = 0;
+    uint32_t dwCount = 0;
 
     if(!hHandle || IsNullOrEmptyString(pszName) || !ppPrereqs || !pdwPrereqCount)
     {
@@ -230,6 +231,7 @@ rolemgmt_get_prereqs(
                       pPrereqArray->pPrereqs[i].pwszDescription,
                       &pPrereqs[i].pszDescription);
         BAIL_ON_PMD_ERROR(dwError);
+        dwCount ++;
     }
 
     *ppPrereqs = pPrereqs;
@@ -240,9 +242,18 @@ cleanup:
     return dwError;
 
 error:
-    if(ppPrereqs)
+    if (ppPrereqs)
     {
         *ppPrereqs = NULL;
+    }
+    if (pPrereqs)
+    {
+        for (i = 0; i < dwCount; ++i)
+        {
+            PMD_SAFE_FREE_MEMORY(pPrereqs[i].pszName);
+            PMD_SAFE_FREE_MEMORY(pPrereqs[i].pszDescription);
+        }
+        PMD_SAFE_FREE_MEMORY(pPrereqs);
     }
     goto cleanup;
 }
@@ -368,6 +379,8 @@ rolemgmt_get_status(
     *pnStatus = nStatus;
 
 cleanup:
+    PMD_SAFE_FREE_MEMORY(pwszTaskUUID);
+    PMD_SAFE_FREE_MEMORY(pwszName);
     return dwError;
 
 error:

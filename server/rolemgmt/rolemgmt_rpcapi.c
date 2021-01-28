@@ -285,6 +285,8 @@ rolemgmt_rpc_role_get_status(
 
     *pnStatus = nStatus;
 cleanup:
+    PMD_SAFE_FREE_MEMORY(pszName);
+    PMD_SAFE_FREE_MEMORY(pszTaskUUID);
     return dwError;
 
 error:
@@ -335,6 +337,7 @@ rolemgmt_rpc_role_alter(
     *ppwszTaskUUID = pwszTaskUUID;
 
 cleanup:
+    PMD_SAFE_FREE_MEMORY(pszConfigJson);
     PMD_SAFE_FREE_MEMORY(pszName);
     return dwError;
 
@@ -423,6 +426,7 @@ rolemgmt_rpc_role_get_log(
 
     *ppTaskLogArray = pTaskLogArray;
 cleanup:
+    PMD_SAFE_FREE_MEMORY(pszTaskUUID);
     return dwError;
 
 error:

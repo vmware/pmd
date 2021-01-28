@@ -464,6 +464,7 @@ pmd_rolemgmt_role_create_task(
     dwError = PMDAllocateMemory(sizeof(PMD_PLUGIN_TASK), (void **)&pTask);
     BAIL_ON_PMD_ERROR(dwError);
 
+    pModule->pCurrentTask = pTask;
     pTask->tStart = time(NULL);
     pTask->pFnProgressCallback = rolemgmt_task_progress_cb;
     pTask->nOperation = nOperation;
@@ -483,7 +484,6 @@ pmd_rolemgmt_role_create_task(
 
     uuid_unparse(uuidTask, pTask->pszTaskUUID);
 
-    pModule->pCurrentTask = pTask;
     *ppTask = pTask;
 
 cleanup:
