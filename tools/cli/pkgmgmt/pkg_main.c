@@ -26,7 +26,6 @@ pkg_main(
     {
         {"autoerase",          TDNFCliAutoEraseCommand},
         {"autoremove",         TDNFCliAutoEraseCommand},
-        {"check",              TDNFCliCheckCommand},
         {"check-local",        TDNFCliCheckLocalCommand},
         {"check-update",       TDNFCliCheckUpdateCommand},
         {"clean",              TDNFCliCleanCommand},
