@@ -2999,6 +2999,7 @@ cleanup:
 error:
     goto cleanup;
 }
+
 uint32_t
 netmgr_client_get_dns_servers_w(
     PPMDHANDLE hHandle,
@@ -5366,3 +5367,190 @@ error:
     }
     goto cleanup;
 }
+
+uint32_t
+netmgr_client_get_link_status_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    wstring_t *ppwszLinkStatus
+)
+{
+    uint32_t dwError = 0;
+    wstring_t pwszLinkStatus = NULL;
+
+    if (!hHandle || !pwszIfname || !ppwszLinkStatus)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(netmgr_privsep_rpc_get_link_status(
+                   hHandle->hRpc,
+                   pwszIfname,
+                   &pwszLinkStatus),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(netmgr_rpc_get_link_status(
+                   hHandle->hRpc,
+                   pwszIfname,
+                   &pwszLinkStatus),
+                   dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszLinkStatus = pwszLinkStatus;
+
+cleanup:
+    return dwError;
+
+error:
+    if (ppwszLinkStatus)
+    {
+        *ppwszLinkStatus = NULL;
+    }
+    goto cleanup;
+}
+
+uint32_t
+netmgr_client_get_link_status(
+    PPMDHANDLE hHandle,
+    const char *pszIfname,
+    char **ppszLinkStatus
+)
+{
+    uint32_t dwError = 0;
+    wstring_t pwszIfname = NULL;
+    wstring_t pwszLinkStatus = NULL;
+    char *pszLinkStatus = NULL;
+
+    if (!hHandle || IsNullOrEmptyString(pszIfname) || !ppszLinkStatus)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateStringWFromA(pszIfname, &pwszIfname);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_link_status_w(
+                  hHandle,
+                  pwszIfname,
+                  &pwszLinkStatus);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (pwszLinkStatus)
+    {
+        dwError = PMDAllocateStringAFromW(pwszLinkStatus,
+                                          &pszLinkStatus);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    *ppszLinkStatus = pszLinkStatus;
+
+cleanup:
+    PMDFreeMemory(pwszIfname);
+    PMDRpcClientFreeMemory(pwszLinkStatus);
+    return dwError;
+
+error:
+    if (ppszLinkStatus)
+    {
+        *ppszLinkStatus = NULL;
+    }
+    PMD_SAFE_FREE_MEMORY(pszLinkStatus);
+    goto cleanup;
+}
+
+
+uint32_t
+netmgr_client_get_system_status_w(
+    PPMDHANDLE hHandle,
+    wstring_t *ppwszSystemStatus
+)
+{
+    uint32_t dwError = 0;
+    wstring_t pwszSystemStatus = NULL;
+
+    if (!hHandle || !ppwszSystemStatus)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if (hHandle->nPrivSep)
+    {
+        DO_RPC(netmgr_privsep_rpc_get_system_status(
+                   hHandle->hRpc,
+                   &pwszSystemStatus),
+                   dwError);
+    }
+    else
+    {
+        DO_RPC(netmgr_rpc_get_system_status(
+                   hHandle->hRpc,
+                   &pwszSystemStatus),
+                   dwError);
+    }
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszSystemStatus = pwszSystemStatus;
+
+cleanup:
+    return dwError;
+
+error:
+    if (ppwszSystemStatus)
+    {
+        *ppwszSystemStatus = NULL;
+    }
+    goto cleanup;
+}
+
+uint32_t
+netmgr_client_get_system_status(
+    PPMDHANDLE hHandle,
+    char **ppszSystemStatus
+)
+{
+    uint32_t dwError = 0;
+    wstring_t pwszSystemStatus = NULL;
+    char *pszSystemStatus = NULL;
+
+    if (!hHandle || !ppszSystemStatus)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = netmgr_client_get_system_status_w(
+                  hHandle,
+                  &pwszSystemStatus);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (pwszSystemStatus)
+    {
+        dwError = PMDAllocateStringAFromW(pwszSystemStatus,
+                                          &pszSystemStatus);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    *ppszSystemStatus = pszSystemStatus;
+
+cleanup:
+    PMDRpcClientFreeMemory(pwszSystemStatus);
+    return dwError;
+
+error:
+    if (ppszSystemStatus)
+    {
+        *ppszSystemStatus = NULL;
+    }
+    PMD_SAFE_FREE_MEMORY(pszSystemStatus);
+    goto cleanup;
+}
+
+

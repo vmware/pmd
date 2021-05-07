@@ -527,6 +527,66 @@ error:
 }
 
 uint32_t
+ncmcli_get_link_status(
+    PPMDHANDLE hPMD,
+    int argc,
+    char *argv[]
+    )
+{
+    uint32_t dwError = 0;
+    char *pszLinkStatus = NULL;
+    char *pszLinkStatusExt = NULL;
+
+    if(!hPMD || (argc <= 0) || !argv[1])
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+    dwError = netmgr_client_get_link_status(hPMD, argv[1], &pszLinkStatus);
+    BAIL_ON_CLI_ERROR(dwError);
+    dwError = net_cli_convert_json_string(pszLinkStatus, &pszLinkStatusExt);
+    BAIL_ON_CLI_ERROR(dwError);
+    fprintf(stdout, "%s\n", pszLinkStatusExt);
+cleanup:
+    /* Free allocated memory */
+    PMDFreeMemory(pszLinkStatus);
+    PMDFreeMemory(pszLinkStatusExt);
+    return dwError;
+error:
+    goto cleanup;
+}
+
+uint32_t
+ncmcli_get_system_status(
+    PPMDHANDLE hPMD,
+    int argc,
+    char *argv[]
+    )
+{
+    uint32_t dwError = 0;
+    char *pszSystemStatus = NULL;
+    char *pszSystemStatusExt = NULL;
+
+    if(!hPMD)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+    dwError = netmgr_client_get_system_status(hPMD, &pszSystemStatus);
+    BAIL_ON_CLI_ERROR(dwError);
+    dwError = net_cli_convert_json_string(pszSystemStatus, &pszSystemStatusExt);
+    BAIL_ON_CLI_ERROR(dwError);
+    fprintf(stdout, "%s\n", pszSystemStatusExt);
+cleanup:
+    /* Free allocated memory */
+    PMDFreeMemory(pszSystemStatus);
+    PMDFreeMemory(pszSystemStatusExt);
+    return dwError;
+error:
+    goto cleanup;
+}
+
+uint32_t
 netmgr_main(
     int argc,
     char* const* argv,

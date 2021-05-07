@@ -120,7 +120,7 @@ class TestCLINetwork(unittest.TestCase):
         subprocess.check_call(['sleep', '5'])
         output = check_call(['pmd-cli', 'net', '-v'])
         print(output)
-        self.assertRegex(output, '0.2')
+        self.assertRegex(output, '0.4')
         self.teardown_method()
 
     def test_cli_is_networkd_running(self):
@@ -134,6 +134,32 @@ class TestCLINetwork(unittest.TestCase):
         output = check_call(['pmd-cli', 'net', 'is-networkd-running'])
         print(output)
         self.assertRegex(output, 'Running')
+        self.teardown_method()
+
+    def test_cli_get_status(self):
+        self.setup_method()
+        assert(link_exits('test99') == True)
+
+        check_call(['pmd-cli', 'net', 'set-link-mode', 'test99', 'yes'])
+        assert(unit_exits('10-test99.network') == True)
+
+        subprocess.check_call(['sleep', '5'])
+        output = check_call(['pmd-cli', 'net', 'status'])
+        print(output)
+        self.assertRegex(output, 'System Name')
+        self.teardown_method()
+
+    def test_cli_get_show_link(self):
+        self.setup_method()
+        assert(link_exits('test99') == True)
+
+        check_call(['pmd-cli', 'net', 'set-link-mode', 'test99', 'yes'])
+        assert(unit_exits('10-test99.network') == True)
+
+        subprocess.check_call(['sleep', '5'])
+        output = check_call(['pmd-cli', 'net', 'show', 'eth0'])
+        print(output)
+        self.assertRegex(output, 'HWAddress')
         self.teardown_method()
 
     def test_cli_set_mtu(self):
@@ -239,7 +265,7 @@ class TestCLINetwork(unittest.TestCase):
         parser.read(os.path.join(networkd_unit_file_path, '10-test99.network'))
 
         assert(parser.get('Match', 'Name') == 'test99')
-        assert(parser.get('DHCP', 'IAID') == '5555')
+        assert(parser.get('DHCPv4', 'IAID') == '5555')
         # TODO: Issue from NCM
         #output = check_call(['pmd-cli', 'net', 'get-dhcp-iaid', 'test99'])
         #print(output)
@@ -254,13 +280,20 @@ class TestCLINetwork(unittest.TestCase):
         assert(unit_exits('10-test99.network') == True)
 
         subprocess.check_call(['sleep', '5'])
-        check_call(['pmd-cli', 'net', 'add-link-address', 'test99', '192.168.1.45/24'])
+        check_call(['pmd-cli', 'net', 'add-link-address', 'test99', 'address', '192.168.1.45/24', 'peer',
+                               '192.168.1.46/24', 'dad', 'ipv4', 'scope', 'link', 'pref-lifetime', 'forever',
+                               'prefix-route', 'yes', 'label', '3434'])
 
         parser = configparser.ConfigParser()
         parser.read(os.path.join(networkd_unit_file_path, '10-test99.network'))
-
         assert(parser.get('Match', 'Name') == 'test99')
         assert(parser.get('Address', 'Address') == '192.168.1.45/24')
+        assert(parser.get('Address', 'Peer') == '192.168.1.46/24')
+        assert(parser.get('Address', 'Scope') == 'link')
+        assert(parser.get('Address', 'PreferredLifetime') == 'forever')
+        assert(parser.get('Address', 'AddPrefixRoute') == 'yes')
+        assert(parser.get('Address', 'DuplicateAddressDetection') == 'ipv4')
+        assert(parser.get('Address', 'Label') == '3434')
         output = check_call(['pmd-cli', 'net', 'get-link-address', 'test99'])
         print(output)
         self.assertRegex(output, '192.168.1.45/24')
@@ -274,22 +307,23 @@ class TestCLINetwork(unittest.TestCase):
         assert(unit_exits('10-test99.network') == True)
 
         subprocess.check_call(['sleep', '5'])
-        check_call(['pmd-cli', 'net', 'add-link-address', 'test99', '192.168.1.45/24'])
+        check_call(['pmd-cli', 'net', 'add-link-address', 'test99', 'address', '192.168.1.45/24', 'peer',
+                               '192.168.1.46/24', 'dad', 'ipv4', 'scope', 'link', 'pref-lifetime', 'forever',
+                               'prefix-route', 'yes', 'label', '3434'])
         parser = configparser.ConfigParser()
         parser.read(os.path.join(networkd_unit_file_path, '10-test99.network'))
 
         assert(parser.get('Match', 'Name') == 'test99')
         assert(parser.get('Address', 'Address') == '192.168.1.45/24')
 
-        check_call(['pmd-cli', 'net', 'set-link-state', 'test99', 'up'])
-
-        check_call(['pmd-cli', 'net', 'add-default-gateway', 'test99', '192.168.1.1', 'onlink', 'true'])
+        check_call(['pmd-cli', 'net', 'add-default-gateway', 'test99', 'gw', '192.168.1.1', 'onlink', 'true'])
 
         parser = configparser.ConfigParser()
         parser.read(os.path.join(networkd_unit_file_path, '10-test99.network'))
 
         assert(parser.get('Match', 'Name') == 'test99')
         assert(parser.get('Route', 'Gateway') == '192.168.1.1')
+        assert(parser.get('Route', 'GatewayOnLink') == 'yes')
         self.teardown_method()
 
     def test_cli_add_route(self):
@@ -300,25 +334,59 @@ class TestCLINetwork(unittest.TestCase):
         assert(unit_exits('10-test99.network') == True)
 
         subprocess.check_call(['sleep', '5'])
-        check_call(['pmd-cli', 'net', 'add-link-address', 'test99', '192.168.1.45/24'])
+        check_call(['pmd-cli', 'net', 'add-link-address', 'test99', 'address', '192.168.1.45/24', 'peer',
+                               '192.168.1.46/24', 'dad', 'ipv4', 'scope', 'link', 'pref-lifetime', 'forever',
+                               'prefix-route', 'yes', 'label', '3434'])
         parser = configparser.ConfigParser()
         parser.read(os.path.join(networkd_unit_file_path, '10-test99.network'))
 
         assert(parser.get('Match', 'Name') == 'test99')
         assert(parser.get('Address', 'Address') == '192.168.1.45/24')
 
-        check_call(['pmd-cli', 'net', 'add-route', 'test99', '10.10.10.10'])
+        check_call(['pmd-cli', 'net', 'add-route', 'test99', 'gw', '192.168.1.1', 'dest', '192.168.1.2', 'metric', '111', 'scope',
+                               'link', 'mtu', '1400', 'table', 'local', 'proto', 'static', 'type', 'unicast', 'onlink', 'yes', 'ipv6-pref',
+                               'medium', 'src', '192.168.1.4'])
 
         parser = configparser.ConfigParser()
         parser.read(os.path.join(networkd_unit_file_path, '10-test99.network'))
 
         assert(parser.get('Match', 'Name') == 'test99')
-        assert(parser.get('Route', 'Destination') == '10.10.10.10')
+        assert(parser.get('Route', 'Destination') == '192.168.1.2')
+        assert(parser.get('Route', 'Gateway') == '192.168.1.1')
+        assert(parser.get('Route', 'GatewayOnLink') == 'yes')
+        assert(parser.get('Route', 'Metric') == '111')
+        assert(parser.get('Route', 'MTUBytes') == '1400')
+        assert(parser.get('Route', 'Protocol') == 'static')
+        assert(parser.get('Route', 'Scope') == 'link')
+        assert(parser.get('Route', 'Table') == 'local')
+        assert(parser.get('Route', 'IPv6Preference') == 'medium')
+        assert(parser.get('Route', 'Source') == '192.168.1.4')
         # TODO: Issue from NCM
         #subprocess.check_call(['sleep', '5'])
         #output = check_call(['pmd-cli', 'net', 'get-link-route', 'test99'])
         #print(output)
         #self.assertRegex(output, '10.10.10.10')
+        self.teardown_method()
+
+    def test_cli_add_routing_policy_rule(self):
+        self.setup_method()
+        assert(link_exits('test99') == True)
+
+        check_call(['pmd-cli', 'net', 'add-rule', 'test99', 'table', '10', 'to', '192.168.1.2/24', 'from', '192.168.1.3/24',
+                               'oif', 'test99', 'iif', 'test99', 'tos','0x12'])
+        assert(unit_exits('10-test99.network') == True)
+
+        subprocess.check_call(['sleep', '5'])
+        parser = configparser.ConfigParser()
+        parser.read(os.path.join(networkd_unit_file_path, '10-test99.network'))
+
+        assert(parser.get('Match', 'Name') == 'test99')
+        assert(parser.get('RoutingPolicyRule', 'Table') == '10')
+        assert(parser.get('RoutingPolicyRule', 'From') == '192.168.1.3/24')
+        assert(parser.get('RoutingPolicyRule', 'To') == '192.168.1.2/24')
+        assert(parser.get('RoutingPolicyRule', 'TypeOfService') == '0x12')
+        assert(parser.get('RoutingPolicyRule', 'OutgoingInterface') == 'test99')
+        assert(parser.get('RoutingPolicyRule', 'IncomingInterface') == 'test99')
         self.teardown_method()
 
     def test_cli_add_dns(self):
@@ -652,6 +720,7 @@ class TestCLINetwork(unittest.TestCase):
         assert(parser.get('Match', 'Name') == 'test99')
         assert(parser.get('Network', 'EmitLLDP') == 'true')
         self.teardown_method()
+
 
 class TestCLINetDev(unittest.TestCase):
 
@@ -1436,6 +1505,149 @@ class TestNFTable(unittest.TestCase):
         print(output)
         self.assertNotRegex(output, 'udp dport 9999 counter packets 0 bytes 0 accept')
         self.teardown_method()
+
+class TestCLIDHCPv4Server(unittest.TestCase):
+    def setup_method(self):
+        link_remove('test99')
+        link_add_dummy('test99')
+        restart_networkd()
+        subprocess.check_call(['sleep', '3'])
+
+    def teardown_method(self):
+        subprocess.check_call(['sleep', '3'])
+        remove_units_from_netword_unit_path()
+        subprocess.check_call(['sleep', '1'])
+        link_remove('test99')
+
+    def test_cli_configure_dhcpv4_server(self):
+        self.setup_method()
+        assert(link_exits('test99') == True)
+
+        check_call(['pmd-cli', 'net', 'set-link-mode', 'test99', 'yes'])
+        assert(unit_exits('10-test99.network') == True)
+
+        check_call(['pmd-cli', 'net', 'add-dhcpv4-server', 'test99', 'pool-offset',
+                               '10', 'pool-size', '20', 'default-lease-time', '100',
+                               'max-lease-time', '200', 'emit-dns', 'yes', 'dns', '192.168.1.1',
+                               'emit-router', 'yes'])
+
+        subprocess.check_call(['sleep', '3'])
+
+        parser = configparser.ConfigParser()
+        parser.read(os.path.join(networkd_unit_file_path, '10-test99.network'))
+
+        assert(parser.get('Match', 'Name') == 'test99')
+
+        assert(parser.get('Network', 'DHCPServer') == 'yes')
+
+        assert(parser.get('DHCPServer', 'PoolOffset') == '10')
+        assert(parser.get('DHCPServer', 'PoolSize') == '20')
+        assert(parser.get('DHCPServer', 'DefaultLeaseTimeSec') == '100')
+        assert(parser.get('DHCPServer', 'MaxLeaseTimeSec') == '200')
+        assert(parser.get('DHCPServer', 'EmitDNS') == 'yes')
+        assert(parser.get('DHCPServer', 'DNS') == '192.168.1.1')
+        assert(parser.get('DHCPServer', 'EmitRouter') == 'yes')
+        self.teardown_method()
+
+class TestCLIIPv6RA(unittest.TestCase):
+    def setup_method(self):
+        link_remove('test99')
+        link_add_dummy('test99')
+        restart_networkd()
+        subprocess.check_call(['sleep', '3'])
+
+    def teardown_method(self):
+        subprocess.check_call(['sleep', '3'])
+        remove_units_from_netword_unit_path()
+        subprocess.check_call(['sleep', '1'])
+        link_remove('test99')
+
+    def test_cli_configure_ipv6ra(self):
+        self.setup_method()
+        assert(link_exits('test99') == True)
+
+        check_call(['pmd-cli', 'net', 'set-link-mode', 'test99', 'yes'])
+        assert(unit_exits('10-test99.network') == True)
+
+        check_call(['pmd-cli', 'net', 'add-ipv6ra', 'test99', 'prefix', '2002:da8:1:0::/64',
+                               'pref-lifetime', '100', 'valid-lifetime', '200', 'assign', 'yes',
+                               'managed', 'yes', 'emit-dns', 'yes', 'dns', '2002:da8:1:0::1',
+                               'domain', 'test.com', 'emit-domain', 'yes', 'dns-lifetime', '100', 'router-pref', 'medium',
+                               'route-prefix', '2001:db1:fff::/64', 'route-lifetime', '1000'])
+
+        subprocess.check_call(['sleep', '3'])
+
+        parser = configparser.ConfigParser()
+        parser.read(os.path.join(networkd_unit_file_path, '10-test99.network'))
+
+        assert(parser.get('Match', 'Name') == 'test99')
+
+        assert(parser.get('Network', 'IPv6SendRA') == 'yes')
+
+        assert(parser.get('IPv6Prefix', 'Prefix') == '2002:da8:1::/64')
+        assert(parser.get('IPv6Prefix', 'PreferredLifetimeSec') == '100')
+        assert(parser.get('IPv6Prefix', 'ValidLifetimeSec') == '200')
+
+        assert(parser.get('IPv6SendRA', 'RouterPreference') == 'medium')
+        assert(parser.get('IPv6SendRA', 'DNS') == '2002:da8:1::1')
+        assert(parser.get('IPv6SendRA', 'EmitDNS') == 'yes')
+        assert(parser.get('IPv6SendRA', 'Assign') == 'yes')
+        assert(parser.get('IPv6SendRA', 'DNSLifetimeSec') == '100')
+        assert(parser.get('IPv6SendRA', 'Domains') == 'test.com')
+
+        assert(parser.get('IPv6RoutePrefix', 'LifetimeSec') == '1000')
+        assert(parser.get('IPv6RoutePrefix', 'Route') == '2001:db1:fff::/64')
+        self.teardown_method()
+
+class TestCLIGlobalDNSDomain(unittest.TestCase):
+    def test_cli_configure_global_dns_server(self):
+        check_call(['pmd-cli', 'net', 'add-dns', 'global', '8.8.4.4', '8.8.8.8', '8.8.8.1', '8.8.8.2'])
+
+        subprocess.check_call(['sleep', '3'])
+
+        parser = configparser.ConfigParser()
+        parser.read('/etc/systemd/resolved.conf')
+
+        assert(parser.get('Resolve', 'DNS') == '8.8.4.4 8.8.8.1 8.8.8.2 8.8.8.8')
+
+    def test_cli_configure_global_domain_server(self):
+        check_call(['pmd-cli', 'net', 'add-domain', 'global', 'test1', 'test2'])
+
+        subprocess.check_call(['sleep', '3'])
+
+        parser = configparser.ConfigParser()
+        parser.read('/etc/systemd/resolved.conf')
+
+        assert(parser.get('Resolve', 'Domains') == 'test1 test2')
+
+class TestCLINetworkProxy(unittest.TestCase):
+    def test_cli_configure_network_proxy(self):
+
+        if not os.path.exists("/etc/sysconfig/"):
+                os.mkdir("/etc/sysconfig/")
+
+        f = open("/etc/sysconfig/proxy", "w")
+        f.write("PROXY_ENABLED=\"no\"\nHTTP_PROXY=""\nHTTPS_PROXY=""\nNO_PROXY=\"localhost, 127.0.0.1\"\n")
+        f.close()
+
+        check_call(['pmd-cli', 'net', 'set-proxy', 'enable', 'yes', 'http', 'http://test.com:123', 'https', 'https://test.com:123'])
+
+        dictionary = {}
+        file = open("/etc/sysconfig/proxy")
+
+        lines = file.read().split('\n')
+
+        for line in lines:
+            if line == '':
+                 continue
+            pair = line.split('=')
+            dictionary[pair[0].strip('\'\'\"\"')] = pair[1].strip('\'\'\"\"')
+
+        assert(dictionary["HTTP_PROXY"] == "http://test.com:123")
+        assert(dictionary["HTTPS_PROXY"] == "https://test.com:123")
+        assert(dictionary["PROXY_ENABLED"] == "yes")
+
+        check_call(['pmd-cli', 'net', 'set-proxy', 'enable', 'yes', 'http', 'http://test.com:123', 'ftp', 'https://test.com123'])
 
 def main():
     global serverip

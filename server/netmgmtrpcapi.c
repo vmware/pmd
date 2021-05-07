@@ -1715,7 +1715,6 @@ error:
     goto cleanup;
 }
 
-
 unsigned32
 netmgr_rpc_get_ntp_servers(
     handle_t hBinding,
@@ -2140,3 +2139,87 @@ error:
     }
     goto cleanup;
 }
+
+unsigned32
+netmgr_rpc_get_link_status(
+    handle_t hBinding,
+    wstring_t pwszIfname,
+    wstring_t *ppwszLinkStatus
+    )
+{
+    uint32_t dwError = 0;
+    wstring_t pwszLinkStatus = NULL;
+    PPMDHANDLE hPMD = NULL;
+
+    if (!hBinding || !pwszIfname || !ppwszLinkStatus)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_link_status_w(
+                  hPMD,
+                  pwszIfname,
+                  &pwszLinkStatus);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszLinkStatus = pwszLinkStatus;
+
+cleanup:
+    rpc_free_handle(hPMD);
+    return dwError;
+
+error:
+    if (ppwszLinkStatus)
+    {
+        *ppwszLinkStatus = NULL;
+    }
+    goto cleanup;
+}
+
+unsigned32
+netmgr_rpc_get_system_status(
+    handle_t hBinding,
+    wstring_t *ppwszSystemStatus
+    )
+{
+    uint32_t dwError = 0;
+    wstring_t pwszSystemStatus = NULL;
+    PPMDHANDLE hPMD = NULL;
+
+    if (!hBinding || !ppwszSystemStatus)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    CHECK_RPC_ACCESS(hBinding, dwError);
+
+    dwError = rpc_open_privsep_internal(NET_PRIVSEP, &hPMD);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = netmgr_client_get_system_status_w(
+                  hPMD,
+                  &pwszSystemStatus);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszSystemStatus = pwszSystemStatus;
+
+cleanup:
+    rpc_free_handle(hPMD);
+    return dwError;
+
+error:
+    if (ppwszSystemStatus)
+    {
+        *ppwszSystemStatus = NULL;
+    }
+    goto cleanup;
+}
+
+

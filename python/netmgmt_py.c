@@ -767,6 +767,64 @@ error:
 }
 
 static PyObject *
+get_link_status(
+    PPY_NET self,
+    PyObject *arg,
+    PyObject *kwds
+    )
+{
+    uint32_t dwError = 0;
+    char *pszLinkStatus = NULL;
+    char *pszInterfaceName = NULL;
+    static char *kwlist[] = {"ifname", NULL};
+    PyObject *pyRes = Py_None;
+
+    if (!PyArg_ParseTupleAndKeywords(arg, kwds, "s", kwlist, &pszInterfaceName))
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = netmgr_client_get_link_status(self->hHandle, pszInterfaceName, &pszLinkStatus);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pyRes = Py_BuildValue("s", pszLinkStatus);
+
+cleanup:
+    PMDFreeMemory(pszLinkStatus);
+    return pyRes;
+
+error:
+    raise_netmgr_exception(self, dwError);
+    goto cleanup;
+}
+
+static PyObject *
+get_system_status(
+    PPY_NET self,
+    PyObject *arg,
+    PyObject *kwds
+    )
+{
+    uint32_t dwError = 0;
+    char *pszSystemStatus = NULL;
+    PyObject *pyRes = Py_None;
+
+    dwError = netmgr_client_get_system_status(self->hHandle, &pszSystemStatus);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pyRes = Py_BuildValue("s", pszSystemStatus);
+
+cleanup:
+    PMDFreeMemory(pszSystemStatus);
+    return pyRes;
+
+error:
+    raise_netmgr_exception(self, dwError);
+    goto cleanup;
+}
+
+static PyObject *
 get_system_network_info(
     PPY_NET self,
     PyObject *arg,
@@ -982,6 +1040,14 @@ static PyMethodDef net_methods[] =
      METH_VARARGS|METH_KEYWORDS,
      "net.get_nft_rules(table = tablename) \n\
      get nft table rules. returns NFT Table rule list if successful, exception on failure.\n"},
+    {"get_link_status", (PyCFunction)get_link_status,
+     METH_VARARGS|METH_KEYWORDS,
+     "net.get_link_status(ifname = interfacename\") \n\
+     get link status. returns Link status if successful, exception on failure.\n"},
+    {"get_system_status", (PyCFunction)get_system_status,
+     METH_VARARGS|METH_KEYWORDS,
+     "net.get_system_status() \n\
+     get system status. returns system status if successful, exception on failure.\n"},
     {"get_system_network_info", (PyCFunction)get_system_network_info,
      METH_VARARGS|METH_KEYWORDS, "net.get_system_network_info(ifname = interfacename)\n\
      get network info common to the entire system.\n"},

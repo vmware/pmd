@@ -163,6 +163,7 @@ cleanup:
     PMD_SAFE_FREE_MEMORY(pszMacAddr);
     return dwError;
 error:
+    PMDRpcServerFreeMemory(pwszMacAddress);
     if (ppwszMacAddress)
     {
         *ppwszMacAddress = NULL;
@@ -348,6 +349,7 @@ cleanup:
     PMD_SAFE_FREE_MEMORY(pszDHCP4ClientIndentifier);
     return dwError;
 error:
+    PMDRpcServerFreeMemory(pwszDHCP4ClientIndentifier);
     if (ppwszDHCP4ClientIndentifier)
     {
         *ppwszDHCP4ClientIndentifier = NULL;
@@ -1544,6 +1546,7 @@ cleanup:
     PMD_SAFE_FREE_MEMORY(pszNftableRules);
     return dwError;
 error:
+    PMDRpcServerFreeMemory(pwszNftableRules);
     if (ppwszNftableRules)
     {
         *ppwszNftableRules = NULL;
@@ -1601,6 +1604,7 @@ cleanup:
     PMD_SAFE_FREE_MEMORY(pszHostname);
     return dwError;
 error:
+    PMDRpcServerFreeMemory(pwszHostname);
     if (ppwszHostname)
     {
         ppwszHostname = NULL;
@@ -1690,3 +1694,96 @@ netmgr_privsep_rpc_get_network_param(
     uint32_t dwError = ERROR_PMD_NET_UNSUPPORTED_CMD;
     return dwError;
 }
+
+unsigned32
+netmgr_privsep_rpc_get_link_status(
+    handle_t hBinding,
+    wstring_t pwszInterfaceName,
+    wstring_t *ppwszLinkStatus
+    )
+{
+    uint32_t dwError = 0;
+    char *pszIfName = NULL;
+    char *pszLinkStatus = NULL;
+    wstring_t pwszLinkStatus = NULL;
+
+    if (!hBinding || !pwszInterfaceName || !ppwszLinkStatus)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDAllocateStringAFromW(pwszInterfaceName, &pszIfName);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (ncm_get_link_status(pszIfName, &pszLinkStatus) < 0)
+    {
+        dwError = ERROR_PMD_NET_CMD_FAIL;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDRpcServerAllocateWFromA(pszLinkStatus, &pwszLinkStatus);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszLinkStatus = pwszLinkStatus;
+
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pszIfName);
+    PMD_SAFE_FREE_MEMORY(pszLinkStatus);
+    return dwError;
+
+error:
+    PMDRpcServerFreeMemory(pwszLinkStatus);
+    if (ppwszLinkStatus)
+    {
+        *ppwszLinkStatus = NULL;
+    }
+    goto cleanup;
+}
+
+unsigned32
+netmgr_privsep_rpc_get_system_status(
+    handle_t hBinding,
+    wstring_t *ppwszSystemStatus
+    )
+{
+    uint32_t dwError = 0;
+    char *pszSystemStatus = NULL;
+    wstring_t pwszSystemStatus = NULL;
+
+    if (!hBinding || !ppwszSystemStatus)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    if (ncm_get_system_status(&pszSystemStatus) < 0)
+    {
+        dwError = ERROR_PMD_NET_CMD_FAIL;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDRpcServerAllocateWFromA(pszSystemStatus, &pwszSystemStatus);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    *ppwszSystemStatus = pwszSystemStatus;
+
+cleanup:
+    PMD_SAFE_FREE_MEMORY(pszSystemStatus);
+    return dwError;
+
+error:
+    PMDRpcServerFreeMemory(pwszSystemStatus);
+    if (ppwszSystemStatus)
+    {
+        *ppwszSystemStatus = NULL;
+    }
+    goto cleanup;
+}
+

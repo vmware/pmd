@@ -518,6 +518,19 @@ netmgr_client_get_network_param(
     const char *pszParamName,
     char **ppszParamValue);
 
+uint32_t
+netmgr_client_get_link_status(
+    PPMDHANDLE hHandle,
+    const char *pszIfname,
+    char **ppszLinkStatus
+    );
+
+uint32_t
+netmgr_client_get_system_status(
+    PPMDHANDLE hHandle,
+    char **ppszSystemStatus
+    );
+
 #ifdef __cplusplus
 }
 #endif

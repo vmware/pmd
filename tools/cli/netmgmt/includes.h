@@ -23,4 +23,5 @@
 #include "prototypes.h"
 #include "netmgmt_h.h"
 #include <network-config-manager.h>
+#include <json.h>
 #include "pmd_netmgr.h"

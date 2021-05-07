@@ -17,6 +17,12 @@
 
 #define WORD_ANY ((unsigned) -1)
 #define ELEMENTSOF(x) (sizeof(x)/sizeof((x)[0]))
+#define steal_pointer(ptr)                  \
+    ({                                      \
+            typeof(ptr) _ptr_ = (ptr);      \
+            (ptr) = NULL;                   \
+            _ptr_;                          \
+    })
 
 uint32_t
 net_cli_manager_new(
@@ -48,6 +54,12 @@ net_print_error(
 const char *
 net_dhcp_modes_to_name(
     int id
+    );
+
+uint32_t
+net_cli_convert_json_string(
+    const char *pszJsonString,
+    char **ppszJsonStringExt
     );
 
 uint32_t
@@ -168,4 +180,19 @@ ncmcli_get_nft_rules(
     int argc,
     char *argv[]
 );
+
+uint32_t
+ncmcli_get_system_status(
+    PPMDHANDLE hPMD,
+    int argc,
+    char *argv[]
+);
+
+uint32_t
+ncmcli_get_link_status(
+    PPMDHANDLE hPMD,
+    int argc,
+    char *argv[]
+);
+
 

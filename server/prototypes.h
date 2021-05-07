@@ -749,6 +749,21 @@ netmgr_client_get_network_param_w(
     const wstring_t pwszParamName,
     wstring_t *ppwszParamValue
     );
+
+uint32_t
+netmgr_client_get_link_status_w(
+    PPMDHANDLE hHandle,
+    const wstring_t pwszIfname,
+    wstring_t *ppwszLinkStatus
+    );
+
+uint32_t
+netmgr_client_get_system_status_w(
+    PPMDHANDLE hHandle,
+    wstring_t *ppwszSystemStatus
+    );
+
+
 //pmdrestapi.c
 uint32_t
 pmd_rest_get_registration(

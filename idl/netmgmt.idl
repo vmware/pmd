@@ -450,4 +450,17 @@ interface netmgmt
         [in] wstring_t pwszParamName,
         [out] wstring_t *ppwszParamValue
     );
+
+    unsigned32
+    netmgr_rpc_get_system_status(
+        [in] handle_t hBinding,
+        [out] wstring_t *ppwszSystemStatus
+    );
+
+    unsigned32
+    netmgr_rpc_get_link_status(
+        [in] handle_t hBinding,
+        [in] wstring_t pwszInterfaceName,
+        [out] wstring_t *ppwszLinkStatus
+    );
 }
