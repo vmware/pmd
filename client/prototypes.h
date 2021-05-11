@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2021 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -135,6 +135,13 @@ void
 free_pkg_rpc_cmd_args(
     PTDNF_RPC_CMD_ARGS pArgs
     );
+
+void
+PMDFreeCmdOptWithCount(
+    PTDNF_RPC_CMD_OPT pCmdOpt,
+    int dwCount
+    );
+
 //usermgmt_rpc_misc.c
 void
 usermgmt_free_rpc_users(

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2021 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -69,13 +69,13 @@ typedef struct _TDNF_RPC_CMD_ARGS_
 
     //Commands and args that do not fall in options
     PPMD_WSTRING_ARRAY pCmds;
-    TDNF_RPC_CMD_OPT_ARRAY pSetOptArray;
+    PTDNF_RPC_CMD_OPT_ARRAY pSetOptArray;
 }TDNF_RPC_CMD_ARGS, *PTDNF_RPC_CMD_ARGS;
 
 typedef struct _TDNF_RPC_REPODATA_
 {
     unsigned32 nEnabled;
-    wstring_t  pwszId;    
+    wstring_t  pwszId;
     wstring_t  pwszName;
 }TDNF_RPC_REPODATA, *PTDNF_RPC_REPODATA;
 

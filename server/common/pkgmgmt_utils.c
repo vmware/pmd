@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2021 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -15,6 +15,22 @@
 #include "includes.h"
 
 void
+pkg_free_cmd_opts(
+    PTDNF_CMD_OPT pCmdOpt
+    )
+{
+    PTDNF_CMD_OPT pCmdOptNext = NULL;
+    while(pCmdOpt)
+    {
+        pCmdOptNext = pCmdOpt->pNext;
+        PMD_SAFE_FREE_MEMORY(pCmdOpt->pszOptName);
+        PMD_SAFE_FREE_MEMORY(pCmdOpt->pszOptValue);
+        PMD_SAFE_FREE_MEMORY(pCmdOpt);
+        pCmdOpt = pCmdOptNext;
+    }
+}
+
+void
 pkg_free_cmd_args(
     PTDNF_CMD_ARGS pCmdArgs
     )
@@ -27,6 +43,8 @@ pkg_free_cmd_args(
             PMD_SAFE_FREE_MEMORY(pCmdArgs->ppszCmds[nIndex]);
         }
         PMD_SAFE_FREE_MEMORY(pCmdArgs->ppszCmds);
+
+        pkg_free_cmd_opts(pCmdArgs->pSetOpt);
     }
     PMD_SAFE_FREE_MEMORY(pCmdArgs);
 }
@@ -126,14 +144,46 @@ pkg_rpc_get_cmd_args(
             BAIL_ON_PMD_ERROR(dwError);
         }
     }
-/*
-    if(pRpcArgs->pSetOpt)
+
+    if(pRpcArgs->pSetOptArray != NULL)
     {
-        dwError = TDNFCloneSetOpts(pRpcArgs->pSetOpt,
-                                   &pArgs->pSetOpt);
-        BAIL_ON_PMD_ERROR(dwError);
+        uint32_t i = 0;
+        uint32_t nOptCount = pRpcArgs->pSetOptArray->dwCount;
+
+        for(i=0; i<nOptCount; ++i)
+        {
+            PTDNF_CMD_OPT pCmdOpt = NULL;
+            dwError = PMDAllocateMemory(sizeof(TDNF_CMD_OPT), (void **)&pCmdOpt);
+            BAIL_ON_PMD_ERROR(dwError);
+
+            pCmdOpt->nType = pRpcArgs->pSetOptArray->pCmdOpt[i].nType;
+
+            dwError = PMDAllocateStringAFromW(
+                                            pRpcArgs->pSetOptArray->pCmdOpt[i].pwszOptName,
+                                            &pCmdOpt->pszOptName);
+            BAIL_ON_PMD_ERROR(dwError);
+
+            dwError = PMDAllocateStringAFromW(
+                                            pRpcArgs->pSetOptArray->pCmdOpt[i].pwszOptValue,
+                                            &pCmdOpt->pszOptValue);
+            BAIL_ON_PMD_ERROR(dwError);
+
+            PTDNF_CMD_OPT pSetOptTemp = pArgs->pSetOpt;
+            if (pSetOptTemp)
+            {
+                while (pSetOptTemp->pNext)
+                {
+                    pSetOptTemp = pSetOptTemp->pNext;
+                }
+                pSetOptTemp->pNext = pCmdOpt;
+            }
+            else
+            {
+                pArgs->pSetOpt = pCmdOpt;
+            }
+        }
     }
-*/
+
     *ppArgs = pArgs;
 
 cleanup:

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2021 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -14,6 +14,32 @@
 
 
 #include "includes.h"
+
+typedef struct _SetOptArgs
+{
+    TDNF_CMDOPT_TYPE Type;
+    const char *OptName;
+    const char *OptVal;
+} SetOptArgs;
+
+static SetOptArgs OptValTable[] =
+{
+    {CMDOPT_KEYVALUE, "sec-severity", NULL},
+    {CMDOPT_ENABLEREPO, "enablerepo", NULL},
+    {CMDOPT_DISABLEREPO, "disablerepo", NULL},
+    {CMDOPT_ENABLEPLUGIN, "enableplugin", NULL},
+    {CMDOPT_DISABLEPLUGIN, "disableplugin", NULL},
+    {CMDOPT_KEYVALUE, "skipconflicts;skipobsoletes;skipsignature;skipdigest;noplugins;reboot-required;security", "1"}
+};
+
+typedef enum
+{
+    CMD_OPT_KEYVALUE = 0,
+    CMD_OPT_ENABLEREPO,
+    CMD_OPT_DISABLEREPO,
+    CMD_OPT_ENABLEPLUGIN,
+    CMD_OPT_DISABLEPLUGIN
+} CMD_OPTION_ARGUMENTS;
 
 static TDNF_CMD_ARGS _opt = {0};
 
@@ -38,12 +64,26 @@ static struct option pstOptions[] =
     {"errorlevel",    required_argument, 0, 'e'},          //-e --errorlevel
     {"help",          no_argument, 0, 'h'},                //-h --help
     {"nogpgcheck",    no_argument, &_opt.nNoGPGCheck, 1},  //--nogpgcheck
-    {"refresh",       no_argument, &_opt.nRefresh, 1},     //--refresh 
+    {"refresh",       no_argument, &_opt.nRefresh, 1},     //--refresh
     {"showduplicates",required_argument, 0, 0},            //--showduplicates
     {"version",       no_argument, &_opt.nShowVersion, 1}, //--version
     {"verbose",       no_argument, &_opt.nVerbose, 1},     //-v --verbose
     {"4",             no_argument, 0, '4'},                //-4 resolve to IPv4 addresses only
     {"6",             no_argument, 0, '6'},                //-4 resolve to IPv4 addresses only
+    {"exclude",       required_argument, 0, 0},            //--exclude
+    {"security",      no_argument, 0, 0},                  //--security
+    {"sec-severity",  required_argument, 0, 0},            //--sec-severity
+    {"reboot-required", no_argument, 0, 0},                //--reboot-required
+    {"skipconflicts", no_argument, 0, 0},                  //--skipconflicts to skip conflict problems
+    {"skipobsoletes", no_argument, 0, 0},                  //--skipobsoletes to skip obsolete problems
+    {"skipsignature", no_argument, 0, 0},                  //--skipsignature to skip verifying RPM signatures
+    {"skipdigest",    no_argument, 0, 0},                  //--skipdigest to skip verifying RPM digest
+    {"noplugins",     no_argument, 0, 0},                  //--noplugins
+    {"disableplugin", required_argument, 0, 0},            //--disableplugin
+    {"enableplugin",  required_argument, 0, 0},            //--enableplugin
+    {"disableexcludes", no_argument, &_opt.nDisableExcludes, 1}, //--disableexcludes
+    {"downloadonly",  no_argument, &_opt.nDownloadOnly, 1}, //--downloadonly
+    {"downloaddir",   required_argument, 0, 0},            //--downloaddir
     {0, 0, 0, 0}
 };
 
@@ -199,6 +239,8 @@ pkg_parse_option(
     )
 {
     uint32_t dwError = 0;
+    const char *OptVal = NULL;
+    uint32_t i = 0;
 
     if(!pszName || !pCmdArgs)
     {
@@ -216,6 +258,14 @@ pkg_parse_option(
             BAIL_ON_CLI_ERROR(dwError);
         }
         fprintf(stdout, "EnableRepo: %s\n", optarg);
+
+        OptVal = (!OptValTable[CMD_OPT_ENABLEREPO].OptVal) ? pszArg : OptValTable[CMD_OPT_ENABLEREPO].OptVal;
+
+        dwError = add_set_opt_with_values(pCmdArgs,
+                            OptValTable[CMD_OPT_ENABLEREPO].Type,
+                            pszName,
+                            OptVal);
+        BAIL_ON_CLI_ERROR(dwError);
     }
     else if(!strcasecmp(pszName, "disablerepo"))
     {
@@ -225,7 +275,18 @@ pkg_parse_option(
             BAIL_ON_CLI_ERROR(dwError);
         }
         fprintf(stdout, "DisableRepo: %s\n", optarg);
+
+        OptVal = (!OptValTable[CMD_OPT_DISABLEREPO].OptVal) ? pszArg : OptValTable[CMD_OPT_DISABLEREPO].OptVal;
+
+        dwError = add_set_opt_with_values(pCmdArgs,
+                            OptValTable[CMD_OPT_DISABLEREPO].Type,
+                            pszName,
+                            OptVal);
+
+        BAIL_ON_CLI_ERROR(dwError);
+
     }
+
 cleanup:
     return dwError;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2019 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2021 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -110,34 +110,6 @@ uint32_t
 help_cmd(
     PPMDHANDLE hPMD,
     PPMD_CMD_ARGS pCmdArgs
-    );
-
-//options.c
-uint32_t
-pkg_get_option_by_name(
-    const char* pszName,
-    struct option* pKnownOptions,
-    struct option** ppOption
-    );
-
-uint32_t
-pkg_validate_option_name(
-    const char* pszOptionName,
-    struct option* pKnownOptions
-    );
-
-uint32_t
-pkg_validate_option_arg(
-    const char* pszOption,
-    const char* pszArg,
-    struct option* pKnownOptions
-    );
-
-uint32_t
-pkg_validate_options(
-    const char* pszOption,
-    const char* pszArg,
-    struct option* pKnownOptions
     );
 
 //parseargs.c

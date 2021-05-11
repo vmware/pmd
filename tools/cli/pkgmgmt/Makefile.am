@@ -6,6 +6,7 @@ libpkgmgmtcli_la_CPPFLAGS = -I$(top_srcdir)/include
 libpkgmgmtcli_la_SOURCES = \
     pkg_help.c \
     pkg_main.c \
+    pkg_options.c \
     pkg_parseargs.c
 
 libpkgmgmtcli_la_LDFLAGS =  \

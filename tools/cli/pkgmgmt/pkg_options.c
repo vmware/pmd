@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2021 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -149,3 +149,86 @@ error:
     }
     goto cleanup;
 }
+
+uint32_t
+add_set_opt_with_values(
+    PTDNF_CMD_ARGS pCmdArgs,
+    int nType,
+    const char *pszOptArg,
+    const char *pszOptValue
+    )
+{
+    uint32_t dwError = 0;
+    PTDNF_CMD_OPT pCmdOpt = NULL;
+    PTDNF_CMD_OPT pSetOptTemp = NULL;
+
+    if(!pCmdArgs ||
+       IsNullOrEmptyString(pszOptArg) ||
+       IsNullOrEmptyString(pszOptValue) || nType == CMDOPT_CURL_INIT_CB)
+    {
+        dwError = ERROR_PMD_CLI_INVALID_OPTION;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateMemory(sizeof(TDNF_CMD_OPT), (void **)&pCmdOpt);
+    BAIL_ON_CLI_ERROR(dwError);
+
+    pCmdOpt->nType = nType;
+
+    dwError = PMDSafeAllocateString(pszOptArg, &pCmdOpt->pszOptName);
+    BAIL_ON_CLI_ERROR(dwError);
+
+    dwError = PMDSafeAllocateString(pszOptValue, &pCmdOpt->pszOptValue);
+    BAIL_ON_CLI_ERROR(dwError);
+
+    pSetOptTemp = pCmdArgs->pSetOpt;
+    if (pSetOptTemp)
+    {
+        while (pSetOptTemp->pNext)
+        {
+            pSetOptTemp = pSetOptTemp->pNext;
+        }
+        pSetOptTemp->pNext = pCmdOpt;
+    }
+    else
+    {
+        pCmdArgs->pSetOpt = pCmdOpt;
+    }
+
+cleanup:
+    return dwError;
+
+error:
+    if (pCmdOpt)
+    {
+        PMDFreeCmdOpt(pCmdOpt);
+    }
+    goto cleanup;
+}
+
+void
+PMDFreeCmdOpt(
+    PTDNF_CMD_OPT pCmdOpt
+    )
+{
+    PTDNF_CMD_OPT pCmdOptNext = NULL;
+    while(pCmdOpt)
+    {
+        pCmdOptNext = pCmdOpt->pNext;
+
+        PMD_SAFE_FREE_MEMORY(pCmdOpt->pszOptName);
+
+        if (pCmdOpt->nType != CMDOPT_CURL_INIT_CB)
+        {
+            PMD_SAFE_FREE_MEMORY(pCmdOpt->pszOptValue);
+        }
+        else
+        {
+            pCmdOpt->pfnCurlConfigCB = NULL;
+        }
+
+        PMD_SAFE_FREE_MEMORY(pCmdOpt);
+        pCmdOpt = pCmdOptNext;
+    }
+}
+

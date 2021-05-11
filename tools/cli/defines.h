@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2019 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2021 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -29,6 +29,7 @@
 #define ERROR_PMD_CLI_SERVER_NAME_REQUIRED    (ERROR_PMD_CLI_BASE + 12)
 #define ERROR_PMD_CLI_SYNCTO_REQUIRED         (ERROR_PMD_CLI_BASE + 13)
 #define ERROR_PMD_CLI_NO_SUCH_OPTION          (ERROR_PMD_CLI_BASE + 14)
+#define ERROR_PMD_CLI_INVALID_OPTION          (ERROR_PMD_CLI_BASE + 15)
 
 //main cli options
 #define OPT_SERVERNAME      "servername"
@@ -78,4 +79,6 @@
     {ERROR_PMD_CLI_SERVER_NAME_REQUIRED,    "ERROR_PMD_CLI_SERVER_NAME_REQUIRED",   "Server name or ip address must be specified. Please specify using --server."}, \
     {ERROR_PMD_CLI_SYNCTO_REQUIRED,         "ERROR_PMD_CLI_SYNCTO_REQUIRED",        "Please specify a hash to sync to."}, \
     {ERROR_PMD_CLI_NO_SUCH_OPTION,          "ERROR_PMD_CLI_NO_SUCH_OPTION",         "Specified option is invalid."}, \
+    {ERROR_PMD_CLI_INVALID_OPTION,          "ERROR_PMD_CLI_INVALID_OPTION",         "Input Parameter is invalid."}, \
 };
+

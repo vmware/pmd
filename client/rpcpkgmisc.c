@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2021 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -58,6 +58,47 @@ pkg_get_rpc_cmd_args(
         BAIL_ON_PMD_ERROR(dwError);
     }
 
+    if(pArgs->pSetOpt)
+    {
+        PTDNF_CMD_OPT pSetOpt = pArgs->pSetOpt;
+        uint32_t nOptCount = 0;
+
+
+        dwError = PMDAllocateMemory(
+                        sizeof(TDNF_RPC_CMD_OPT_ARRAY),
+                        (void **)&pRpcArgs->pSetOptArray);
+
+        while(pSetOpt)
+        {
+            nOptCount++;
+            pSetOpt = pSetOpt->pNext;
+        }
+
+        pRpcArgs->pSetOptArray->dwCount = nOptCount;
+        dwError = PMDAllocateMemory(
+                            sizeof(TDNF_RPC_CMD_OPT) * pRpcArgs->pSetOptArray->dwCount,
+                            (void **)&pRpcArgs->pSetOptArray->pCmdOpt);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        pSetOpt = pArgs->pSetOpt;
+        for(i = 0; i < pRpcArgs->pSetOptArray->dwCount; ++i)
+        {
+            pRpcArgs->pSetOptArray->pCmdOpt[i].nType = pSetOpt->nType;
+
+            dwError = PMDAllocateStringWFromA(
+                                        pSetOpt->pszOptName,
+                                        &pRpcArgs->pSetOptArray->pCmdOpt[i].pwszOptName);
+            BAIL_ON_PMD_ERROR(dwError);
+
+            dwError = PMDAllocateStringWFromA(
+                                        pSetOpt->pszOptValue,
+                                        &pRpcArgs->pSetOptArray->pCmdOpt[i].pwszOptValue);
+            BAIL_ON_PMD_ERROR(dwError);
+
+            pSetOpt = pSetOpt->pNext;
+        }
+    }
+
     *ppRpcArgs = pRpcArgs;
 cleanup:
     return dwError;
@@ -83,5 +124,30 @@ free_pkg_rpc_cmd_args(
     PMDFreeStringArrayWithCount((char **)pArgs->pCmds->ppwszStrings,
                                 pArgs->pCmds->dwCount);
     PMD_SAFE_FREE_MEMORY(pArgs->pCmds);
+
+    if(pArgs->pSetOptArray != NULL)
+    {
+        PMDFreeCmdOptWithCount(pArgs->pSetOptArray->pCmdOpt,
+                              pArgs->pSetOptArray->dwCount);
+        PMD_SAFE_FREE_MEMORY(pArgs->pSetOptArray);
+    }
+
     PMD_SAFE_FREE_MEMORY(pArgs);
 }
+
+void
+PMDFreeCmdOptWithCount(
+    PTDNF_RPC_CMD_OPT pCmdOpt,
+    int dwCount)
+{
+    if(pCmdOpt)
+    {
+        for(int i=0; i<dwCount; ++i)
+        {
+            PMDFreeMemory((&pCmdOpt[i])->pwszOptName);
+            PMDFreeMemory((&pCmdOpt[i])->pwszOptValue);
+        }
+        PMDFreeMemory(pCmdOpt);
+    }
+}
+

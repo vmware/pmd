@@ -4,7 +4,6 @@ pmd_cli_CPPFLAGS = -I$(top_srcdir)/include
 pmd_cli_SOURCES = \
     help.c \
     parseargs.c \
-    options.c \
     main.c \
     utils.c
 
