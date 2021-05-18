@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2019 VMware, Inc.  All Rights Reserved.
+ * Copyright © 2016-2021 VMware, Inc.  All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
@@ -71,6 +71,7 @@ extern "C" {
 #define ERROR_PMD_IS_DAEMON_USER_GROUP ERROR_PMD_SYSTEM_BASE + 136
 #define ERROR_PMD_INVALID_CMD          ERROR_PMD_SYSTEM_BASE + 137
 #define ERROR_PMD_CMD_UNEXPECTED_EXIT  ERROR_PMD_SYSTEM_BASE + 138
+#define ERROR_PMD_SETOPT_NO_EQUALS     ERROR_PMD_SYSTEM_BASE + 139
 #define ERROR_PMD_LIBACC                (ERROR_PMD_SYSTEM_BASE + ELIBACC)
 #define ERROR_PMD_ALREADY               (ERROR_PMD_SYSTEM_BASE + EALREADY)
 

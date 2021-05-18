@@ -30,6 +30,7 @@
 #define ERROR_PMD_CLI_SYNCTO_REQUIRED         (ERROR_PMD_CLI_BASE + 13)
 #define ERROR_PMD_CLI_NO_SUCH_OPTION          (ERROR_PMD_CLI_BASE + 14)
 #define ERROR_PMD_CLI_INVALID_OPTION          (ERROR_PMD_CLI_BASE + 15)
+#define ERROR_PMD_CLI_SETOPT_NO_EQUALS        (ERROR_PMD_CLI_BASE + 16)
 
 //main cli options
 #define OPT_SERVERNAME      "servername"
@@ -80,5 +81,6 @@
     {ERROR_PMD_CLI_SYNCTO_REQUIRED,         "ERROR_PMD_CLI_SYNCTO_REQUIRED",        "Please specify a hash to sync to."}, \
     {ERROR_PMD_CLI_NO_SUCH_OPTION,          "ERROR_PMD_CLI_NO_SUCH_OPTION",         "Specified option is invalid."}, \
     {ERROR_PMD_CLI_INVALID_OPTION,          "ERROR_PMD_CLI_INVALID_OPTION",         "Input Parameter is invalid."}, \
+    {ERROR_PMD_CLI_SETOPT_NO_EQUALS,        "ERROR_PMD_CLI_SETOPT_NO_EQUALS",       "Missing equal sign in setopt argument. setopt requires an argument of the form key=value."}, \
 };
 

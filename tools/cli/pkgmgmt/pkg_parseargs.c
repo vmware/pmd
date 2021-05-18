@@ -32,15 +32,6 @@ static SetOptArgs OptValTable[] =
     {CMDOPT_KEYVALUE, "skipconflicts;skipobsoletes;skipsignature;skipdigest;noplugins;reboot-required;security", "1"}
 };
 
-typedef enum
-{
-    CMD_OPT_KEYVALUE = 0,
-    CMD_OPT_ENABLEREPO,
-    CMD_OPT_DISABLEREPO,
-    CMD_OPT_ENABLEPLUGIN,
-    CMD_OPT_DISABLEPLUGIN
-} CMD_OPTION_ARGUMENTS;
-
 static TDNF_CMD_ARGS _opt = {0};
 
 //options - incomplete
@@ -216,6 +207,8 @@ pkg_copy_options(
     pArgs->nCacheOnly     = pOptionArgs->nCacheOnly;
     pArgs->nDebugSolver   = pOptionArgs->nDebugSolver;
     pArgs->nNoGPGCheck    = pOptionArgs->nNoGPGCheck;
+    pArgs->nNoOutput      = pOptionArgs->nQuiet && pOptionArgs->nAssumeYes;
+    pArgs->nQuiet         = pOptionArgs->nQuiet;
     pArgs->nRefresh       = pOptionArgs->nRefresh;
     pArgs->nShowDuplicates= pOptionArgs->nShowDuplicates;
     pArgs->nShowHelp      = pOptionArgs->nShowHelp;
@@ -223,6 +216,8 @@ pkg_copy_options(
     pArgs->nVerbose       = pOptionArgs->nVerbose;
     pArgs->nIPv4          = pOptionArgs->nIPv4;
     pArgs->nIPv6          = pOptionArgs->nIPv6;
+    pArgs->nDisableExcludes = pOptionArgs->nDisableExcludes;
+    pArgs->nDownloadOnly  = pOptionArgs->nDownloadOnly;
 
 cleanup:
     return dwError;
@@ -241,6 +236,9 @@ pkg_parse_option(
     uint32_t dwError = 0;
     const char *OptVal = NULL;
     uint32_t i = 0;
+    char *pszCopyArgs = NULL;
+    char *ToFree = NULL;
+    char *pszToken = NULL;
 
     if(!pszName || !pCmdArgs)
     {
@@ -250,44 +248,83 @@ pkg_parse_option(
     dwError = pkg_validate_options(pszName, pszArg, pstOptions);
     BAIL_ON_CLI_ERROR(dwError);
 
-    if(!strcasecmp(pszName, "enablerepo"))
+    if (!strcasecmp(pszName, "config"))
     {
-        if(!optarg)
+        dwError = PMDSafeAllocateString(optarg, &pCmdArgs->pszConfFile);
+    }
+    else if (!strcasecmp(pszName, "rpmverbosity"))
+    {
+        dwError = parse_rpm_verbosity(pszArg, &pCmdArgs->nRpmVerbosity);
+    }
+    else if (!strcasecmp(pszName, "installroot"))
+    {
+        dwError = PMDSafeAllocateString(optarg, &pCmdArgs->pszInstallRoot);
+    }
+    else if (!strcasecmp(pszName, "downloaddir"))
+    {
+        dwError = PMDSafeAllocateString(optarg, &pCmdArgs->pszDownloadDir);
+    }
+    else if (!strcasecmp(pszName, "releasever"))
+    {
+        dwError = PMDSafeAllocateString(optarg, &pCmdArgs->pszReleaseVer);
+    }
+    else if (!strcasecmp(pszName, "setopt"))
+    {
+        if (!optarg)
         {
             dwError = ERROR_PMD_CLI_OPTION_ARG_REQUIRED;
             BAIL_ON_CLI_ERROR(dwError);
         }
-        fprintf(stdout, "EnableRepo: %s\n", optarg);
 
-        OptVal = (!OptValTable[CMD_OPT_ENABLEREPO].OptVal) ? pszArg : OptValTable[CMD_OPT_ENABLEREPO].OptVal;
-
-        dwError = add_set_opt_with_values(pCmdArgs,
-                            OptValTable[CMD_OPT_ENABLEREPO].Type,
-                            pszName,
-                            OptVal);
-        BAIL_ON_CLI_ERROR(dwError);
-    }
-    else if(!strcasecmp(pszName, "disablerepo"))
-    {
-        if(!optarg)
+        dwError = add_set_opt(pCmdArgs, optarg);
+        if (dwError == ERROR_PMD_SETOPT_NO_EQUALS)
         {
-            dwError = ERROR_PMD_CLI_OPTION_ARG_REQUIRED;
-            BAIL_ON_CLI_ERROR(dwError);
+            dwError = ERROR_PMD_CLI_SETOPT_NO_EQUALS;
         }
-        fprintf(stdout, "DisableRepo: %s\n", optarg);
-
-        OptVal = (!OptValTable[CMD_OPT_DISABLEREPO].OptVal) ? pszArg : OptValTable[CMD_OPT_DISABLEREPO].OptVal;
-
-        dwError = add_set_opt_with_values(pCmdArgs,
-                            OptValTable[CMD_OPT_DISABLEREPO].Type,
-                            pszName,
-                            OptVal);
-
+    }
+    else if (!strcasecmp(pszName, "exclude"))
+    {
+        dwError = PMDSafeAllocateString(pszArg, &pszCopyArgs);
         BAIL_ON_CLI_ERROR(dwError);
 
+        ToFree = pszCopyArgs;
+
+        while ((pszToken = strsep(&pszCopyArgs, ",:")))
+        {
+            dwError = add_set_opt_with_values(pCmdArgs,
+                                CMDOPT_KEYVALUE,
+                                pszName,
+                                pszToken);
+            BAIL_ON_CLI_ERROR((dwError && (pszCopyArgs = ToFree)));
+        }
+
+        pszCopyArgs = ToFree;
     }
+    else
+    {
+       for (i = 0; i < ARRAY_SIZE(OptValTable); i++)
+       {
+            if (!strstr(OptValTable[i].OptName, pszName))
+            {
+                continue;
+            }
+
+            OptVal = !OptValTable[i].OptVal ? optarg : OptValTable[i].OptVal;
+
+            dwError = add_set_opt_with_values(pCmdArgs,
+                                    OptValTable[i].Type,
+                                    pszName,
+                                    OptVal);
+
+            BAIL_ON_CLI_ERROR(dwError);
+            break;
+       }
+    }
+
+    BAIL_ON_CLI_ERROR(dwError);
 
 cleanup:
+    PMD_SAFE_FREE_MEMORY(pszCopyArgs);
     return dwError;
 
 error:
@@ -340,4 +377,49 @@ pkg_free_cmd_args(
         PMD_SAFE_FREE_MEMORY(pCmdArgs->ppszCmds);
     }
     PMD_SAFE_FREE_MEMORY(pCmdArgs);
+}
+
+uint32_t
+parse_rpm_verbosity(
+    const char *pszRpmVerbosity,
+    int *pnRpmVerbosity
+    )
+{
+    uint32_t dwError = 0;
+    uint32_t nIndex = 0;
+    typedef struct _stTemp
+    {
+        char *pszTypeName;
+        int nType;
+    } stTemp;
+
+    if (!pszRpmVerbosity || !pnRpmVerbosity)
+    {
+        return ERROR_PMD_CLI_INVALID_OPTION;
+    }
+
+    stTemp stTypes[] =
+    {
+        {"emergency",  TDNF_RPMLOG_EMERG},
+        {"alert",      TDNF_RPMLOG_ALERT},
+        {"critical",   TDNF_RPMLOG_CRIT},
+        {"error",      TDNF_RPMLOG_ERR},
+        {"warning",    TDNF_RPMLOG_WARNING},
+        {"notice",     TDNF_RPMLOG_NOTICE},
+        {"info",       TDNF_RPMLOG_INFO},
+        {"debug",      TDNF_RPMLOG_DEBUG},
+    };
+
+    for (nIndex = 0; nIndex < ARRAY_SIZE(stTypes); ++nIndex)
+    {
+        if (!strcasecmp(stTypes[nIndex].pszTypeName, pszRpmVerbosity))
+        {
+            *pnRpmVerbosity = stTypes[nIndex].nType;
+            return dwError;
+        }
+    }
+
+    *pnRpmVerbosity = TDNF_RPMLOG_ERR;
+
+    return dwError;
 }

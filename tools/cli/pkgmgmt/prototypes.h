@@ -251,6 +251,13 @@ void
 pkg_free_cmd_args(
     PTDNF_CMD_ARGS pCmdArgs
     );
+
+uint32_t
+parse_rpm_verbosity(
+     const char *pszRpmVerbosity,
+     int *pnRpmVerbosity
+     );
+
 //parselistargs.c
 uint32_t
 pkg_parse_scope(
@@ -321,6 +328,12 @@ pkg_validate_options(
     );
 
 uint32_t
+add_set_opt(
+    PTDNF_CMD_ARGS pCmdArgs,
+    const char* pszOptArg
+    );
+
+uint32_t
 add_set_opt_with_values(
     PTDNF_CMD_ARGS pCmdArgs,
     int nType,
@@ -328,8 +341,14 @@ add_set_opt_with_values(
     const char *pszOptValue
     );
 
+uint32_t
+get_option_and_value(
+    const char* pszOptArg,
+    PTDNF_CMD_OPT* ppCmdOpt
+    );
+
 void
-PMDFreeCmdOpt(
+pmd_free_pkg_cmd_opt(
     PTDNF_CMD_OPT pCmdOpt
     );
 

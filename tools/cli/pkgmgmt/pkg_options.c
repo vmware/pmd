@@ -128,7 +128,7 @@ pkg_get_option_by_name(
         {
             pOption = pKnownOptions;
             break;
-        } 
+        }
         ++pKnownOptions;
     }
     if(!pOption)
@@ -151,6 +151,50 @@ error:
 }
 
 uint32_t
+add_set_opt(
+    PTDNF_CMD_ARGS pCmdArgs,
+    const char* pszOptArg
+    )
+{
+    uint32_t dwError = 0;
+    PTDNF_CMD_OPT pCmdOpt = NULL;
+
+    if (!pCmdArgs || IsNullOrEmptyString(pszOptArg))
+    {
+        dwError = ERROR_PMD_CLI_INVALID_OPTION;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+    dwError = get_option_and_value(pszOptArg, &pCmdOpt);
+    BAIL_ON_CLI_ERROR(dwError);
+
+    if (!strcmp(pCmdOpt->pszOptName, "tdnf.conf"))
+    {
+        PMD_SAFE_FREE_MEMORY(pCmdArgs->pszConfFile);
+        dwError = PMDSafeAllocateString(
+                      pCmdOpt->pszOptValue,
+                      &pCmdArgs->pszConfFile);
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+
+    dwError = add_set_opt_with_values(pCmdArgs,
+                            CMDOPT_KEYVALUE,
+                            pCmdOpt->pszOptName,
+                            pCmdOpt->pszOptValue);
+    BAIL_ON_CLI_ERROR(dwError);
+
+cleanup:
+    if (pCmdOpt)
+    {
+        pmd_free_pkg_cmd_opt(pCmdOpt);
+    }
+    return dwError;
+
+error:
+    PMD_SAFE_FREE_MEMORY(pCmdArgs->pszConfFile);
+    goto cleanup;
+}
+
+uint32_t
 add_set_opt_with_values(
     PTDNF_CMD_ARGS pCmdArgs,
     int nType,
@@ -162,7 +206,7 @@ add_set_opt_with_values(
     PTDNF_CMD_OPT pCmdOpt = NULL;
     PTDNF_CMD_OPT pSetOptTemp = NULL;
 
-    if(!pCmdArgs ||
+    if (!pCmdArgs ||
        IsNullOrEmptyString(pszOptArg) ||
        IsNullOrEmptyString(pszOptValue) || nType == CMDOPT_CURL_INIT_CB)
     {
@@ -201,18 +245,75 @@ cleanup:
 error:
     if (pCmdOpt)
     {
-        PMDFreeCmdOpt(pCmdOpt);
+        pmd_free_pkg_cmd_opt(pCmdOpt);
+    }
+    goto cleanup;
+}
+
+uint32_t
+get_option_and_value(
+    const char* pszOptArg,
+    PTDNF_CMD_OPT* ppCmdOpt
+    )
+{
+    uint32_t dwError = 0;
+    const char* EQUAL_SIGN = "=";
+    const char* pszIndex = NULL;
+    PTDNF_CMD_OPT pCmdOpt = NULL;
+    int nEqualsPos = -1;
+
+    if (IsNullOrEmptyString(pszOptArg) || !ppCmdOpt)
+    {
+        dwError = ERROR_PMD_CLI_INVALID_OPTION;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+
+    pszIndex = strstr(pszOptArg, EQUAL_SIGN);
+    if (!pszIndex)
+    {
+        dwError = ERROR_PMD_SETOPT_NO_EQUALS;
+        BAIL_ON_CLI_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateMemory(sizeof(TDNF_CMD_OPT), (void**)&pCmdOpt);
+    BAIL_ON_CLI_ERROR(dwError);
+
+    pCmdOpt->nType = CMDOPT_KEYVALUE;
+    dwError = PMDSafeAllocateString(pszOptArg, &pCmdOpt->pszOptName);
+    BAIL_ON_CLI_ERROR(dwError);
+
+    nEqualsPos = pszIndex - pszOptArg;
+    pCmdOpt->pszOptName[nEqualsPos] = '\0';
+
+    pCmdOpt->nType = CMDOPT_KEYVALUE;
+    dwError = PMDSafeAllocateString(pszOptArg+nEqualsPos+1,
+                                 &pCmdOpt->pszOptValue);
+    BAIL_ON_CLI_ERROR(dwError);
+
+    *ppCmdOpt = pCmdOpt;
+
+cleanup:
+    return dwError;
+
+error:
+    if (ppCmdOpt)
+    {
+        *ppCmdOpt = NULL;
+    }
+    if (pCmdOpt)
+    {
+        pmd_free_pkg_cmd_opt(pCmdOpt);
     }
     goto cleanup;
 }
 
 void
-PMDFreeCmdOpt(
+pmd_free_pkg_cmd_opt(
     PTDNF_CMD_OPT pCmdOpt
     )
 {
     PTDNF_CMD_OPT pCmdOptNext = NULL;
-    while(pCmdOpt)
+    while (pCmdOpt)
     {
         pCmdOptNext = pCmdOpt->pNext;
 
