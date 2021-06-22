@@ -93,6 +93,13 @@ pkg_repolist(
     );
 
 uint32_t
+pkg_reposync(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    PTDNF_REPOSYNC_ARGS pRepoSyncArgs
+    );
+
+uint32_t
 pkg_updateinfo(
     PPMDHANDLE hHandle,
     PPKGHANDLE phPkgHandle,

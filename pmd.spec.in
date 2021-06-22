@@ -5,7 +5,7 @@
 Summary:    Photon Management Daemon
 Name:       pmd
 Version:    @VERSION@
-Release:    7%{?dist}
+Release:    8%{?dist}
 License:    Apache 2.0
 URL:        https://www.github.com/vmware/pmd
 Group:      Applications/System
@@ -288,6 +288,8 @@ rm -rf %{buildroot}/*
     %{_python3_sitearch}/%{name}_python-*.egg-info
 
 %changelog
+*   Wed Jun 23 2021 Shreyas B <shreyasb@vmware.com> 0.0.7-8
+-   Pkg: New Feature RepoSync
 *   Tue May 11 2021 Shreyas B <shreyasb@vmware.com> 0.0.7-7
 -   pkg: Support for options
 *   Mon May 17 2021 Ankit Jain <anktja@vmware.com> 0.0.7-6

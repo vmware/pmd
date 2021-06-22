@@ -458,6 +458,35 @@ error:
 }
 
 unsigned32
+pkg_privsep_rpc_reposync(
+    handle_t hBinding,
+    pkg_privsep_handle_t hPkgHandle,
+    PTDNF_RPC_REPOSYNC_ARGS pRpcRepoSyncArgs
+    )
+{
+    uint32_t dwError = 0;
+    PTDNF_REPOSYNC_ARGS pRepoSyncArgs = NULL;
+
+    if(!hBinding || !hPkgHandle || !pRpcRepoSyncArgs)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = check_connection_integrity(hBinding);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = PMDRpcServerConvertRepoSyncArgs(pRpcRepoSyncArgs, &pRepoSyncArgs);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = pkg_reposync_s(hPkgHandle, pRepoSyncArgs);
+    BAIL_ON_PMD_ERROR(dwError);
+
+error:
+    return dwError;
+}
+
+unsigned32
 pkg_privsep_rpc_info(
     handle_t hBinding,
     pkg_privsep_handle_t hPkgHandle,

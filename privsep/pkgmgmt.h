@@ -83,6 +83,12 @@ pkg_repolist_s(
     );
 
 unsigned32
+pkg_reposync_s(
+    PTDNF pTdnf,
+    PTDNF_REPOSYNC_ARGS pRepoSyncArgs
+    );
+
+unsigned32
 pkg_info_s(
     PTDNF pTdnf,
     PTDNF_PKG_INFO *ppPkgInfo

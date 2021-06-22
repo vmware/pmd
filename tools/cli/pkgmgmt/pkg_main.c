@@ -43,6 +43,7 @@ pkg_main(
         {"reinstall",          TDNFCliReinstallCommand},
         {"remove",             TDNFCliEraseCommand},
         {"repolist",           TDNFCliRepoListCommand},
+        {"reposync",           TDNFCliRepoSyncCommand},
         {"search",             TDNFCliSearchCommand},
         {"update",             TDNFCliUpgradeCommand},
         {"update-to",          TDNFCliUpgradeCommand},
@@ -65,6 +66,7 @@ pkg_main(
     stContext.pFnInfo         = pkg_invoke_info;
     stContext.pFnList         = pkg_invoke_list;
     stContext.pFnRepoList     = pkg_invoke_repolist;
+    stContext.pFnRepoSync     = pkg_invoke_reposync;
     stContext.pFnResolve      = pkg_invoke_resolve;
     stContext.pFnUpdateInfo   = pkg_invoke_updateinfo;
     stContext.pFnSearch       = pkg_invoke_search;
@@ -290,8 +292,21 @@ pkg_invoke_repolist(
     PPMD_PKG_CLI_CONTEXT pLocalContext = pContext->pUserData;
     return pkg_repolist(pLocalContext->hPMD,
                         pLocalContext->hPkgHandle,
-                        nFilter, 
+                        nFilter,
                         ppRepos);
+}
+
+uint32_t
+pkg_invoke_reposync(
+    PTDNF_CLI_CONTEXT pContext,
+    PTDNF_REPOSYNC_ARGS pRepoSyncArgs
+    )
+{
+    PPMD_PKG_CLI_CONTEXT pLocalContext = pContext->pUserData;
+
+    return pkg_reposync(pLocalContext->hPMD,
+                        pLocalContext->hPkgHandle,
+                        pRepoSyncArgs);
 }
 
 uint32_t

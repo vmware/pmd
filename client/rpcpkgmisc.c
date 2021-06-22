@@ -151,3 +151,117 @@ PMDFreeCmdOptWithCount(
     }
 }
 
+void
+PMDFreeRpcRepoSyncArgs(
+    PTDNF_RPC_REPOSYNC_ARGS pRpcRepoSyncArgs
+    )
+{
+    if(!pRpcRepoSyncArgs)
+    {
+        return;
+    }
+
+    if(pRpcRepoSyncArgs->pArchs && pRpcRepoSyncArgs->pArchs->ppwszStrings)
+    {
+        PMDFreeStringArrayWithCount(
+                            (char **)pRpcRepoSyncArgs->pArchs->ppwszStrings,
+                            pRpcRepoSyncArgs->pArchs->dwCount);
+    }
+
+    PMD_SAFE_FREE_MEMORY(pRpcRepoSyncArgs->pArchs);
+
+    PMD_SAFE_FREE_MEMORY(pRpcRepoSyncArgs);
+}
+
+uint32_t
+PMDRpcClientConvertRpcRepoSyncArgs(
+    PTDNF_REPOSYNC_ARGS pRepoSyncArgs,
+    PTDNF_RPC_REPOSYNC_ARGS *ppRpcRepoSyncArgs
+    )
+{
+    uint32_t dwError = 0;
+    uint32_t dwCount = 0;
+    uint32_t i = 0;
+    PTDNF_RPC_REPOSYNC_ARGS pRpcRepoSyncArgs = NULL;
+
+    if(!pRepoSyncArgs || !ppRpcRepoSyncArgs)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDAllocateMemory(
+                  sizeof(TDNF_RPC_REPOSYNC_ARGS),
+                  (void **)&pRpcRepoSyncArgs);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pRpcRepoSyncArgs->nDelete           = pRepoSyncArgs->nDelete;
+    pRpcRepoSyncArgs->nDownloadMetadata = pRepoSyncArgs->nDownloadMetadata;
+    pRpcRepoSyncArgs->nGPGCheck         = pRepoSyncArgs->nGPGCheck;
+    pRpcRepoSyncArgs->nNewestOnly       = pRepoSyncArgs->nNewestOnly;
+    pRpcRepoSyncArgs->nPrintUrlsOnly    = pRepoSyncArgs->nPrintUrlsOnly;
+    pRpcRepoSyncArgs->nNoRepoPath       = pRepoSyncArgs->nNoRepoPath;
+    pRpcRepoSyncArgs->nSourceOnly       = pRepoSyncArgs->nSourceOnly;
+
+    if(!IsNullOrEmptyString(pRepoSyncArgs->pszDownloadPath))
+    {
+        dwError = PMDAllocateStringWFromA(
+                      pRepoSyncArgs->pszDownloadPath,
+                      &pRpcRepoSyncArgs->pszDownloadPath);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(!IsNullOrEmptyString(pRepoSyncArgs->pszMetaDataPath))
+    {
+        dwError = PMDAllocateStringWFromA(
+                      pRepoSyncArgs->pszMetaDataPath,
+                      &pRpcRepoSyncArgs->pszMetaDataPath);
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(pRepoSyncArgs->ppszArchs)
+    {
+        for (i = 0; pRepoSyncArgs->ppszArchs[i] && i < TDNF_REPOSYNC_MAXARCHS; i++)
+        {
+            ++dwCount;
+        }
+
+        dwError = PMDAllocateMemory(
+                      sizeof(PMD_WSTRING_ARRAY),
+                      (void **)&pRpcRepoSyncArgs->pArchs);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        pRpcRepoSyncArgs->pArchs->dwCount = dwCount;
+
+        dwError = PMDAllocateMemory(
+                    sizeof(wstring_t) * (dwCount + 1),
+                    (void **)&pRpcRepoSyncArgs->pArchs->ppwszStrings);
+        BAIL_ON_PMD_ERROR(dwError);
+
+        for (i = 0; i < dwCount; i++)
+        {
+            if(pRepoSyncArgs->ppszArchs != NULL && pRepoSyncArgs->ppszArchs[i] != NULL)
+            {
+                dwError = PMDAllocateStringWFromA(
+                              pRepoSyncArgs->ppszArchs[i],
+                              &pRpcRepoSyncArgs->pArchs->ppwszStrings[i]);
+                BAIL_ON_PMD_ERROR(dwError);
+            }
+        }
+    }
+
+    *ppRpcRepoSyncArgs = pRpcRepoSyncArgs;
+
+cleanup:
+    return dwError;
+
+error:
+    if(ppRpcRepoSyncArgs)
+    {
+        *ppRpcRepoSyncArgs = NULL;
+    }
+
+    PMDFreeRpcRepoSyncArgs(pRpcRepoSyncArgs);
+
+    goto cleanup;
+}

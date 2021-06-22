@@ -648,6 +648,71 @@ error:
 }
 
 uint32_t
+pkg_reposync_w(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    PTDNF_RPC_REPOSYNC_ARGS pRpcRepoSyncArgs
+    )
+{
+    uint32_t dwError = 0;
+
+    if(!hHandle || !hPkgHandle || !pRpcRepoSyncArgs)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    if(hHandle->nPrivSep)
+    {
+        DO_RPC(pkg_privsep_rpc_reposync(hHandle->hRpc,
+                            hPkgHandle,
+                            pRpcRepoSyncArgs), dwError);
+    }
+    else
+    {
+        DO_RPC(pkg_rpc_reposync(hHandle->hRpc,
+                            hPkgHandle,
+                            pRpcRepoSyncArgs), dwError);
+    }
+
+    BAIL_ON_PMD_ERROR(dwError);
+
+error:
+    return dwError;
+}
+
+uint32_t
+pkg_reposync(
+    PPMDHANDLE hHandle,
+    PPKGHANDLE hPkgHandle,
+    PTDNF_REPOSYNC_ARGS pRepoSyncArgs
+    )
+{
+    int32_t dwError = 0;
+    PTDNF_RPC_REPOSYNC_ARGS pRpcRepoSyncArgs = NULL;
+
+    if(!hHandle || !hPkgHandle || !pRepoSyncArgs)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    dwError = PMDRpcClientConvertRpcRepoSyncArgs(
+                            pRepoSyncArgs,
+                            &pRpcRepoSyncArgs);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    dwError = pkg_reposync_w(
+                  hHandle,
+                  hPkgHandle,
+                  pRpcRepoSyncArgs);
+    BAIL_ON_PMD_ERROR(dwError);
+
+error:
+    return dwError;
+}
+
+uint32_t
 pkg_updateinfo_w(
     PPMDHANDLE hHandle,
     PPKGHANDLE hPkgHandle,

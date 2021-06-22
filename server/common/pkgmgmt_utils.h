@@ -59,3 +59,14 @@ pkg_get_scope_from_string(
     const char *pszScope,
     TDNF_SCOPE *pnScope
     );
+
+void
+PMDFreeRepoSyncArgs(
+    PTDNF_REPOSYNC_ARGS pRepoSyncArgs
+    );
+
+uint32_t
+PMDRpcServerConvertRepoSyncArgs(
+    PTDNF_RPC_REPOSYNC_ARGS pRpcRepoSyncArgs,
+    PTDNF_REPOSYNC_ARGS *ppRepoSyncArgs
+    );

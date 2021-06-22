@@ -424,6 +424,43 @@ error:
 }
 
 unsigned32
+pkg_reposync_s(
+    PTDNF pTdnf,
+    PTDNF_REPOSYNC_ARGS pRepoSyncArgs
+    )
+{
+    uint32_t dwError = 0;
+    int nLocked = 0;
+
+    if(!pTdnf || !pRepoSyncArgs)
+    {
+        dwError = ERROR_PMD_INVALID_PARAMETER;
+        BAIL_ON_PMD_ERROR(dwError);
+    }
+
+    pthread_mutex_lock(&gpServerEnv->mutexPkgMgmtApi);
+    nLocked = 1;
+
+    dwError = TDNFRepoSync(
+                  pTdnf,
+                  pRepoSyncArgs);
+    BAIL_ON_PMD_ERROR(dwError);
+
+    pthread_mutex_unlock(&gpServerEnv->mutexPkgMgmtApi);
+    nLocked = 0;
+
+cleanup:
+    if(nLocked)
+    {
+        pthread_mutex_unlock(&gpServerEnv->mutexPkgMgmtApi);
+        nLocked = 0;
+    }
+    return dwError;
+error:
+    goto cleanup;
+}
+
+unsigned32
 pkg_info_s(
     PTDNF pTdnf,
     PTDNF_PKG_INFO *ppPkgInfo

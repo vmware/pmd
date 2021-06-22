@@ -142,6 +142,17 @@ PMDFreeCmdOptWithCount(
     int dwCount
     );
 
+void
+PMDFreeRpcRepoSyncArgs(
+    PTDNF_RPC_REPOSYNC_ARGS pRpcRepoSyncArgs
+    );
+
+uint32_t
+PMDRpcClientConvertRpcRepoSyncArgs(
+    PTDNF_REPOSYNC_ARGS pRepoSyncArgs,
+    PTDNF_RPC_REPOSYNC_ARGS *ppRpcRepoSyncArgs
+    );
+
 //usermgmt_rpc_misc.c
 void
 usermgmt_free_rpc_users(

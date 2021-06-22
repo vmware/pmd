@@ -98,6 +98,20 @@ typedef struct _TDNF_RPC_REPODATA_ARRAY_
     PTDNF_RPC_REPODATA pRepoData;
 }TDNF_RPC_REPODATA_ARRAY, *PTDNF_RPC_REPODATA_ARRAY;
 
+typedef struct _TDNF_RPC_REPOSYNC_ARGS_
+{
+    unsigned32 nDelete;
+    unsigned32 nDownloadMetadata;
+    unsigned32 nGPGCheck;
+    unsigned32 nNewestOnly;
+    unsigned32 nPrintUrlsOnly;
+    unsigned32 nNoRepoPath;
+    unsigned32 nSourceOnly;
+    wstring_t pszDownloadPath;
+    wstring_t pszMetaDataPath;
+    PPMD_WSTRING_ARRAY pArchs;
+}TDNF_RPC_REPOSYNC_ARGS, *PTDNF_RPC_REPOSYNC_ARGS;
+
 typedef struct _TDNF_RPC_PKGINFO_
 {
     unsigned32 dwEpoch;

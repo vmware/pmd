@@ -95,6 +95,12 @@ pkg_invoke_repolist(
     );
 
 uint32_t
+pkg_invoke_reposync(
+    PTDNF_CLI_CONTEXT pContext,
+    PTDNF_REPOSYNC_ARGS pRepoSyncArgs
+    );
+
+uint32_t
 pkg_invoke_resolve(
     PTDNF_CLI_CONTEXT pContext,
     TDNF_ALTERTYPE nAlterType,
