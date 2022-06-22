@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: Apache-2.0
+
+[Unit]
+Description=A REST API based configuration management microservice gateway
+After=network.target
+
+[Service]
+ExecStart=!!/usr/bin/photon-mgmtd
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

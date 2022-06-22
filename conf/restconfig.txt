@@ -1,6 +1,0 @@
-SSL-Certificate /etc/pmd/server.crt
-SSL-Key /etc/pmd/server.key
-Port 2081
-Log-File /var/log/pmd/restServer.log
-Client-Count 5
-Worker-Thread-Count 5
