@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
-	"github.com/pmd-nextgen/pkg/web"
-	"github.com/pmd-nextgen/plugins/management/sysctl"
+	"github.com/vmware/pmd/pkg/web"
+	"github.com/vmware/pmd/plugins/management/sysctl"
 )
 
 func TestSysctlConfigUpdate(t *testing.T) {

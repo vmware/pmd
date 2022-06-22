@@ -6,8 +6,8 @@ package main
 import (
 	"testing"
 
-	"github.com/pmd-nextgen/pkg/web"
-	"github.com/pmd-nextgen/plugins/tdnf"
+	"github.com/vmware/pmd/pkg/web"
+	"github.com/vmware/pmd/plugins/tdnf"
 )
 
 func TdnfSkipUnsupported(t *testing.T) {

@@ -4,7 +4,7 @@
 package conf
 
 import (
-	"github.com/pmd-nextgen/pkg/parser"
+	"github.com/vmware/pmd/pkg/parser"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )

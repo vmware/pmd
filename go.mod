@@ -1,4 +1,4 @@
-module github.com/pmd-nextgen
+module github.com/vmware/pmd
 
 go 1.18
 

@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/pmd-nextgen/pkg/parser"
-	"github.com/pmd-nextgen/pkg/web"
+	"github.com/vmware/pmd/pkg/parser"
+	"github.com/vmware/pmd/pkg/web"
 	"github.com/safchain/ethtool"
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"

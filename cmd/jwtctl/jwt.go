@@ -10,7 +10,7 @@ import (
 	"time"
 
 	jwt "github.com/golang-jwt/jwt"
-	"github.com/pmd-nextgen/pkg/validator"
+	"github.com/vmware/pmd/pkg/validator"
 	"github.com/urfave/cli/v2"
 )
 

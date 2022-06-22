@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
-	"github.com/pmd-nextgen/pkg/web"
+	"github.com/vmware/pmd/pkg/web"
 	"github.com/vishvananda/netlink"
 )
 

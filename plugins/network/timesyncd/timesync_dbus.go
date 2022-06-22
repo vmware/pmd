@@ -11,8 +11,8 @@ import (
 	"github.com/godbus/dbus/v5"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/pmd-nextgen/pkg/bus"
-	"github.com/pmd-nextgen/pkg/parser"
+	"github.com/vmware/pmd/pkg/bus"
+	"github.com/vmware/pmd/pkg/parser"
 )
 
 const (

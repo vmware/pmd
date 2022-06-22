@@ -10,7 +10,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/pmd-nextgen/pkg/parser"
+	"github.com/vmware/pmd/pkg/parser"
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 )

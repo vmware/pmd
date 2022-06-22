@@ -9,9 +9,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/pmd-nextgen/pkg/conf"
-	"github.com/pmd-nextgen/pkg/server"
-	"github.com/pmd-nextgen/pkg/system"
+	"github.com/vmware/pmd/pkg/conf"
+	"github.com/vmware/pmd/pkg/server"
+	"github.com/vmware/pmd/pkg/system"
 )
 
 func main() {

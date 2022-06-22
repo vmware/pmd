@@ -10,8 +10,8 @@ import (
 
 	"github.com/godbus/dbus/v5"
 
-	"github.com/pmd-nextgen/pkg/bus"
-	"github.com/pmd-nextgen/pkg/parser"
+	"github.com/vmware/pmd/pkg/bus"
+	"github.com/vmware/pmd/pkg/parser"
 )
 
 const (

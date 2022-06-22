@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/pmd-nextgen/pkg/web"
-	"github.com/pmd-nextgen/plugins/network/firewall"
+	"github.com/vmware/pmd/pkg/web"
+	"github.com/vmware/pmd/plugins/network/firewall"
 )
 
 func addNFTTable() error {

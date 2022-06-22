@@ -5,7 +5,7 @@ package hello
 import (
 	"net/http"
 
-	"github.com/pmd-nextgen/pkg/web"
+	"github.com/vmware/pmd/pkg/web"
 )
 
 // Hello JSON message

@@ -16,10 +16,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 
-	"github.com/pmd-nextgen/pkg/configfile"
-	"github.com/pmd-nextgen/pkg/share"
-	"github.com/pmd-nextgen/pkg/validator"
-	"github.com/pmd-nextgen/pkg/web"
+	"github.com/vmware/pmd/pkg/configfile"
+	"github.com/vmware/pmd/pkg/share"
+	"github.com/vmware/pmd/pkg/validator"
+	"github.com/vmware/pmd/pkg/web"
 )
 
 type MatchSection struct {

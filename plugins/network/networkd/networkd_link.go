@@ -10,9 +10,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/pmd-nextgen/pkg/configfile"
-	"github.com/pmd-nextgen/pkg/validator"
-	"github.com/pmd-nextgen/pkg/web"
+	"github.com/vmware/pmd/pkg/configfile"
+	"github.com/vmware/pmd/pkg/validator"
+	"github.com/vmware/pmd/pkg/web"
 	log "github.com/sirupsen/logrus"
 )
 

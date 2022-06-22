@@ -12,9 +12,9 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
-	"github.com/pmd-nextgen/pkg/validator"
-	"github.com/pmd-nextgen/pkg/web"
-	"github.com/pmd-nextgen/plugins/proc"
+	"github.com/vmware/pmd/pkg/validator"
+	"github.com/vmware/pmd/pkg/web"
+	"github.com/vmware/pmd/plugins/proc"
 	"github.com/vishvananda/netlink"
 )
 

@@ -12,7 +12,7 @@ import (
 	"os"
 
 	"github.com/go-ini/ini"
-	"github.com/pmd-nextgen/pkg/web"
+	"github.com/vmware/pmd/pkg/web"
 	log "github.com/sirupsen/logrus"
 )
 

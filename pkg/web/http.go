@@ -19,8 +19,8 @@ import (
 	"github.com/linuxkit/virtsock/pkg/vsock"
 	"github.com/pkg/errors"
 
-	"github.com/pmd-nextgen/pkg/conf"
-	"github.com/pmd-nextgen/pkg/validator"
+	"github.com/vmware/pmd/pkg/conf"
+	"github.com/vmware/pmd/pkg/validator"
 )
 
 type Response struct {

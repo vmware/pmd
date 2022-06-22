@@ -9,7 +9,7 @@ import (
 	"net/http"
 
 	"github.com/fatih/color"
-	"github.com/pmd-nextgen/pkg/web"
+	"github.com/vmware/pmd/pkg/web"
 )
 
 func acquireEthtoolStatus(link, host string, token map[string]string) {
