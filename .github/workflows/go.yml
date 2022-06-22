@@ -1,0 +1,40 @@
+name: Go
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17
+
+    - name: Install nft
+      run: sudo apt install nftables
+
+    - name: Build
+      run: make build
+
+    - name: install
+      run: sudo make install
+
+    - name: Add user and group
+      run: sudo useradd -M -s /usr/bin/nologin photon-mgmt
+
+    - name: Start daemon
+      run: sudo systemctl start photon-mgmtd.service
+
+    - name: Show sytem status
+      run: sudo pmctl status system
+
+    - name: Run pmctl tests
+      run: sudo go test -v ./cmd/pmctl

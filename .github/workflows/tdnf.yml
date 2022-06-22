@@ -1,0 +1,115 @@
+name: tdnf CI
+
+on: [pull_request, push, workflow_dispatch]
+
+jobs:
+    photon-rpms:
+        name: build tdnf RPMs
+        env:
+            DIST: photon
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+              with:
+                  repository: 'oliverkurth/tdnf'
+                  ref: 'topic/okurth/json-output'
+            - name: build container
+              working-directory: ${{ github.workspace }}
+              run: |
+                docker build -t ${DIST}/tdnf-build -f ci/Dockerfile.${DIST} .
+            - name: build rpms in container
+              working-directory: ${{ github.workspace }}
+              run: |
+                docker run --rm -e DIST -v$(pwd):/build -w/build ${DIST}/tdnf-build ./ci/build-rpms.sh
+            - name: upload RPMs
+              uses: actions/upload-artifact@v2
+              with:
+                  name: tdnf-rpms
+                  path: rpms
+    pmctl-tdnf:
+        name: build and test
+        needs: photon-rpms
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: Download RPMs
+              uses: actions/download-artifact@v2
+              with:
+                  name: tdnf-rpms
+                  path: rpms
+
+            - name: create container
+              working-directory: ${{ github.workspace }}
+              run: |
+                docker build -t pmd-nextgen -f ./ci/Dockerfile .
+
+            - name: run container in bg
+              working-directory: ${{ github.workspace }}
+              run: |
+                docker run -d -ti --rm --name pmd-nextgen pmd-nextgen
+
+            - name: run tdnf go tests
+              working-directory: ${{ github.workspace }}
+              run: |
+                docker exec -w /build pmd-nextgen go test -v ./cmd/pmctl/ -run Tdnf
+
+            - name: test tdnf repolist
+              working-directory: ${{ github.workspace }}
+              run: |
+                docker exec pmd-nextgen pmctl pkg repolist
+
+            - name: test tdnf makecache
+              working-directory: ${{ github.workspace }}
+              run: |
+                docker exec pmd-nextgen pmctl pkg makecache
+
+            - name: test tdnf list
+              working-directory: ${{ github.workspace }}
+              run: |
+                docker exec pmd-nextgen pmctl pkg list tdnf
+
+            - name: test tdnf list tdnf,lsof
+              working-directory: ${{ github.workspace }}
+              run: |
+                docker exec pmd-nextgen pmctl pkg list tdnf,lsof
+
+            - name: test tdnf list t*
+              working-directory: ${{ github.workspace }}
+              run: |
+                docker exec pmd-nextgen pmctl pkg list t*
+
+            - name: test tdnf info
+              working-directory: ${{ github.workspace }}
+              run: |
+                docker exec pmd-nextgen pmctl pkg info tdnf
+
+            - name: test tdnf repoquery tdnf
+              working-directory: ${{ github.workspace }}
+              run: |
+                docker exec pmd-nextgen pmctl pkg repoquery tdnf
+
+            - name: test tdnf search
+              working-directory: ${{ github.workspace }}
+              run: |
+                docker exec pmd-nextgen pmctl pkg search tdnf
+
+            - name: test tdnf check-update
+              working-directory: ${{ github.workspace }}
+              run: |
+                docker exec pmd-nextgen pmctl pkg check-update
+
+            - name: test tdnf updateinfo
+              working-directory: ${{ github.workspace }}
+              run: |
+                docker exec pmd-nextgen pmctl pkg updateinfo
+
+            - name: test tdnf updateinfo info
+              working-directory: ${{ github.workspace }}
+              run: |
+                docker exec pmd-nextgen pmctl pkg updateinfo --info
+
+            - name: test tdnf clean
+              working-directory: ${{ github.workspace }}
+              run: |
+                docker exec pmd-nextgen pmctl pkg clean
