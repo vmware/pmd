@@ -11,8 +11,7 @@ jobs:
         steps:
             - uses: actions/checkout@v2
               with:
-                  repository: 'oliverkurth/tdnf'
-                  ref: 'topic/okurth/json-output'
+                  repository: 'vmware/tdnf'
             - name: build container
               working-directory: ${{ github.workspace }}
               run: |
