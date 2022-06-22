@@ -1,87 +1,20 @@
-# automake
-
-Makefile
-Makefile.in
-pmdclient.pc
-pmd.spec
-
-*.guess
-*.sub
-*.status
-*.log
-*_cstub.c
-*_sstub.c
-.deps
-.libs
-.rpm
-rpms
-
-
-# autoconf
-/autom4te.cache
-/aclocal.m4
-/compile
-/configure
-/depcomp
-/install-sh
-/missing
-/stamp-h1
-/m4
-ltmain.sh
-libtool
-ar-lib
-
-#pmd-autoconf
-/pmd/autom4te.cache
-/pmd/aclocal.m4
-/pmd/compile
-/pmd/configure
-/pmd/depcomp
-/pmd/install-sh
-/pmd/missing
-/pmd/stamp-h1
-/pmd/m4
-
-/idl/*_h.h
-/include/config.h.in*
-/include/stamp*
-/server/pmd
-/tools/cli/pmd-cli
-/privsep/pmdprivsepd
-/tools/pmd.spec
-build/*
-
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
+# Binaries for programs and plugins
+*.exe
+*.exe~
 *.dll
 *.so
-*.so.*
 *.dylib
 
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
+# Test binary, built with `go test -c`
+*.test
 
-#python generated
-python/setup.py
-python/build
-python/pmd/__pycache__
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+bin/
+
+# Apple forks
+._*
+
