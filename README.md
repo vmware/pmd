@@ -14,8 +14,19 @@
 |Feature| Details |
 | ------ | ------ |
 |systemd  | information, services (start, stop, restart, status), service properties for example CPUShares
-see information from ```/proc``` fs| netstat, netdev, memory and much more
-
+see information from ```/proc``` fs| netstat, netdev, memory , vms, ARP and much more
+system | fetch and configure system information for example hostname
+network | fetch and configure network information example (dns, iostat, interface)
+network link | configure network link parameters like (dhcp, linkLocalAddressing, multicastDNS, Address, route, domains, dns, ntp, ipv6AcceptRA, mode, mtubytes, mac, group, requiredFamilyForOnline, activationPolicy, routingPolicyRule, DHCPv4, DHCPv6, DHCPServer, Ipv6SendRA) etc 
+login | fetch list of users and sessions also get information for a id
+network devices | create and remove virtual network devices like (Vlan, Bond, Bridge, MacVLan, IpVLan, VxLan, WireGuard) etc 
+ethtool | fetch ethernet settings for a link also based on a action
+sysctl | used to fetch, set, load and automate kernel parameters 
+user | used to fetch, add, and remove user on the system
+group | used to fetch, add, and remove group on the system 
+link | configure link parameters like (MACAddress, Name, AlternativeNames, Offload, VLANTAG, CHannels, Buffers, Queues, FlowControls, Coalesce) etc
+firewall | add, delete and show nft tables, chain and rules also is used to run any NFT commands
+package management | used to manage package management on the system like (list, info, download, update, remove, clean cache, list repositories, search package) etc 
 
 ### Dependencies
 
