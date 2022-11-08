@@ -79,6 +79,12 @@ func routerParseQueryOptions(values map[string][]string) QueryOptions {
 	return o
 }
 
+func routerParseHistoryOptions(values map[string][]string) HistoryOptions {
+	var o HistoryOptions
+	o = *routerParseOptionsInterface(values, reflect.TypeOf(o)).(*HistoryOptions)
+	return o
+}
+
 func routeracquireCommand(w http.ResponseWriter, r *http.Request) {
 	var err error
 
@@ -178,9 +184,40 @@ func routeracquireCommandPkgs(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func RegisterRouterTdnf(router *mux.Router) {
-	n := router.PathPrefix("/tdnf").Subrouter().StrictSlash(false)
+func routeracquireHistoryCommand(w http.ResponseWriter, r *http.Request) {
+	var err error
 
+	if err = r.ParseForm(); err != nil {
+		web.JSONResponseError(err, w)
+	}
+	options := routerParseOptions(r.Form)
+	historyCmdOptions := HistoryCmdOptions{options, routerParseHistoryOptions(r.Form)}
+
+	switch cmd := mux.Vars(r)["command"]; cmd {
+	case "init":
+		err = acquireHistoryInit(w, historyCmdOptions)
+	case "list":
+		err = acquireHistoryList(w, historyCmdOptions)
+	case "rollback":
+		err = acquireHistoryAlterCmd(w, cmd, historyCmdOptions)
+	case "undo":
+		err = acquireHistoryAlterCmd(w, cmd, historyCmdOptions)
+	case "redo":
+		err = acquireHistoryAlterCmd(w, cmd, historyCmdOptions)
+	default:
+		err = errors.New("unsupported")
+	}
+
+	if err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
+func RegisterRouterTdnf(router *mux.Router) {
+	nh := router.PathPrefix("/tdnf/history").Subrouter().StrictSlash(false)
+	nh.HandleFunc("/{command}", routeracquireHistoryCommand).Methods("GET")
+
+	n := router.PathPrefix("/tdnf").Subrouter().StrictSlash(false)
 	n.HandleFunc("/{command}/{pkgs}", routeracquireCommandPkgs).Methods("GET")
 	n.HandleFunc("/{command}", routeracquireCommand).Methods("GET")
 }
