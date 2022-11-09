@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -31,6 +32,16 @@ func routerParseOptionsInterface(values map[string][]string, optType reflect.Typ
 		return ""
 	}
 
+	getInt := func(key string) int {
+		if v, ok := values[key]; ok {
+			i, err := strconv.Atoi(v[0])
+			if err == nil {
+				return i
+			}
+		}
+		return 0
+	}
+
 	options := reflect.New(optType)
 	v := options.Elem()
 	for i := 0; i < v.NumField(); i++ {
@@ -40,6 +51,8 @@ func routerParseOptionsInterface(values map[string][]string, optType reflect.Typ
 		switch value.(type) {
 		case bool:
 			v.Field(i).SetBool(isTrue(name))
+		case int:
+			v.Field(i).SetInt(int64(getInt(name)))
 		case string:
 			v.Field(i).SetString(getString(name))
 		case []string:

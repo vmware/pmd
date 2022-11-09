@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/fatih/color"
@@ -102,6 +103,8 @@ func tdnfParseFlagsInterface(c *cli.Context, optType reflect.Type) interface{} {
 		switch value.(type) {
 		case bool:
 			v.Field(i).SetBool(c.Bool(name))
+		case int:
+			v.Field(i).SetInt(c.Int64(name))
 		case string:
 			v.Field(i).SetString(c.String(name))
 		case []string:
@@ -192,6 +195,8 @@ func tdnfCreateFlagsInterface(optType reflect.Type) []cli.Flag {
 		switch value.(type) {
 		case bool:
 			flags = append(flags, &cli.BoolFlag{Name: name})
+		case int:
+			flags = append(flags, &cli.IntFlag{Name: name})
 		case string:
 			flags = append(flags, &cli.StringFlag{Name: name})
 		case []string:
@@ -297,6 +302,9 @@ func tdnfOptionsMap(options interface{}) url.Values {
 				if value.(bool) {
 					m.Add(name, "true")
 				}
+			case int:
+				i := value.(int)
+				m.Add(name, strconv.Itoa(i))
 			case string:
 				str := value.(string)
 				if !validator.IsEmpty(str) {
@@ -737,7 +745,7 @@ func acquireTdnfAlterCmd(options *tdnf.Options, cmd string, pkg string, host str
 func acquireTdnfHistoryList(options *tdnf.HistoryCmdOptions, host string, token map[string]string) (*HistoryListDesc, error) {
 	var path string
 	path = "/api/v1/tdnf/history/list" + tdnfOptionsQuery(options)
-	fmt.Printf("path=%v\n", path)
+
 	resp, err := web.DispatchAndWait(http.MethodGet, host, path, token, nil)
 	if err != nil {
 		return nil, err

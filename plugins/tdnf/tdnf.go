@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os/exec"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -213,10 +214,10 @@ type UpdateInfoOptions struct {
 }
 
 type HistoryOptions struct {
-	From    string `tdnf:"--from"`
-	To      string `tdnf:"--to"`
-	Info    bool   `tdnf:"--info"`
-	Reverse bool   `tdnf:"--reverse"`
+	From    int  `tdnf:"--from"`
+	To      int  `tdnf:"--to"`
+	Info    bool `tdnf:"--info"`
+	Reverse bool `tdnf:"--reverse"`
 }
 
 type HistoryCmdOptions struct {
@@ -243,6 +244,8 @@ func TdnfOptions(options interface{}) []string {
 					if value.(bool) {
 						strOptions = append(strOptions, opt)
 					}
+				case int:
+					strOptions = append(strOptions, opt+"="+strconv.Itoa(value.(int)))
 				case string:
 					if strVal := value.(string); strVal != "" {
 						strOptions = append(strOptions, opt+"="+strVal)
