@@ -365,7 +365,7 @@ func acquireAlterCmd(w http.ResponseWriter, cmd string, pkgs string, options Opt
 		var s string
 		var err error
 		if !validator.IsEmpty(pkgs) {
-			s, err = TdnfExec(&options, "-y", cmd, pkgs)
+			s, err = TdnfExec(&options, append([]string{"-y", cmd}, strings.Split(pkgs, ",")...)...)
 		} else {
 			s, err = TdnfExec(&options, "-y", cmd)
 		}
