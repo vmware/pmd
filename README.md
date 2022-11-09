@@ -552,6 +552,10 @@ pmctl network set-multicast-dns <deviceName> <MulticastDNSMode>
 pmctl network add-link-address <deviceName> address <Address> peer <Address> label <labelValue> scope <scopeValue>
 >pmctl network add-link-address ens37 address 192.168.0.15/24 peer 192.168.10.10/24 label ipv4 scope link
 
+# Configure network sriov
+pmctl network add-sriov dev <deviceName> vf <VirtualFunction> vlanid <VLANId> qos <QualityOfService> vlanproto <VLANProtocol> macsfc <MACSpoofCheck> qrss <QueryReceiveSideScaling> trust <Trust> linkstate <LinkState> macaddr <MACAddress>
+>pmctl network add-sriov dev ens37 vf 2 vlanid 1 qos 1024 vlanproto 802.1Q macsfc yes qrss yes trust yes linkstate auto macaddr 00:0c:29:3a:bc:11
+
 # Configure network route
 pmctl network add-route dev <deviceName> gw <Gateway> gwonlink <GatewayOnlink> src <Source> dest <Destination> prefsrc <preferredSource> table <Table> scope <Scope>
 >pmctl network add-route dev ens33 gw 192.168.1.0 gwonlink no src 192.168.1.15/24 dest 192.168.10.10/24 prefsrc 192.168.8.9 table 1234 scope link

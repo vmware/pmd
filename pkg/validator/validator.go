@@ -477,6 +477,41 @@ func IsProcSysNetPath(p string) bool {
 	return p == "core" || p == "ipv4" || p == "ipv6"
 }
 
+func IsSRIOVVirtualFunction(value string) bool {
+	l, err := strconv.ParseUint(value, 10, 32)
+	if err != nil || l > 2147483646 {
+		return false
+	}
+
+	return true
+}
+
+func IsSRIOVVLANId(value string) bool {
+	l, err := strconv.ParseUint(value, 10, 32)
+	if err != nil || l < 1 || l > 4095 {
+		return false
+	}
+
+	return true
+}
+
+func IsSRIOVQualityOfService(value string) bool {
+	l, err := strconv.ParseUint(value, 10, 32)
+	if err != nil || l < 1 || l > 4294967294 {
+		return false
+	}
+
+	return true
+}
+
+func IsSRIOVVLANProtocol(p string) bool {
+	return p == "802.1Q" || p == "802.1ad"
+}
+
+func IsSRIOVLinkState(l string) bool {
+	return l == "auto" || IsBool(l)
+}
+
 // see https://fedoraproject.org/wiki/Packaging:Naming
 func IsValidPkgName(name string) bool {
 	if IsEmpty(name) {
