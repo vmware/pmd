@@ -10,7 +10,46 @@ import (
 	"github.com/vmware/pmd/plugins/tdnf"
 )
 
-func TdnfSkipUnsupported(t *testing.T) {
+func tdnfTestIsInstalled(t *testing.T, token map[string]string, pkg string) bool {
+	options := tdnf.ListOptions{ScopeOptions: tdnf.ScopeOptions{Installed: true}}
+	msg, err := acquireTdnfList(&options, pkg, "", token)
+	if err != nil {
+		t.Errorf("list failed: %v\n", err)
+	}
+	list := msg.Message
+	found := false
+	for _, i := range list {
+		if i.Name == pkg {
+			found = true
+			break
+		}
+	}
+	return found
+}
+
+func tdnfTestInstall(t *testing.T, token map[string]string, pkg string) {
+	options := tdnf.Options{}
+	_, err := acquireTdnfAlterCmd(&options, "install", pkg, "", token)
+	if err != nil {
+		t.Errorf("install failed: %v\n", err)
+	}
+	if !tdnfTestIsInstalled(t, token, pkg) {
+		t.Errorf("pkg '%v' did not get installed\n", pkg)
+	}
+}
+
+func tdnfTestRemove(t *testing.T, token map[string]string, pkg string) {
+	options := tdnf.Options{}
+	_, err := acquireTdnfAlterCmd(&options, "erase", pkg, "", token)
+	if err != nil {
+		t.Errorf("erase failed: %v\n", err)
+	}
+	if tdnfTestIsInstalled(t, token, pkg) {
+		t.Errorf("pkg '%v' did not get removed\n", pkg)
+	}
+}
+
+func tdnfTestSkipUnsupported(t *testing.T) {
 	token, _ := web.BuildAuthTokenFromEnv()
 	options := tdnf.Options{}
 	_, err := acquireTdnfVersion(&options, "", token)
@@ -20,7 +59,7 @@ func TdnfSkipUnsupported(t *testing.T) {
 }
 
 func TestTdnfInfo(t *testing.T) {
-	TdnfSkipUnsupported(t)
+	tdnfTestSkipUnsupported(t)
 
 	token, _ := web.BuildAuthTokenFromEnv()
 	options := tdnf.ListOptions{}
@@ -42,7 +81,7 @@ func TestTdnfInfo(t *testing.T) {
 }
 
 func TestTdnfList(t *testing.T) {
-	TdnfSkipUnsupported(t)
+	tdnfTestSkipUnsupported(t)
 
 	token, _ := web.BuildAuthTokenFromEnv()
 	options := tdnf.ListOptions{}
@@ -64,7 +103,7 @@ func TestTdnfList(t *testing.T) {
 }
 
 func TestTdnfListPkg(t *testing.T) {
-	TdnfSkipUnsupported(t)
+	tdnfTestSkipUnsupported(t)
 
 	token, _ := web.BuildAuthTokenFromEnv()
 	options := tdnf.ListOptions{}
@@ -86,7 +125,7 @@ func TestTdnfListPkg(t *testing.T) {
 }
 
 func TestTdnfListPkgInstalled(t *testing.T) {
-	TdnfSkipUnsupported(t)
+	tdnfTestSkipUnsupported(t)
 
 	token, _ := web.BuildAuthTokenFromEnv()
 	options := tdnf.ListOptions{ScopeOptions: tdnf.ScopeOptions{Installed: true}}
@@ -110,7 +149,7 @@ func TestTdnfListPkgInstalled(t *testing.T) {
 }
 
 func TestTdnfListPkgOneRepo(t *testing.T) {
-	TdnfSkipUnsupported(t)
+	tdnfTestSkipUnsupported(t)
 
 	repoId := "photon-release"
 
@@ -139,7 +178,7 @@ func TestTdnfListPkgOneRepo(t *testing.T) {
 }
 
 func TestTdnfCheckUpdate(t *testing.T) {
-	TdnfSkipUnsupported(t)
+	tdnfTestSkipUnsupported(t)
 
 	token, _ := web.BuildAuthTokenFromEnv()
 	options := tdnf.Options{}
@@ -150,7 +189,7 @@ func TestTdnfCheckUpdate(t *testing.T) {
 }
 
 func TestTdnfClean(t *testing.T) {
-	TdnfSkipUnsupported(t)
+	tdnfTestSkipUnsupported(t)
 
 	token, _ := web.BuildAuthTokenFromEnv()
 	options := tdnf.Options{}
@@ -161,7 +200,7 @@ func TestTdnfClean(t *testing.T) {
 }
 
 func TestTdnfMakeCache(t *testing.T) {
-	TdnfSkipUnsupported(t)
+	tdnfTestSkipUnsupported(t)
 
 	token, _ := web.BuildAuthTokenFromEnv()
 	options := tdnf.Options{}
@@ -172,7 +211,7 @@ func TestTdnfMakeCache(t *testing.T) {
 }
 
 func TestTdnfRepoList(t *testing.T) {
-	TdnfSkipUnsupported(t)
+	tdnfTestSkipUnsupported(t)
 
 	token, _ := web.BuildAuthTokenFromEnv()
 	options := tdnf.Options{}
@@ -183,7 +222,7 @@ func TestTdnfRepoList(t *testing.T) {
 }
 
 func TestTdnfRepoQuery(t *testing.T) {
-	TdnfSkipUnsupported(t)
+	tdnfTestSkipUnsupported(t)
 
 	token, _ := web.BuildAuthTokenFromEnv()
 	options := tdnf.RepoQueryOptions{}
@@ -205,7 +244,7 @@ func TestTdnfRepoQuery(t *testing.T) {
 }
 
 func TestTdnfRepoQueryFile(t *testing.T) {
-	TdnfSkipUnsupported(t)
+	tdnfTestSkipUnsupported(t)
 
 	token, _ := web.BuildAuthTokenFromEnv()
 	options := tdnf.RepoQueryOptions{QueryOptions: tdnf.QueryOptions{File: "/etc/tdnf/tdnf.conf"}}
@@ -227,7 +266,7 @@ func TestTdnfRepoQueryFile(t *testing.T) {
 }
 
 func TestTdnfRepoQueryList(t *testing.T) {
-	TdnfSkipUnsupported(t)
+	tdnfTestSkipUnsupported(t)
 
 	token, _ := web.BuildAuthTokenFromEnv()
 	options := tdnf.RepoQueryOptions{QueryOptions: tdnf.QueryOptions{List: true}}
@@ -258,7 +297,7 @@ func TestTdnfRepoQueryList(t *testing.T) {
 }
 
 func TestTdnfSearch(t *testing.T) {
-	TdnfSkipUnsupported(t)
+	tdnfTestSkipUnsupported(t)
 
 	token, _ := web.BuildAuthTokenFromEnv()
 	options := tdnf.Options{}
@@ -280,7 +319,7 @@ func TestTdnfSearch(t *testing.T) {
 }
 
 func TestTdnfUpdateInfoSummary(t *testing.T) {
-	TdnfSkipUnsupported(t)
+	tdnfTestSkipUnsupported(t)
 
 	token, _ := web.BuildAuthTokenFromEnv()
 	options := tdnf.UpdateInfoOptions{}
@@ -291,12 +330,77 @@ func TestTdnfUpdateInfoSummary(t *testing.T) {
 }
 
 func TestTdnfUpdateInfoList(t *testing.T) {
-	TdnfSkipUnsupported(t)
+	tdnfTestSkipUnsupported(t)
 
 	token, _ := web.BuildAuthTokenFromEnv()
 	options := tdnf.UpdateInfoOptions{ModeOptions: tdnf.ModeOptions{List: true}}
 	_, err := acquireTdnfUpdateInfo(&options, "", "", token)
 	if err != nil {
 		t.Errorf("updateinfo failed: %v\n", err)
+	}
+}
+
+func TestTdnfAlter(t *testing.T) {
+	pkg := "nano" // a package that we probably won't need in the image
+
+	tdnfTestSkipUnsupported(t)
+
+	token, _ := web.BuildAuthTokenFromEnv()
+	options := tdnf.Options{}
+
+	_, err := acquireTdnfAlterCmd(&options, "install", pkg, "", token)
+	if err != nil {
+		t.Errorf("install failed: %v\n", err)
+	}
+	if !tdnfTestIsInstalled(t, token, pkg) {
+		t.Errorf("pkg '%v' did not get installed\n", pkg)
+	}
+
+	_, err = acquireTdnfAlterCmd(&options, "erase", pkg, "", token)
+	if err != nil {
+		t.Errorf("remove failed: %v\n", err)
+	}
+	if tdnfTestIsInstalled(t, token, pkg) {
+		t.Errorf("pkg '%v' did not get removed\n", pkg)
+	}
+}
+
+func TestTdnfHistory(t *testing.T) {
+	pkg := "nano" // a package that we probably won't need in the test env
+
+	tdnfTestSkipUnsupported(t)
+
+	token, _ := web.BuildAuthTokenFromEnv()
+	options := tdnf.HistoryCmdOptions{}
+
+	tdnfTestInstall(t, token, pkg)
+	tdnfTestRemove(t, token, pkg)
+
+	msg, err := acquireTdnfHistoryList(&options, "", token)
+	if err != nil {
+		t.Errorf("history list failed: %v\n", err)
+	}
+
+	// determine last transaction id, which is for the 'erase' cmd above
+	list := msg.Message
+	removeId := list[len(list)-1].Id
+	undoOptions := tdnf.HistoryCmdOptions{HistoryOptions: tdnf.HistoryOptions{From: removeId}}
+
+	// undo it (so pkg gets reinstalled)
+	_, err = acquireTdnfHistoryAlterCmd(&undoOptions, "undo", "", token)
+	if err != nil {
+		t.Errorf("history undo failed: %v\n", err)
+	}
+	if !tdnfTestIsInstalled(t, token, pkg) {
+		t.Errorf("pkg '%v' erase did not get undone\n", pkg)
+	}
+
+	// redo it (so pkg gets removed again)
+	_, err = acquireTdnfHistoryAlterCmd(&undoOptions, "redo", "", token)
+	if err != nil {
+		t.Errorf("history redo failed: %v\n", err)
+	}
+	if tdnfTestIsInstalled(t, token, pkg) {
+		t.Errorf("pkg '%v' erase did not get redone\n", pkg)
 	}
 }
