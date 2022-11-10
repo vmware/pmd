@@ -163,6 +163,18 @@ type IPv6RoutePrefixSection struct {
 	LifetimeSec string `json:"LifetimeSec"`
 }
 
+type SRIOVSection struct {
+	VirtualFunction         string `json:"VirtualFunction"`
+	VLANId                  string `json:"VLANId"`
+	QualityOfService        string `json:"QualityOfService"`
+	VLANProtocol            string `json:"VLANProtocol"`
+	MACSpoofCheck           string `json:"MACSpoofCheck"`
+	QueryReceiveSideScaling string `json:"QueryReceiveSideScaling"`
+	Trust                   string `json:"Trust"`
+	LinkState               string `json:"LinkState"`
+	MACAddress              string `json:"MACAddress"`
+}
+
 type Network struct {
 	Link                      string                     `json:"Link"`
 	LinkSection               LinkSection                `json:"LinkSection"`
@@ -177,6 +189,7 @@ type Network struct {
 	IPv6SendRASection         IPv6SendRASection          `json:"IPv6SendRASection"`
 	IPv6PrefixSections        []IPv6PrefixSection        `json:"IPv6PrefixSections"`
 	IPv6RoutePrefixSections   []IPv6RoutePrefixSection   `json:"IPv6RoutePrefixSections"`
+	SRIOVSections             []SRIOVSection             `json:"SRIOVSections"`
 }
 
 type LinkDescribe struct {
@@ -1069,6 +1082,81 @@ func (n *Network) buildIPv6RoutePrefixSection(m *configfile.Meta) error {
 	return nil
 }
 
+func (n *Network) buildSRIOVSection(m *configfile.Meta) error {
+	for _, s := range n.SRIOVSections {
+		if err := m.NewSection("SR-IOV"); err != nil {
+			return err
+		}
+
+		// Mandatory Argument Check VirtualFunction
+		if !validator.IsEmpty(s.VirtualFunction) {
+			if !validator.IsSRIOVVirtualFunction(s.VirtualFunction) {
+				log.Errorf("Failed to parse VirtualFunction='%s'", s.VirtualFunction)
+				return fmt.Errorf("invalid virtualfunction='%s'", s.VirtualFunction)
+			}
+			m.SetKeyToNewSectionString("VirtualFunction", s.VirtualFunction)
+		} else {
+			log.Errorf("Failed to configure SR-IOV. Missing VirtualFunction")
+			return fmt.Errorf("missing mandatory argument VirtualFunction")
+		}
+
+		if !validator.IsEmpty(s.VLANId) {
+			if !validator.IsSRIOVVLANId(s.VLANId) {
+				log.Errorf("Failed to parse VLANId='%s'", s.VLANId)
+				return fmt.Errorf("invalid vlanid='%s'", s.VLANId)
+			}
+			m.SetKeyToNewSectionString("VLANId", s.VLANId)
+		}
+
+		if !validator.IsEmpty(s.QualityOfService) {
+			if !validator.IsSRIOVQualityOfService(s.QualityOfService) {
+				log.Errorf("Failed to parse QualityOfService='%s'", s.QualityOfService)
+				return fmt.Errorf("invalid qualityofservice='%s'", s.QualityOfService)
+			}
+			m.SetKeyToNewSectionString("QualityOfService", s.QualityOfService)
+		}
+
+		if !validator.IsEmpty(s.VLANProtocol) {
+			if !validator.IsSRIOVVLANProtocol(s.VLANProtocol) {
+				log.Errorf("Failed to parse VLANProtocol='%s'", s.VLANProtocol)
+				return fmt.Errorf("invalid vlanprotocol='%s'", s.VLANProtocol)
+			}
+			m.SetKeyToNewSectionString("VLANProtocol", s.VLANProtocol)
+		}
+
+		if !validator.IsEmpty(s.MACSpoofCheck) && validator.IsBool(s.MACSpoofCheck) {
+			m.SetKeyToNewSectionString("MACSpoofCheck", s.MACSpoofCheck)
+		}
+
+		if !validator.IsEmpty(s.QueryReceiveSideScaling) && validator.IsBool(s.QueryReceiveSideScaling) {
+			m.SetKeyToNewSectionString("QueryReceiveSideScaling", s.QueryReceiveSideScaling)
+		}
+
+		if !validator.IsEmpty(s.Trust) && validator.IsBool(s.Trust) {
+			m.SetKeyToNewSectionString("Trust", s.Trust)
+		}
+
+		if !validator.IsEmpty(s.LinkState) {
+			if !validator.IsSRIOVLinkState(s.LinkState) {
+				log.Errorf("Failed to parse LinkState='%s'", s.LinkState)
+				return fmt.Errorf("invalid linkstate='%s'", s.LinkState)
+
+			}
+			m.SetKeyToNewSectionString("LinkState", s.LinkState)
+		}
+
+		if !validator.IsEmpty(s.MACAddress) {
+			if validator.IsNotMAC(s.MACAddress) {
+				log.Errorf("Failed to parse MACAddress='%s'", s.MACAddress)
+				return fmt.Errorf("invalid macaddress='%s'", s.MACAddress)
+			}
+			m.SetKeyToNewSectionString("MACAddress", s.MACAddress)
+		}
+	}
+
+	return nil
+}
+
 func (n *Network) removeAddressSection(m *configfile.Meta) error {
 	for _, a := range n.AddressSections {
 		if !validator.IsEmpty(a.Address) {
@@ -1310,6 +1398,9 @@ func (n *Network) ConfigureNetwork(ctx context.Context, w http.ResponseWriter) e
 		return err
 	}
 	if err := n.buildIPv6RoutePrefixSection(m); err != nil {
+		return err
+	}
+	if err := n.buildSRIOVSection(m); err != nil {
 		return err
 	}
 

@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/vishvananda/netlink"
 	"github.com/vmware/pmd/pkg/configfile"
 	"github.com/vmware/pmd/pkg/share"
 	"github.com/vmware/pmd/pkg/system"
@@ -18,7 +19,6 @@ import (
 	"github.com/vmware/pmd/pkg/web"
 	"github.com/vmware/pmd/plugins/network/networkd"
 	"github.com/vmware/pmd/plugins/network/resolved"
-	"github.com/vishvananda/netlink"
 )
 
 func setupLink(t *testing.T, link netlink.Link) {
@@ -1392,5 +1392,64 @@ func TestNetworkConfigureDHCPv6Option(t *testing.T) {
 	}
 	if m.GetKeySectionString("DHCPv6", "SendVendorOption") != "1987653:65:ipv6address:af:03:ff:87" {
 		t.Fatalf("Failed to set SendVendorOption")
+	}
+}
+
+func TestNetworkSRIOV(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
+
+	system.ExecRun("systemctl", "restart", "systemd-networkd")
+	time.Sleep(time.Second * 3)
+
+	n := networkd.Network{
+		Link: "test99",
+		SRIOVSections: []networkd.SRIOVSection{
+			{
+				VirtualFunction:         "2",
+				VLANId:                  "1",
+				QualityOfService:        "1024",
+				VLANProtocol:            "802.1Q",
+				MACSpoofCheck:           "yes",
+				QueryReceiveSideScaling: "yes",
+				Trust:                   "yes",
+				LinkState:               "auto",
+				MACAddress:              "00:0c:29:3a:bc:11",
+			},
+		},
+	}
+
+	m, err := configureNetwork(t, n)
+	if err != nil {
+		t.Fatalf("Failed to configure SRIOV: %v\n", err)
+	}
+	defer os.Remove(m.Path)
+
+	if m.GetKeySectionString("SR-IOV", "VirtualFunction") != "2" {
+		t.Fatalf("Failed to set VirtualFunction")
+	}
+	if m.GetKeySectionString("SR-IOV", "VLANId") != "1" {
+		t.Fatalf("Failed to set VLANId")
+	}
+	if m.GetKeySectionString("SR-IOV", "QualityOfService") != "1024" {
+		t.Fatalf("Failed to set QualityOfService")
+	}
+	if m.GetKeySectionString("SR-IOV", "VLANProtocol") != "802.1Q" {
+		t.Fatalf("Failed to set VLANProtocol")
+	}
+	if m.GetKeySectionString("SR-IOV", "MACSpoofCheck") != "yes" {
+		t.Fatalf("Failed to set MACSpoofCheck")
+	}
+	if m.GetKeySectionString("SR-IOV", "QueryReceiveSideScaling") != "yes" {
+		t.Fatalf("Failed to set QueryReceiveSideScaling")
+	}
+	if m.GetKeySectionString("SR-IOV", "Trust") != "yes" {
+		t.Fatalf("Failed to set Trust")
+	}
+	if m.GetKeySectionString("SR-IOV", "LinkState") != "auto" {
+		t.Fatalf("Failed to set LinkState")
+	}
+	if m.GetKeySectionString("SR-IOV", "MACAddress") != "00:0c:29:3a:bc:11" {
+		t.Fatalf("Failed to set MACAddress")
 	}
 }
