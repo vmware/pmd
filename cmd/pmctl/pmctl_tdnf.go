@@ -721,10 +721,18 @@ func acquireTdnfVersion(options *tdnf.Options, host string, token map[string]str
 	return nil, errors.New(m.Errors)
 }
 
-func acquireTdnfAlterCmd(options *tdnf.Options, cmd string, pkg string, host string, token map[string]string) (*AlterResultDesc, error) {
+func acquireTdnfAlterCmd(options *tdnf.Options, cmd string, pkgs string, host string, token map[string]string) (*AlterResultDesc, error) {
 	var msg []byte
+	var req string
 
-	msg, err := web.DispatchAndWait(http.MethodGet, host, "/api/v1/tdnf/"+cmd+"/"+pkg+tdnfOptionsQuery(options), token, nil)
+	if pkgs != "" {
+		req = "/api/v1/tdnf/" + cmd + "/" + pkgs + tdnfOptionsQuery(options)
+	} else {
+		req = "/api/v1/tdnf/" + cmd + tdnfOptionsQuery(options)
+	}
+
+	fmt.Printf("req: %s\n", req)
+	msg, err := web.DispatchAndWait(http.MethodGet, host, req, token, nil)
 	if err != nil {
 		return nil, err
 	}

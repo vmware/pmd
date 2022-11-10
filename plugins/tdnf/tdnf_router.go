@@ -107,6 +107,8 @@ func routeracquireCommand(w http.ResponseWriter, r *http.Request) {
 	options := routerParseOptions(r.Form)
 
 	switch cmd := mux.Vars(r)["command"]; cmd {
+	case "autoremove":
+		err = acquireAlterCmd(w, cmd, "", options)
 	case "check-update":
 		err = acquireCheckUpdate(w, "", options)
 	case "clean":
