@@ -909,3 +909,12 @@ func tdnfHistoryAlterCmd(options *tdnf.HistoryCmdOptions, cmd string, host strin
 	}
 	displayTdnfAlterResult(l)
 }
+
+func tdnfMark(options *tdnf.Options, what string, pkgs string, host string, token map[string]string) {
+	_, err := acquireTdnfSimpleCommand(options, "mark/"+what+"/"+pkgs, host, token)
+	if err != nil {
+		fmt.Printf("Failed tdnf mark: %v\n", err)
+		return
+	}
+	fmt.Printf("%s marked\n", pkgs)
+}

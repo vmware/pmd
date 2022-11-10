@@ -1620,6 +1620,47 @@ func main() {
 						},
 					},
 				},
+				{
+					Name:        "mark",
+					Aliases:     []string{"m"},
+					Description: "Mark Package(s)",
+					Subcommands: []*cli.Command{
+						{
+							Name:        "install",
+							Aliases:     []string{"i"},
+							Description: "Mark as user installed",
+							Action: func(c *cli.Context) error {
+								options := tdnfParseFlags(c)
+								if c.NArg() > 1 {
+									fmt.Printf("Too many arguments\n")
+									return nil
+								} else if c.NArg() < 1 {
+									fmt.Printf("Needs packages names(s)\n")
+									return nil
+								}
+								tdnfMark(&options, "install", c.Args().First(), c.String("url"), token)
+								return nil
+							},
+						},
+						{
+							Name:        "remove",
+							Aliases:     []string{"i"},
+							Description: "Mark as auto installed",
+							Action: func(c *cli.Context) error {
+								options := tdnfParseFlags(c)
+								if c.NArg() > 1 {
+									fmt.Printf("Too many arguments\n")
+									return nil
+								} else if c.NArg() < 1 {
+									fmt.Printf("Needs packages names(s)\n")
+									return nil
+								}
+								tdnfMark(&options, "remove", c.Args().First(), c.String("url"), token)
+								return nil
+							},
+						},
+					},
+				},
 			},
 		},
 		{
