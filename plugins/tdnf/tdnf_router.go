@@ -226,9 +226,35 @@ func routeracquireHistoryCommand(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func routeracquireMarkCommand(w http.ResponseWriter, r *http.Request) {
+	var err error
+
+	pkgs := mux.Vars(r)["pkgs"]
+	if err = r.ParseForm(); err != nil {
+		web.JSONResponseError(err, w)
+	}
+	options := routerParseOptions(r.Form)
+
+	switch what := mux.Vars(r)["what"]; what {
+	case "install":
+		err = acquireMarkCmd(w, what, pkgs, options)
+	case "remove":
+		err = acquireMarkCmd(w, what, pkgs, options)
+	default:
+		err = errors.New("unsupported")
+	}
+
+	if err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
 func RegisterRouterTdnf(router *mux.Router) {
 	nh := router.PathPrefix("/tdnf/history").Subrouter().StrictSlash(false)
 	nh.HandleFunc("/{command}", routeracquireHistoryCommand).Methods("GET")
+
+	nm := router.PathPrefix("/tdnf/mark").Subrouter().StrictSlash(false)
+	nm.HandleFunc("/{what}/{pkgs}", routeracquireMarkCommand).Methods("GET")
 
 	n := router.PathPrefix("/tdnf").Subrouter().StrictSlash(false)
 	n.HandleFunc("/{command}/{pkgs}", routeracquireCommandPkgs).Methods("GET")

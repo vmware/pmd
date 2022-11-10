@@ -442,3 +442,14 @@ func acquireHistoryAlterCmd(w http.ResponseWriter, cmd string, options HistoryCm
 	})
 	return jobs.AcceptedResponse(w, job)
 }
+
+func acquireMarkCmd(w http.ResponseWriter, what string, pkgs string, options Options) error {
+	job := jobs.CreateJob(func() (interface{}, error) {
+		_, err := TdnfExec(&options, append([]string{"mark", what}, strings.Split(pkgs, ",")...)...)
+		if err != nil {
+			return nil, err
+		}
+		return nil, err
+	})
+	return jobs.AcceptedResponse(w, job)
+}
