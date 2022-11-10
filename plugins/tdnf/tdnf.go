@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os/exec"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -109,6 +110,16 @@ type Version struct {
 	Version string
 }
 
+type HistoryListItem struct {
+	Id           int
+	CmdLine      string
+	TimeStamp    int
+	AddedCount   int
+	RemovedCount int
+	Added        []string
+	Removed      []string
+}
+
 type Options struct {
 	AllowErasing    bool     `tdnf:"--allowerasing"`
 	Best            bool     `tdnf:"--best"`
@@ -202,6 +213,18 @@ type UpdateInfoOptions struct {
 	ModeOptions
 }
 
+type HistoryOptions struct {
+	From    int  `tdnf:"--from"`
+	To      int  `tdnf:"--to"`
+	Info    bool `tdnf:"--info"`
+	Reverse bool `tdnf:"--reverse"`
+}
+
+type HistoryCmdOptions struct {
+	Options
+	HistoryOptions
+}
+
 func TdnfOptions(options interface{}) []string {
 	var strOptions []string
 
@@ -221,6 +244,8 @@ func TdnfOptions(options interface{}) []string {
 					if value.(bool) {
 						strOptions = append(strOptions, opt)
 					}
+				case int:
+					strOptions = append(strOptions, opt+"="+strconv.Itoa(value.(int)))
 				case string:
 					if strVal := value.(string); strVal != "" {
 						strOptions = append(strOptions, opt+"="+strVal)
@@ -340,7 +365,7 @@ func acquireAlterCmd(w http.ResponseWriter, cmd string, pkgs string, options Opt
 		var s string
 		var err error
 		if !validator.IsEmpty(pkgs) {
-			s, err = TdnfExec(&options, "-y", cmd, pkgs)
+			s, err = TdnfExec(&options, append([]string{"-y", cmd}, strings.Split(pkgs, ",")...)...)
 		} else {
 			s, err = TdnfExec(&options, "-y", cmd)
 		}
@@ -374,4 +399,57 @@ func acquireVersion(w http.ResponseWriter, options Options) error {
 		return err
 	}
 	return web.JSONResponse(version, w)
+}
+
+func acquireHistoryList(w http.ResponseWriter, options HistoryCmdOptions) error {
+	s, err := TdnfExec(&options, "history", "list")
+	if err != nil {
+		log.Errorf("Failed to execute tdnf history list': %v", err)
+		return err
+	}
+	var historyList interface{}
+	if err := json.Unmarshal([]byte(s), &historyList); err != nil {
+		return err
+	}
+	return web.JSONResponse(historyList, w)
+}
+
+func acquireHistoryInit(w http.ResponseWriter, options HistoryCmdOptions) error {
+	_, err := TdnfExec(&options, "history", "init")
+	if err != nil {
+		log.Errorf("Failed to execute tdnf history init': %v", err)
+		return err
+	}
+	return web.JSONResponse("history initialized", w)
+}
+
+func acquireHistoryAlterCmd(w http.ResponseWriter, cmd string, options HistoryCmdOptions) error {
+	job := jobs.CreateJob(func() (interface{}, error) {
+		var s string
+		var err error
+		s, err = TdnfExec(&options, "-y", "history", cmd)
+		if err != nil {
+			return nil, err
+		}
+		var alterResult interface{}
+		// An empty response indicates that nothing was to do
+		if s != "" {
+			if err := json.Unmarshal([]byte(s), &alterResult); err != nil {
+				return nil, err
+			}
+		}
+		return alterResult, err
+	})
+	return jobs.AcceptedResponse(w, job)
+}
+
+func acquireMarkCmd(w http.ResponseWriter, what string, pkgs string, options Options) error {
+	job := jobs.CreateJob(func() (interface{}, error) {
+		_, err := TdnfExec(&options, append([]string{"mark", what}, strings.Split(pkgs, ",")...)...)
+		if err != nil {
+			return nil, err
+		}
+		return nil, err
+	})
+	return jobs.AcceptedResponse(w, job)
 }

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -31,6 +32,16 @@ func routerParseOptionsInterface(values map[string][]string, optType reflect.Typ
 		return ""
 	}
 
+	getInt := func(key string) int {
+		if v, ok := values[key]; ok {
+			i, err := strconv.Atoi(v[0])
+			if err == nil {
+				return i
+			}
+		}
+		return 0
+	}
+
 	options := reflect.New(optType)
 	v := options.Elem()
 	for i := 0; i < v.NumField(); i++ {
@@ -40,6 +51,8 @@ func routerParseOptionsInterface(values map[string][]string, optType reflect.Typ
 		switch value.(type) {
 		case bool:
 			v.Field(i).SetBool(isTrue(name))
+		case int:
+			v.Field(i).SetInt(int64(getInt(name)))
 		case string:
 			v.Field(i).SetString(getString(name))
 		case []string:
@@ -79,6 +92,12 @@ func routerParseQueryOptions(values map[string][]string) QueryOptions {
 	return o
 }
 
+func routerParseHistoryOptions(values map[string][]string) HistoryOptions {
+	var o HistoryOptions
+	o = *routerParseOptionsInterface(values, reflect.TypeOf(o)).(*HistoryOptions)
+	return o
+}
+
 func routeracquireCommand(w http.ResponseWriter, r *http.Request) {
 	var err error
 
@@ -88,6 +107,8 @@ func routeracquireCommand(w http.ResponseWriter, r *http.Request) {
 	options := routerParseOptions(r.Form)
 
 	switch cmd := mux.Vars(r)["command"]; cmd {
+	case "autoremove":
+		err = acquireAlterCmd(w, cmd, "", options)
 	case "check-update":
 		err = acquireCheckUpdate(w, "", options)
 	case "clean":
@@ -178,9 +199,66 @@ func routeracquireCommandPkgs(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func RegisterRouterTdnf(router *mux.Router) {
-	n := router.PathPrefix("/tdnf").Subrouter().StrictSlash(false)
+func routeracquireHistoryCommand(w http.ResponseWriter, r *http.Request) {
+	var err error
 
+	if err = r.ParseForm(); err != nil {
+		web.JSONResponseError(err, w)
+	}
+	options := routerParseOptions(r.Form)
+	historyCmdOptions := HistoryCmdOptions{options, routerParseHistoryOptions(r.Form)}
+
+	switch cmd := mux.Vars(r)["command"]; cmd {
+	case "init":
+		err = acquireHistoryInit(w, historyCmdOptions)
+	case "list":
+		err = acquireHistoryList(w, historyCmdOptions)
+	case "rollback":
+		err = acquireHistoryAlterCmd(w, cmd, historyCmdOptions)
+	case "undo":
+		err = acquireHistoryAlterCmd(w, cmd, historyCmdOptions)
+	case "redo":
+		err = acquireHistoryAlterCmd(w, cmd, historyCmdOptions)
+	default:
+		err = errors.New("unsupported")
+	}
+
+	if err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
+func routeracquireMarkCommand(w http.ResponseWriter, r *http.Request) {
+	var err error
+
+	pkgs := mux.Vars(r)["pkgs"]
+	if err = r.ParseForm(); err != nil {
+		web.JSONResponseError(err, w)
+	}
+	options := routerParseOptions(r.Form)
+
+	switch what := mux.Vars(r)["what"]; what {
+	case "install":
+		err = acquireMarkCmd(w, what, pkgs, options)
+	case "remove":
+		err = acquireMarkCmd(w, what, pkgs, options)
+	default:
+		err = errors.New("unsupported")
+	}
+
+	if err != nil {
+		web.JSONResponseError(err, w)
+	}
+}
+
+func RegisterRouterTdnf(router *mux.Router) {
+	nh := router.PathPrefix("/tdnf/history").Subrouter().StrictSlash(false)
+	nh.HandleFunc("/{command}", routeracquireHistoryCommand).Methods("GET")
+
+	nm := router.PathPrefix("/tdnf/mark").Subrouter().StrictSlash(false)
+	nm.HandleFunc("/{what}/{pkgs}", routeracquireMarkCommand).Methods("GET")
+
+	n := router.PathPrefix("/tdnf").Subrouter().StrictSlash(false)
 	n.HandleFunc("/{command}/{pkgs}", routeracquireCommandPkgs).Methods("GET")
 	n.HandleFunc("/{command}", routeracquireCommand).Methods("GET")
 }

@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/fatih/color"
@@ -86,6 +87,12 @@ type StatusDesc struct {
 	Errors  string             `json:"errors"`
 }
 
+type HistoryListDesc struct {
+	Success bool                   `json:"success"`
+	Message []tdnf.HistoryListItem `json:"message"`
+	Errors  string                 `json:"errors"`
+}
+
 func tdnfParseFlagsInterface(c *cli.Context, optType reflect.Type) interface{} {
 	options := reflect.New(optType)
 	v := options.Elem()
@@ -96,6 +103,8 @@ func tdnfParseFlagsInterface(c *cli.Context, optType reflect.Type) interface{} {
 		switch value.(type) {
 		case bool:
 			v.Field(i).SetBool(c.Bool(name))
+		case int:
+			v.Field(i).SetInt(c.Int64(name))
 		case string:
 			v.Field(i).SetString(c.String(name))
 		case []string:
@@ -161,6 +170,19 @@ func tdnfParseUpdateInfoFlags(c *cli.Context) tdnf.UpdateInfoOptions {
 	}
 }
 
+func tdnfParseHistoryFlags(c *cli.Context) tdnf.HistoryOptions {
+	var o tdnf.HistoryOptions
+	o = *tdnfParseFlagsInterface(c, reflect.TypeOf(o)).(*tdnf.HistoryOptions)
+	return o
+}
+
+func tdnfParseHistoryCmdFlags(c *cli.Context) tdnf.HistoryCmdOptions {
+	return tdnf.HistoryCmdOptions{
+		tdnfParseFlags(c),
+		tdnfParseHistoryFlags(c),
+	}
+}
+
 func tdnfCreateFlagsInterface(optType reflect.Type) []cli.Flag {
 	var flags []cli.Flag
 
@@ -173,6 +195,8 @@ func tdnfCreateFlagsInterface(optType reflect.Type) []cli.Flag {
 		switch value.(type) {
 		case bool:
 			flags = append(flags, &cli.BoolFlag{Name: name})
+		case int:
+			flags = append(flags, &cli.IntFlag{Name: name})
 		case string:
 			flags = append(flags, &cli.StringFlag{Name: name})
 		case []string:
@@ -199,6 +223,11 @@ func tdnfCreateQueryFlags() []cli.Flag {
 
 func tdnfCreateModeFlags() []cli.Flag {
 	var o tdnf.ModeOptions
+	return tdnfCreateFlagsInterface(reflect.TypeOf(o))
+}
+
+func tdnfCreateHistoryFlags() []cli.Flag {
+	var o tdnf.HistoryOptions
 	return tdnfCreateFlagsInterface(reflect.TypeOf(o))
 }
 
@@ -232,6 +261,26 @@ func tdnfCreateAlterCommand(cmd string, aliases []string, desc string, pkgRequir
 	}
 }
 
+func tdnfCreateHistoryAlterCommand(cmd string, aliases []string, desc string, token map[string]string) *cli.Command {
+	return &cli.Command{
+		Name:        cmd,
+		Aliases:     aliases,
+		Description: desc,
+		Flags:       tdnfCreateHistoryFlags(),
+
+		Action: func(c *cli.Context) error {
+			options := tdnfParseHistoryCmdFlags(c)
+			if c.NArg() >= 1 {
+				fmt.Printf("Too many arguments\n")
+				return nil
+			} else {
+				tdnfHistoryAlterCmd(&options, cmd, c.String("url"), token)
+			}
+			return nil
+		},
+	}
+}
+
 func tdnfOptionsMap(options interface{}) url.Values {
 	m := url.Values{}
 
@@ -253,6 +302,9 @@ func tdnfOptionsMap(options interface{}) url.Values {
 				if value.(bool) {
 					m.Add(name, "true")
 				}
+			case int:
+				i := value.(int)
+				m.Add(name, strconv.Itoa(i))
 			case string:
 				str := value.(string)
 				if !validator.IsEmpty(str) {
@@ -403,6 +455,26 @@ func displayTdnfAlterResult(rDesc *AlterResultDesc) {
 	displayAlterList(r.UnNeeded, "Unneeded Packages")
 	displayAlterList(r.Reinstall, "Packages to Reinstall")
 	displayAlterList(r.Obsolete, "Packages to be Obsoleted")
+}
+
+func displayTdnfHistoryListResult(l *HistoryListDesc) {
+	displayList := func(label string, l []string) {
+		if len(l) > 0 {
+			fmt.Printf("%v %v\n", color.HiBlueString(label), strings.Join(l, ", "))
+		}
+	}
+
+	for _, i := range l.Message {
+		fmt.Printf("%v %v\n", color.HiBlueString("              Id:"), i.Id)
+		fmt.Printf("%v %v\n", color.HiBlueString("    Command Line:"), i.CmdLine)
+		fmt.Printf("%v %v\n", color.HiBlueString("  Added Packages:"), i.AddedCount)
+		fmt.Printf("%v %v\n", color.HiBlueString("Removed Packages:"), i.RemovedCount)
+		fmt.Printf("%v %v\n", color.HiBlueString("      Time Stamp:"), i.TimeStamp)
+
+		displayList("           Added:", i.Added)
+		displayList("         Removed:", i.Removed)
+		fmt.Printf("\n")
+	}
 }
 
 func acquireTdnfList(options *tdnf.ListOptions, pkg string, host string, token map[string]string) (*ItemListDesc, error) {
@@ -649,10 +721,60 @@ func acquireTdnfVersion(options *tdnf.Options, host string, token map[string]str
 	return nil, errors.New(m.Errors)
 }
 
-func acquireTdnfAlterCmd(options *tdnf.Options, cmd string, pkg string, host string, token map[string]string) (*AlterResultDesc, error) {
+func acquireTdnfAlterCmd(options *tdnf.Options, cmd string, pkgs string, host string, token map[string]string) (*AlterResultDesc, error) {
+	var msg []byte
+	var req string
+
+	if pkgs != "" {
+		req = "/api/v1/tdnf/" + cmd + "/" + pkgs + tdnfOptionsQuery(options)
+	} else {
+		req = "/api/v1/tdnf/" + cmd + tdnfOptionsQuery(options)
+	}
+
+	fmt.Printf("req: %s\n", req)
+	msg, err := web.DispatchAndWait(http.MethodGet, host, req, token, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	m := AlterResultDesc{}
+	if err := json.Unmarshal(msg, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		os.Exit(1)
+	}
+
+	if m.Success {
+		return &m, nil
+	}
+
+	return nil, errors.New(m.Errors)
+}
+
+func acquireTdnfHistoryList(options *tdnf.HistoryCmdOptions, host string, token map[string]string) (*HistoryListDesc, error) {
+	var path string
+	path = "/api/v1/tdnf/history/list" + tdnfOptionsQuery(options)
+
+	resp, err := web.DispatchAndWait(http.MethodGet, host, path, token, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	m := HistoryListDesc{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		os.Exit(1)
+	}
+
+	if m.Success {
+		return &m, nil
+	}
+
+	return nil, errors.New(m.Errors)
+}
+
+func acquireTdnfHistoryAlterCmd(options *tdnf.HistoryCmdOptions, cmd string, host string, token map[string]string) (*AlterResultDesc, error) {
 	var msg []byte
 
-	msg, err := web.DispatchAndWait(http.MethodGet, host, "/api/v1/tdnf/"+cmd+"/"+pkg+tdnfOptionsQuery(options), token, nil)
+	msg, err := web.DispatchAndWait(http.MethodGet, host, "/api/v1/tdnf/history/"+cmd+tdnfOptionsQuery(options), token, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -767,4 +889,40 @@ func tdnfAlterCmd(options *tdnf.Options, cmd string, pkg string, host string, to
 		return
 	}
 	displayTdnfAlterResult(l)
+}
+
+func tdnfHistoryInit(options *tdnf.Options, host string, token map[string]string) {
+	_, err := acquireTdnfSimpleCommand(options, "history/init", host, token)
+	if err != nil {
+		fmt.Printf("Failed tdnf history init: %v\n", err)
+		return
+	}
+	fmt.Printf("history db initialized\n")
+}
+
+func tdnfHistoryList(options *tdnf.HistoryCmdOptions, host string, token map[string]string) {
+	l, err := acquireTdnfHistoryList(options, host, token)
+	if err != nil {
+		fmt.Printf("Failed to acquire tdnf history list: %v\n", err)
+		return
+	}
+	displayTdnfHistoryListResult(l)
+}
+
+func tdnfHistoryAlterCmd(options *tdnf.HistoryCmdOptions, cmd string, host string, token map[string]string) {
+	l, err := acquireTdnfHistoryAlterCmd(options, cmd, host, token)
+	if err != nil {
+		fmt.Printf("Failed to acquire tdnf history %s: %v\n", cmd, err)
+		return
+	}
+	displayTdnfAlterResult(l)
+}
+
+func tdnfMark(options *tdnf.Options, what string, pkgs string, host string, token map[string]string) {
+	_, err := acquireTdnfSimpleCommand(options, "mark/"+what+"/"+pkgs, host, token)
+	if err != nil {
+		fmt.Printf("Failed tdnf mark: %v\n", err)
+		return
+	}
+	fmt.Printf("%s marked\n", pkgs)
 }
