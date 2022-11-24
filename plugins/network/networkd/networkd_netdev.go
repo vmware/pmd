@@ -11,10 +11,10 @@ import (
 	"net/http"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/vmware/pmd/pkg/configfile"
 	"github.com/vmware/pmd/pkg/validator"
 	"github.com/vmware/pmd/pkg/web"
-	log "github.com/sirupsen/logrus"
 )
 
 type VLan struct {
@@ -84,7 +84,7 @@ type Bridge struct {
 }
 
 type WireGuard struct {
-	PrivateKey     string `json:"privateKey"`
+	PrivateKey     string `json:"PrivateKey"`
 	PrivateKeyFile string `json:"PrivateKeyFile"`
 	ListenPort     string `json:"ListenPort"`
 	FirewallMark   string `json:"FirewallMark"`
@@ -93,7 +93,7 @@ type WireGuard struct {
 }
 
 type WireGuardPeer struct {
-	PublicKey           string   `json:"publicKey"`
+	PublicKey           string   `json:"PublicKey"`
 	PresharedKey        string   `json:"PresharedKey"`
 	PresharedKeyFile    string   `json:"PresharedKeyFile"`
 	AllowedIPs          []string `json:"AllowedIPs"`
@@ -101,6 +101,15 @@ type WireGuardPeer struct {
 	PersistentKeepalive string   `json:"PersistentKeepalive"`
 	RouteTable          string   `json:"RouteTable"`
 	RouteMetric         string   `json:"RouteMetric"`
+}
+
+type Tun struct {
+	MultiQueue  string `json:"MultiQueue"`
+	PacketInfo  string `json:"PacketInfo"`
+	VNetHeader  string `json:"VNetHeader"`
+	User        string `json:"User"`
+	Group       string `json:"Group"`
+	KeepCarrier string `json:"KeepCarrier"`
 }
 
 type NetDev struct {
@@ -114,23 +123,16 @@ type NetDev struct {
 	Kind        string `json:"Kind"`
 	MTUBytes    string `json:"MTUBytes"`
 	MACAddress  string `json:"MACAddress"`
-
-	// [VLAN]
-	VLanSection VLan `json:"VLanSection"`
-	// [MACVLAN]
-	MacVLanSection MacVLan `json:"MacVLanSection"`
-	// [IPVLAN]
-	IpVLanSection IpVLan `json:"IpVLanSection"`
-	// [VXVLAN]
-	VxLanSection VxLan `json:"VxLanSection"`
-	// [BOND]
-	BondSection Bond `json:"BondSection"`
-	// [BRIDGE]
-	BridgeSection Bridge `json:"BridgeSection"`
-	// [WIREGUARD]
-	WireGuardSection WireGuard `json:"WireGuardSection"`
-	// [WIREGUARDPEER]
+	// [Kind]
+	VLanSection          VLan          `json:"VLanSection"`
+	MacVLanSection       MacVLan       `json:"MacVLanSection"`
+	IpVLanSection        IpVLan        `json:"IpVLanSection"`
+	VxLanSection         VxLan         `json:"VxLanSection"`
+	BondSection          Bond          `json:"BondSection"`
+	BridgeSection        Bridge        `json:"BridgeSection"`
+	WireGuardSection     WireGuard     `json:"WireGuardSection"`
 	WireGuardPeerSection WireGuardPeer `json:"WireGuardPeerSection"`
+	TunSection           Tun           `json:"TunSection"`
 }
 
 func netDevKindToNetworkKind(s string) string {
@@ -154,6 +156,8 @@ func netDevKindToNetworkKind(s string) string {
 		kind = "VXLAN"
 	case "wireguard":
 		kind = "WireGuard"
+	case "tun":
+		kind = "Tun"
 	}
 
 	return kind
@@ -446,6 +450,52 @@ func (n *NetDev) buildWireGuardPeerSection(m *configfile.Meta) error {
 	return nil
 }
 
+func (n *NetDev) buildTunSection(m *configfile.Meta) error {
+	m.NewSection("Tun")
+
+	if !validator.IsEmpty(n.TunSection.MultiQueue) {
+		if !validator.IsBool(n.TunSection.MultiQueue) {
+			log.Errorf("Failed to create Tun='%s'. Invalid MultiQueue='%s'", n.Name, n.TunSection.MultiQueue)
+			return fmt.Errorf("invalid multiqueue='%s'", n.TunSection.MultiQueue)
+		}
+		m.SetKeyToNewSectionString("MultiQueue", validator.BoolToString(n.TunSection.MultiQueue))
+	}
+
+	if !validator.IsEmpty(n.TunSection.PacketInfo) {
+		if !validator.IsBool(n.TunSection.PacketInfo) {
+			log.Errorf("Failed to create Tun='%s'. Invalid PacketInfo='%s'", n.Name, n.TunSection.PacketInfo)
+			return fmt.Errorf("invalid packetinfo='%s'", n.TunSection.PacketInfo)
+		}
+		m.SetKeyToNewSectionString("PacketInfo", validator.BoolToString(n.TunSection.PacketInfo))
+	}
+
+	if !validator.IsEmpty(n.TunSection.VNetHeader) {
+		if !validator.IsBool(n.TunSection.VNetHeader) {
+			log.Errorf("Failed to create Tun='%s'. Invalid VNetHeader='%s'", n.Name, n.TunSection.VNetHeader)
+			return fmt.Errorf("invalid vnetheader='%s'", n.TunSection.VNetHeader)
+		}
+		m.SetKeyToNewSectionString("VNetHeader", validator.BoolToString(n.TunSection.VNetHeader))
+	}
+
+	if !validator.IsEmpty(n.TunSection.User) {
+		m.SetKeyToNewSectionString("User", n.TunSection.User)
+	}
+
+	if !validator.IsEmpty(n.TunSection.Group) {
+		m.SetKeyToNewSectionString("Group", n.TunSection.Group)
+	}
+
+	if !validator.IsEmpty(n.TunSection.KeepCarrier) {
+		if !validator.IsBool(n.TunSection.KeepCarrier) {
+			log.Errorf("Failed to create Tun='%s'. Invalid KeepCarrier='%s'", n.Name, n.TunSection.KeepCarrier)
+			return fmt.Errorf("invalid keepcarrier='%s'", n.TunSection.KeepCarrier)
+		}
+		m.SetKeyToNewSectionString("KeepCarrier", validator.BoolToString(n.TunSection.KeepCarrier))
+	}
+
+	return nil
+}
+
 func (n *NetDev) BuildKindInLinkNetworkFile() error {
 	for _, l := range n.Links {
 		m, err := CreateOrParseNetworkFile(l)
@@ -512,6 +562,11 @@ func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 		}
 		if err := n.buildWireGuardPeerSection(m); err != nil {
 			log.Errorf("Failed to create WireGuardPeer ='%s': %v", n.Name, err)
+			return err
+		}
+	case "tun":
+		if err := n.buildTunSection(m); err != nil {
+			log.Errorf("Failed to create tun ='%s': %v", n.Name, err)
 			return err
 		}
 	}
