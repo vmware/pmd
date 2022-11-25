@@ -693,7 +693,10 @@ pmctl network create-wg <wireguardName> dev <device> skey <privateKey> pkey<publ
 # Configure WireGuard with default
 >pmctl network create-wg wg1 dev ens37 skey wCmc/74PQpRoxTgqGircVFtdArZFUFIiOoyQY8kVgmI= pkey dSanSzExlryduCwNnAFt+rzpI5fKeHuJx1xx2zxEG2Q= endpoint 10.217.69.88:51820
 ```
-
+# Configure Tun
+pmctl network create-tun <tunName> dev <device> mq <MultiQueue> pktinfo<PacketInfo> vnet-hdr <VNetheader> usr <User> grp <Group> kc <KeepCarrier>
+>pmctl network create-tun tun1 dev ens37 mq yes pktinfo yes vnet-hdr no usr test-user grp test-group kc no
+ 
 #### Remove network device using pmctl
 ```bash
 pmctl network remove-netdev <kindDeviceName> kind <kindType>

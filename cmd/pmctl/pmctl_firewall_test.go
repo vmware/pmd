@@ -166,9 +166,11 @@ func TestShowNFTChain(t *testing.T) {
 			fmt.Printf("               %v %v\n", color.HiBlueString("Table:"), v.Table.Name)
 			fmt.Printf("              %v %v\n", color.HiBlueString("Family:"), v.Table.Family)
 			fmt.Printf("               %v %v\n", color.HiBlueString("Chain:"), v.Name)
-			fmt.Printf("                %v %v\n", color.HiBlueString("Hook:"), v.Hooknum)
 			fmt.Printf("                %v %v\n", color.HiBlueString("Type:"), v.Type)
-			fmt.Printf("              %v %v\n", color.HiBlueString("Policy:"), *v.Policy)
+			fmt.Printf("                %v %v\n", color.HiBlueString("Hook:"), v.Hooknum)
+			if v.Policy != nil {
+				fmt.Printf("              %v %v\n", color.HiBlueString("Policy:"), *v.Policy)
+			}
 			fmt.Printf("            %v %v\n\n", color.HiBlueString("Priority:"), v.Priority)
 		}
 	} else {
