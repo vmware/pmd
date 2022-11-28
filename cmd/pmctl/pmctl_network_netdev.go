@@ -399,11 +399,11 @@ func networkCreateWireGuard(args cli.Args, host string, token map[string]string)
 	}
 }
 
-func networkCreateTun(args cli.Args, host string, token map[string]string) {
+func networkCreateTunOrTap(args cli.Args, kind, host string, token map[string]string) {
 	argStrings := args.Slice()
 	n := networkd.NetDev{
 		Name: argStrings[0],
-		Kind: "tun",
+		Kind: kind,
 	}
 
 	for i := 1; i < len(argStrings); {
@@ -411,30 +411,30 @@ func networkCreateTun(args cli.Args, host string, token map[string]string) {
 		case "dev":
 			n.Links = strings.Fields(argStrings[i+1])
 		case "mq":
-			n.TunSection.MultiQueue = argStrings[i+1]
+			n.TunOrTapSection.MultiQueue = argStrings[i+1]
 		case "pktinfo":
-			n.TunSection.PacketInfo = argStrings[i+1]
+			n.TunOrTapSection.PacketInfo = argStrings[i+1]
 		case "vnet-hdr":
-			n.TunSection.VNetHeader = argStrings[i+1]
+			n.TunOrTapSection.VNetHeader = argStrings[i+1]
 		case "usr":
-			n.TunSection.User = argStrings[i+1]
+			n.TunOrTapSection.User = argStrings[i+1]
 		case "grp":
-			n.TunSection.Group = argStrings[i+1]
+			n.TunOrTapSection.Group = argStrings[i+1]
 		case "kc":
-			n.TunSection.KeepCarrier = argStrings[i+1]
+			n.TunOrTapSection.KeepCarrier = argStrings[i+1]
 		}
 
 		i++
 	}
 
 	if validator.IsArrayEmpty(n.Links) || validator.IsEmpty(n.Name) {
-		fmt.Printf("Failed to create Tun. Missing Tun name or dev\n")
+		fmt.Printf("Failed to create %s. Missing name or dev\n", kind)
 		return
 	}
 
 	resp, err := web.DispatchSocket(http.MethodPost, host, "/api/v1/network/networkd/netdev/configure", token, n)
 	if err != nil {
-		fmt.Printf("Failed to create Tun: %v\n", err)
+		fmt.Printf("Failed to create %s: %v\n", kind, err)
 		return
 	}
 
@@ -445,7 +445,7 @@ func networkCreateTun(args cli.Args, host string, token map[string]string) {
 	}
 
 	if !m.Success {
-		fmt.Printf("Failed to create Tun: %v\n", m.Errors)
+		fmt.Printf("Failed to create %s: %v\n", kind, m.Errors)
 	}
 }
 

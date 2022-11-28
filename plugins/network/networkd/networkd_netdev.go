@@ -103,7 +103,7 @@ type WireGuardPeer struct {
 	RouteMetric         string   `json:"RouteMetric"`
 }
 
-type Tun struct {
+type TunOrTap struct {
 	MultiQueue  string `json:"MultiQueue"`
 	PacketInfo  string `json:"PacketInfo"`
 	VNetHeader  string `json:"VNetHeader"`
@@ -132,7 +132,7 @@ type NetDev struct {
 	BridgeSection        Bridge        `json:"BridgeSection"`
 	WireGuardSection     WireGuard     `json:"WireGuardSection"`
 	WireGuardPeerSection WireGuardPeer `json:"WireGuardPeerSection"`
-	TunSection           Tun           `json:"TunSection"`
+	TunOrTapSection      TunOrTap      `json:"TunOrTapSection"`
 }
 
 func netDevKindToNetworkKind(s string) string {
@@ -158,6 +158,8 @@ func netDevKindToNetworkKind(s string) string {
 		kind = "WireGuard"
 	case "tun":
 		kind = "Tun"
+	case "tap":
+		kind = "Tap"
 	}
 
 	return kind
@@ -450,47 +452,47 @@ func (n *NetDev) buildWireGuardPeerSection(m *configfile.Meta) error {
 	return nil
 }
 
-func (n *NetDev) buildTunSection(m *configfile.Meta) error {
-	m.NewSection("Tun")
+func (n *NetDev) buildTunOrTapSection(kind string, m *configfile.Meta) error {
+	m.NewSection(netDevKindToNetworkKind(kind))
 
-	if !validator.IsEmpty(n.TunSection.MultiQueue) {
-		if !validator.IsBool(n.TunSection.MultiQueue) {
-			log.Errorf("Failed to create Tun='%s'. Invalid MultiQueue='%s'", n.Name, n.TunSection.MultiQueue)
-			return fmt.Errorf("invalid multiqueue='%s'", n.TunSection.MultiQueue)
+	if !validator.IsEmpty(n.TunOrTapSection.MultiQueue) {
+		if !validator.IsBool(n.TunOrTapSection.MultiQueue) {
+			log.Errorf("Failed to create %s='%s'. Invalid MultiQueue='%s'", kind, n.Name, n.TunOrTapSection.MultiQueue)
+			return fmt.Errorf("invalid multiqueue='%s'", n.TunOrTapSection.MultiQueue)
 		}
-		m.SetKeyToNewSectionString("MultiQueue", validator.BoolToString(n.TunSection.MultiQueue))
+		m.SetKeyToNewSectionString("MultiQueue", validator.BoolToString(n.TunOrTapSection.MultiQueue))
 	}
 
-	if !validator.IsEmpty(n.TunSection.PacketInfo) {
-		if !validator.IsBool(n.TunSection.PacketInfo) {
-			log.Errorf("Failed to create Tun='%s'. Invalid PacketInfo='%s'", n.Name, n.TunSection.PacketInfo)
-			return fmt.Errorf("invalid packetinfo='%s'", n.TunSection.PacketInfo)
+	if !validator.IsEmpty(n.TunOrTapSection.PacketInfo) {
+		if !validator.IsBool(n.TunOrTapSection.PacketInfo) {
+			log.Errorf("Failed to create %s='%s'. Invalid PacketInfo='%s'", kind, n.Name, n.TunOrTapSection.PacketInfo)
+			return fmt.Errorf("invalid packetinfo='%s'", n.TunOrTapSection.PacketInfo)
 		}
-		m.SetKeyToNewSectionString("PacketInfo", validator.BoolToString(n.TunSection.PacketInfo))
+		m.SetKeyToNewSectionString("PacketInfo", validator.BoolToString(n.TunOrTapSection.PacketInfo))
 	}
 
-	if !validator.IsEmpty(n.TunSection.VNetHeader) {
-		if !validator.IsBool(n.TunSection.VNetHeader) {
-			log.Errorf("Failed to create Tun='%s'. Invalid VNetHeader='%s'", n.Name, n.TunSection.VNetHeader)
-			return fmt.Errorf("invalid vnetheader='%s'", n.TunSection.VNetHeader)
+	if !validator.IsEmpty(n.TunOrTapSection.VNetHeader) {
+		if !validator.IsBool(n.TunOrTapSection.VNetHeader) {
+			log.Errorf("Failed to create %s='%s'. Invalid VNetHeader='%s'", kind, n.Name, n.TunOrTapSection.VNetHeader)
+			return fmt.Errorf("invalid vnetheader='%s'", n.TunOrTapSection.VNetHeader)
 		}
-		m.SetKeyToNewSectionString("VNetHeader", validator.BoolToString(n.TunSection.VNetHeader))
+		m.SetKeyToNewSectionString("VNetHeader", validator.BoolToString(n.TunOrTapSection.VNetHeader))
 	}
 
-	if !validator.IsEmpty(n.TunSection.User) {
-		m.SetKeyToNewSectionString("User", n.TunSection.User)
+	if !validator.IsEmpty(n.TunOrTapSection.User) {
+		m.SetKeyToNewSectionString("User", n.TunOrTapSection.User)
 	}
 
-	if !validator.IsEmpty(n.TunSection.Group) {
-		m.SetKeyToNewSectionString("Group", n.TunSection.Group)
+	if !validator.IsEmpty(n.TunOrTapSection.Group) {
+		m.SetKeyToNewSectionString("Group", n.TunOrTapSection.Group)
 	}
 
-	if !validator.IsEmpty(n.TunSection.KeepCarrier) {
-		if !validator.IsBool(n.TunSection.KeepCarrier) {
-			log.Errorf("Failed to create Tun='%s'. Invalid KeepCarrier='%s'", n.Name, n.TunSection.KeepCarrier)
-			return fmt.Errorf("invalid keepcarrier='%s'", n.TunSection.KeepCarrier)
+	if !validator.IsEmpty(n.TunOrTapSection.KeepCarrier) {
+		if !validator.IsBool(n.TunOrTapSection.KeepCarrier) {
+			log.Errorf("Failed to create %s='%s'. Invalid KeepCarrier='%s'", kind, n.Name, n.TunOrTapSection.KeepCarrier)
+			return fmt.Errorf("invalid keepcarrier='%s'", n.TunOrTapSection.KeepCarrier)
 		}
-		m.SetKeyToNewSectionString("KeepCarrier", validator.BoolToString(n.TunSection.KeepCarrier))
+		m.SetKeyToNewSectionString("KeepCarrier", validator.BoolToString(n.TunOrTapSection.KeepCarrier))
 	}
 
 	return nil
@@ -564,9 +566,9 @@ func (n *NetDev) BuildKindSection(m *configfile.Meta) error {
 			log.Errorf("Failed to create WireGuardPeer ='%s': %v", n.Name, err)
 			return err
 		}
-	case "tun":
-		if err := n.buildTunSection(m); err != nil {
-			log.Errorf("Failed to create tun ='%s': %v", n.Name, err)
+	case "tun", "tap":
+		if err := n.buildTunOrTapSection(n.Kind, m); err != nil {
+			log.Errorf("Failed to create %s ='%s': %v", n.Kind, n.Name, err)
 			return err
 		}
 	}
