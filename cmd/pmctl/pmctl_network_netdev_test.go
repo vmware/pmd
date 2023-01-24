@@ -510,7 +510,7 @@ func TestNetDevCreateTun(t *testing.T) {
 		Name:  "tun99",
 		Kind:  "tun",
 		Links: []string{"test99"},
-		TunSection: networkd.Tun{
+		TunOrTapSection: networkd.TunOrTap{
 			MultiQueue:  "yes",
 			PacketInfo:  "yes",
 			VNetHeader:  "no",
@@ -572,6 +572,84 @@ func TestNetDevCreateTun(t *testing.T) {
 	defer os.Remove(m.Path)
 
 	if m.GetKeySectionString("Network", "Tun") != "tun99" {
+		t.Fatalf("Failed to parse .network file of test99")
+	}
+
+	if err := networkd.RemoveNetDev(n.Name, n.Kind); err != nil {
+		t.Fatalf("Failed to remove .network file='%v'", err)
+	}
+}
+
+func TestNetDevCreateTap(t *testing.T) {
+	setupLink(t, &netlink.Dummy{netlink.LinkAttrs{Name: "test99"}})
+	defer removeLink(t, "test99")
+
+	n := networkd.NetDev{
+		Name:  "tap99",
+		Kind:  "tap",
+		Links: []string{"test99"},
+		TunOrTapSection: networkd.TunOrTap{
+			MultiQueue:  "yes",
+			PacketInfo:  "yes",
+			VNetHeader:  "no",
+			KeepCarrier: "no",
+		},
+	}
+
+	if err := configureNetDev(t, n); err != nil {
+		t.Fatalf("Failed to create Tap: %v\n", err)
+	}
+
+	time.Sleep(time.Second * 5)
+
+	if !validator.LinkExists("tap99") {
+		t.Fatalf("Failed to create tap='tap99'")
+	}
+
+	s, _ := system.ExecAndCapture("ip", "-d", "link", "show", "tap99")
+	fmt.Println(s)
+
+	m, _, err := networkd.CreateOrParseNetDevFile("tap99", "tap")
+	if err != nil {
+		t.Fatalf("Failed to parse .netdev file of tap='tap99'")
+	}
+
+	if m.GetKeySectionString("NetDev", "Kind") != "tap" {
+		t.Fatalf("Tap kind is not 'tap' in .netdev file of tap='tap99'")
+	}
+
+	if m.GetKeySectionString("Tap", "MultiQueue") != "yes" {
+		t.Fatalf("Invalid Tap multiqueue .netdev file of tap='tap99'")
+	}
+
+	if m.GetKeySectionString("Tap", "PacketInfo") != "yes" {
+		t.Fatalf("Invalid Tap packetinfo .netdev file of tap='tap99'")
+	}
+
+	if m.GetKeySectionString("Tap", "VNetHeader") != "no" {
+		t.Fatalf("Invalid Tap vnetheader .netdev file of tap='tap99'")
+	}
+
+	if m.GetKeySectionString("Tap", "KeepCarrier") != "no" {
+		t.Fatalf("Invalid Tap keepcarrier .netdev file of tap='tap99'")
+	}
+
+	m, err = networkd.CreateOrParseNetworkFile("tap99")
+	if err != nil {
+		t.Fatalf("Failed to parse .network file of tap='tap99'")
+	}
+
+	if m.GetKeySectionString("Match", "Name") != "tap99" {
+		t.Fatalf("Invalid netdev name in .network file of tap='tap99'")
+	}
+
+	m, err = networkd.CreateOrParseNetworkFile("test99")
+	if err != nil {
+		t.Fatalf("Failed to parse .network file of test99")
+	}
+	defer os.Remove(m.Path)
+
+	if m.GetKeySectionString("Network", "Tap") != "tap99" {
 		t.Fatalf("Failed to parse .network file of test99")
 	}
 

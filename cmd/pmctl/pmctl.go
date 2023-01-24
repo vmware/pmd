@@ -1027,7 +1027,22 @@ func main() {
 							return nil
 						}
 
-						networkCreateTun(c.Args(), c.String("url"), token)
+						networkCreateTunOrTap(c.Args(), c.String("tun"), c.String("url"), token)
+						return nil
+					},
+				},
+				{
+					Name:        "create-tap",
+					UsageText:   "create-tap [Tap name] dev [LINK MASTER] mq [STRING] pktinfo [STRING] vnet-hdr [string] usr [string] grp [STRING] kc [STRING]",
+					Description: "Create tap(Tap).",
+
+					Action: func(c *cli.Context) error {
+						if c.NArg() < 3 {
+							fmt.Printf("Too few arguments.\n")
+							return nil
+						}
+
+						networkCreateTunOrTap(c.Args(), c.String("tap"), c.String("url"), token)
 						return nil
 					},
 				},
