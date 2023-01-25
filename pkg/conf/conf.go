@@ -23,7 +23,7 @@ const (
 	DefaultPort      = "5208"
 	ListenUnixSocket = "true"
 
-	UnixDomainSocketPath = "/run/photon-mgmt/photon-mgmt.sock"
+	UnixDomainSocketPath = "/run/photon-mgmt/mgmt.sock"
 )
 
 type Config struct {
