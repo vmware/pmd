@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 
 package firewall
 
@@ -11,10 +11,10 @@ import (
 	"strings"
 
 	"github.com/google/nftables"
+	log "github.com/sirupsen/logrus"
 	"github.com/vmware/pmd/pkg/system"
 	"github.com/vmware/pmd/pkg/validator"
 	"github.com/vmware/pmd/pkg/web"
-	log "github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 )
 
@@ -114,26 +114,26 @@ func convertToStringFamily(f nftables.TableFamily) string {
 	return family
 }
 
-func convertToUnixHook(h string) nftables.ChainHook {
-	var hook nftables.ChainHook
-	switch h {
-	case "prerouting":
-		hook = unix.NF_INET_PRE_ROUTING
-	case "postrouting":
-		hook = unix.NF_INET_POST_ROUTING
-	case "input":
-		hook = unix.NF_INET_LOCAL_IN
-	case "output":
-		hook = unix.NF_INET_LOCAL_OUT
-	case "forward":
-		hook = unix.NF_INET_FORWARD
-	case "ingress":
-		hook = unix.NF_NETDEV_INGRESS
-	}
+func convertToUnixHook(h string) *nftables.ChainHook {
+        var hook *nftables.ChainHook
+        switch h {
+        case "prerouting":
+                hook = nftables.ChainHookRef(unix.NF_INET_PRE_ROUTING)
+        case "postrouting":
+                hook = nftables.ChainHookRef(unix.NF_INET_POST_ROUTING)
+        case "input":
+                hook = nftables.ChainHookRef(unix.NF_INET_LOCAL_IN)
+        case "output":
+                hook = nftables.ChainHookRef(unix.NF_INET_LOCAL_OUT)
+        case "forward":
+                hook = nftables.ChainHookRef(unix.NF_INET_FORWARD)
+        case "ingress":
+                hook = nftables.ChainHookRef(unix.NF_NETDEV_INGRESS)
+        }
 
-	return hook
+        return hook
 }
-
+        
 func convertToUnixPolicy(p string) *nftables.ChainPolicy {
 	var policy nftables.ChainPolicy
 	switch p {
@@ -298,7 +298,7 @@ func (n *Nft) ParseChain(ch *nftables.Chain) error {
 			log.Errorf("Failed to add nft chain, Invalid priority")
 			return fmt.Errorf("invalid priority: '%s'", n.Chain.Priority)
 		}
-		ch.Priority = nftables.ChainPriority(v)
+		ch.Priority = nftables.ChainPriorityRef(nftables.ChainPriority(v))
 	}
 
 	if !validator.IsEmpty(n.Chain.Policy) {
