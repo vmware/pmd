@@ -17,16 +17,16 @@
 see information from ```/proc``` fs| netstat, netdev, memory , vms, ARP and much more
 system | fetch and configure system information for example hostname
 network | fetch and configure network information example (dns, iostat, interface)
-network link | configure network link parameters like (dhcp, linkLocalAddressing, multicastDNS, Address, route, domains, dns, ntp, ipv6AcceptRA, mode, mtubytes, mac, group, requiredFamilyForOnline, activationPolicy, routingPolicyRule, DHCPv4, DHCPv6, DHCPServer, Ipv6SendRA) etc 
+network link | configure network link parameters like (dhcp, linkLocalAddressing, multicastDNS, Address, route, domains, dns, ntp, ipv6AcceptRA, mode, mtubytes, mac, group, requiredFamilyForOnline, activationPolicy, routingPolicyRule, DHCPv4, DHCPv6, DHCPServer, Ipv6SendRA) etc
 login | fetch list of users and sessions also get information for a id
-network devices | create and remove virtual network devices like (Vlan, Bond, Bridge, MacVLan, IpVLan, VxLan, WireGuard) etc 
+network devices | create and remove virtual network devices like (Vlan, Bond, Bridge, MacVLan, IpVLan, VxLan, WireGuard) etc
 ethtool | fetch ethernet settings for a link also based on a action
-sysctl | used to fetch, set, load and automate kernel parameters 
+sysctl | used to fetch, set, load and automate kernel parameters
 user | used to fetch, add, and remove user on the system
-group | used to fetch, add, and remove group on the system 
+group | used to fetch, add, and remove group on the system
 link | configure link parameters like (MACAddress, Name, AlternativeNames, Offload, VLANTAG, CHannels, Buffers, Queues, FlowControls, Coalesce) etc
 firewall | add, delete and show nft tables, chain and rules also is used to run any NFT commands
-package management | used to manage package management on the system like (list, info, download, update, remove, clean cache, list repositories, search package) etc 
+package management | used to manage package management on the system like (list, info, download, update, remove, clean cache, list repositories, search package) etc
 
 ### Dependencies
 
@@ -83,7 +83,7 @@ Due to security `photon-mgmtd` runs in non root user `photon-mgmt`. It drops all
 #### Configuration
 ----
 
-Configuration file `photon-mgmt.toml` located in `/etc/photon-mgmt/` directory to manage the configuration.
+Configuration file `mgmt.toml` located in `/etc/photon-mgmt/` directory to manage the configuration.
 
 The `[System]` section takes following Keys:
 
@@ -108,7 +108,7 @@ A boolean. Specifies whether the server would listen on a unix domain socket `/r
 
 Note that when both `ListenUnixSocket=` and `Listen=` are enabled, server listens on the unix domain socket by default.
  ```bash
-❯ sudo cat /etc/photon-mgmt/photon-mgmt.toml
+❯ sudo cat /etc/photon-mgmt/mgmt.toml
 [System]
 LogLevel="debug"
 UseAuthentication="false"
@@ -228,8 +228,8 @@ IPv6Address State: degraded
 > pmctl status network dns
 Global
 
-        DNS: 8.8.8.1 8.8.8.2 
-DNS Domains: test3.com test4.com . localdomain . localdomain 
+        DNS: 8.8.8.1 8.8.8.2
+DNS Domains: test3.com test4.com . localdomain . localdomain
 Link 2 (ens33)
 Current DNS Server:  172.16.61.2
        DNS Servers:  172.16.61.2
@@ -283,7 +283,7 @@ Packets received: 9682
            Index: 1
              MTU: 65536
            Flags: up loopback
-Hardware Address: 
+Hardware Address:
        Addresses: 127.0.0.1/8 ::1/128
 
             Name: ens33
@@ -325,7 +325,7 @@ pmctl status login session <ID>
 #### Ethtool status
 ```bash
 
-#Get Ethtool all status 
+#Get Ethtool all status
 pmctl status ethtool <LINK>
 >pmctl status ethtool ens37
 
@@ -623,7 +623,7 @@ pmctl network set-dhcpv4-use dev <deviceName> usedns <UseDNS> usentp <UseNTP> us
 # Configure network DHCPv6
 pmctl network set-dhcpv6 dev <deviceName> mudurl <MUDURL> userclass <UserClass> vendorclass <VendorClass> prefixhint <IPV6ADDRESS> withoutra <WithoutRA>
 >pmctl network set-dhcpv6 dev ens37 mudurl https://example.com/devB userclass usrcls1,usrcls2 vendorclass vdrcls1 prefixhint 2001:db1:fff::/64 withoutra solicit
- 
+
 # Configure network DHCPv6 id's
 pmctl network set-dhcpv6-id dev <deviceName> iaid <IAID> duidtype <DUIDType> duidrawdata <DUIDRawData>
 >pmctl network set-dhcpv6-id dev ens37 iaid 201 duidtype vendor duidrawdata af:03:ff:87
