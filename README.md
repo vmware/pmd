@@ -196,7 +196,7 @@ Operating System Home URL: https://vmware.github.io/photon/
                    Memory: Total (13564788736) Used (13564788736) Free (589791232) Available (9723891712)
 ```
 
-# Network status
+#### Network status
 ```bash
 ❯ pmctl status network -i ens33
              Name: ens33
@@ -317,8 +317,6 @@ pmctl status login user <UID>
 #Get Session based on ID
 pmctl status login session <ID>
 >pmctl status login session 1000
-
-```
 
 ```
 
@@ -902,16 +900,23 @@ pmctl status proc arp
              HWAddress: 00:50:56:f4:e7:22
                   Mask: *
                 Device: ens37
+```
 
-# Netstat info.
+#### Netstat info
+
+```bash
 pmctl status proc netstat <PROTOCOL>
 >pmctl status proc netstat tcp
+```
 
-# Process stats.
+#### Process stats
+```bash
 pmctl status proc process <PID> <PROPERTY>
 >pmctl status proc process 88157 pid-memory-percent
+```
 
-# Protopidstat stats.
+#### Protopidstat stats
+```bash
 pmctl status proc protopidstat <PID> <PROTOCOL>
 >pmctl status proc protopidstat 89502 tcp
 
@@ -978,7 +983,7 @@ pmctl pkg update
 pmctl pkg --repoid=photon-debuginfo list lsof*
 ```
 
-### How to configure users ?
+#### How to configure users ?
 
 ##### Unix domain socket
 
@@ -994,7 +999,7 @@ Export the token key to the enviroment as below
 ❯ export PHOTON_MGMT_AUTH_TOKEN=secret
 ```
 
-### How to configure TLS ?
+#### How to configure TLS ?
 
 Generate private key (.key)
 
@@ -1041,7 +1046,7 @@ $ curl --header "X-Session-Token: secret" --request GET https://localhost:5208/a
 
 ```
 
-## How to write your own plugin ?
+#### How to write your own plugin ?
 
 photon-mgmtd is designed with robust plugin based architecture in mind. You can always add and remove modules to it with minimal effort
 You can implement and incorporate application features very quickly. Because plug-ins are separate modules with well-defined interfaces,
