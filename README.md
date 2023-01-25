@@ -28,7 +28,7 @@ link | configure link parameters like (MACAddress, Name, AlternativeNames, Offlo
 firewall | add, delete and show nft tables, chain and rules also is used to run any NFT commands
 package management | used to manage package management on the system like (list, info, download, update, remove, clean cache, list repositories, search package) etc
 
-### Dependencies
+#### Dependencies
 
 photon-mgmtd uses a following open source projects to work properly:
 
@@ -43,7 +43,7 @@ photon-mgmtd uses a following open source projects to work properly:
 * [go-ini](https://github.com/go-ini/ini)
 
 
-### Installation
+#### Installation
 
 First configure your ```$GOPATH```. If you have already done this skip this step.
 
@@ -163,13 +163,13 @@ Jan 06 16:32:19 Zeus photon-mgmtd[230041]: time="2022-01-06T16:32:19+05:30" leve
 
 ```
 
-# Configure system hostname
+#### Configure system hostname
 ```
 bash
 ❯ pmctl system set-hostname static ubuntu transient transientname pretty prettyname
 ```
 
-# Acquire system status
+#### Acquire system status
 ```bash
 ❯ pmctl status  system
               System Name: Zeus
@@ -223,7 +223,7 @@ IPv6Address State: degraded
               DNS: 172.16.130.2
 ```
 
-# Network dns status
+#### Network dns status
 ```bash
 > pmctl status network dns
 Global
@@ -239,7 +239,7 @@ Current DNS Server:  172.16.61.2
        DNS Servers:  172.16.61.2
 ```
 
-# Network iostat status
+#### Network iostat status
 ```bash
 > pmctl status network iostat
             Name: lo
@@ -276,7 +276,7 @@ Packets received: 9682
         Fifo out: 0
 ```
 
-# Network interfaces status
+#### Network interfaces status
 ```bash
 > pmctl status network interfaces
             Name: lo
@@ -435,7 +435,7 @@ curl --unix-socket /run/photon-mgmt/mgmt.sock --request POST --data '{"apply":tr
              Gid: 1001
             Name: photon-mgmt
 
-# Get particuller Group information.
+# Fetch a group information.
 pmctl status group <GroupName>
 or
 pmctl status group <GroupName>
