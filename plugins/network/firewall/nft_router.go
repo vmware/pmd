@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-
 	"github.com/vmware/pmd/pkg/web"
 )
 

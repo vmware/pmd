@@ -57,7 +57,7 @@ type Payload struct {
 	CsumFlags      uint32
 }
 
-func (e *Payload) marshal() ([]byte, error) {
+func (e *Payload) marshal(fam byte) ([]byte, error) {
 
 	var attrs []netlink.Attribute
 
@@ -100,7 +100,7 @@ func (e *Payload) marshal() ([]byte, error) {
 	})
 }
 
-func (e *Payload) unmarshal(data []byte) error {
+func (e *Payload) unmarshal(fam byte, data []byte) error {
 	ad, err := netlink.NewAttributeDecoder(data)
 	if err != nil {
 		return err
@@ -112,6 +112,7 @@ func (e *Payload) unmarshal(data []byte) error {
 			e.DestRegister = ad.Uint32()
 		case unix.NFTA_PAYLOAD_SREG:
 			e.SourceRegister = ad.Uint32()
+			e.OperationType = PayloadWrite
 		case unix.NFTA_PAYLOAD_BASE:
 			e.Base = PayloadBase(ad.Uint32())
 		case unix.NFTA_PAYLOAD_OFFSET:
