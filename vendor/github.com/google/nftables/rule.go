@@ -20,6 +20,7 @@ import (
 
 	"github.com/google/nftables/binaryutil"
 	"github.com/google/nftables/expr"
+	"github.com/google/nftables/internal/parseexprfunc"
 	"github.com/mdlayher/netlink"
 	"golang.org/x/sys/unix"
 )
@@ -52,12 +53,19 @@ type Rule struct {
 }
 
 // GetRule returns the rules in the specified table and chain.
+//
+// Deprecated: use GetRules instead.
 func (cc *Conn) GetRule(t *Table, c *Chain) ([]*Rule, error) {
-	conn, err := cc.dialNetlink()
+	return cc.GetRules(t, c)
+}
+
+// GetRules returns the rules in the specified table and chain.
+func (cc *Conn) GetRules(t *Table, c *Chain) ([]*Rule, error) {
+	conn, closer, err := cc.netlinkConn()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
+	defer func() { _ = closer() }()
 
 	data, err := netlink.MarshalAttributes([]netlink.Attribute{
 		{Type: unix.NFTA_RULE_TABLE, Data: []byte(t.Name + "\x00")},
@@ -79,13 +87,13 @@ func (cc *Conn) GetRule(t *Table, c *Chain) ([]*Rule, error) {
 		return nil, fmt.Errorf("SendMessages: %v", err)
 	}
 
-	reply, err := conn.Receive()
+	reply, err := receiveAckAware(conn, message.Header.Flags)
 	if err != nil {
 		return nil, fmt.Errorf("Receive: %v", err)
 	}
 	var rules []*Rule
 	for _, msg := range reply {
-		r, err := ruleFromMsg(msg)
+		r, err := ruleFromMsg(t.Family, msg)
 		if err != nil {
 			return nil, err
 		}
@@ -100,13 +108,13 @@ func (cc *Conn) GetRule(t *Table, c *Chain) ([]*Rule, error) {
 
 // AddRule adds the specified Rule
 func (cc *Conn) newRule(r *Rule, op ruleOperation) *Rule {
-	cc.Lock()
-	defer cc.Unlock()
+	cc.mu.Lock()
+	defer cc.mu.Unlock()
 	exprAttrs := make([]netlink.Attribute, len(r.Exprs))
 	for idx, expr := range r.Exprs {
 		exprAttrs[idx] = netlink.Attribute{
 			Type: unix.NLA_F_NESTED | unix.NFTA_LIST_ELEM,
-			Data: cc.marshalExpr(expr),
+			Data: cc.marshalExpr(byte(r.Table.Family), expr),
 		}
 	}
 
@@ -183,8 +191,8 @@ func (cc *Conn) InsertRule(r *Rule) *Rule {
 
 // DelRule deletes the specified Rule, rule's handle cannot be 0
 func (cc *Conn) DelRule(r *Rule) error {
-	cc.Lock()
-	defer cc.Unlock()
+	cc.mu.Lock()
+	defer cc.mu.Unlock()
 	data := cc.marshalAttr([]netlink.Attribute{
 		{Type: unix.NFTA_RULE_TABLE, Data: []byte(r.Table.Name + "\x00")},
 		{Type: unix.NFTA_RULE_CHAIN, Data: []byte(r.Chain.Name + "\x00")},
@@ -208,92 +216,7 @@ func (cc *Conn) DelRule(r *Rule) error {
 	return nil
 }
 
-func exprsFromMsg(b []byte) ([]expr.Any, error) {
-	ad, err := netlink.NewAttributeDecoder(b)
-	if err != nil {
-		return nil, err
-	}
-	ad.ByteOrder = binary.BigEndian
-	var exprs []expr.Any
-	for ad.Next() {
-		ad.Do(func(b []byte) error {
-			ad, err := netlink.NewAttributeDecoder(b)
-			if err != nil {
-				return err
-			}
-			ad.ByteOrder = binary.BigEndian
-			var name string
-			for ad.Next() {
-				switch ad.Type() {
-				case unix.NFTA_EXPR_NAME:
-					name = ad.String()
-				case unix.NFTA_EXPR_DATA:
-					var e expr.Any
-					switch name {
-					case "ct":
-						e = &expr.Ct{}
-					case "range":
-						e = &expr.Range{}
-					case "meta":
-						e = &expr.Meta{}
-					case "cmp":
-						e = &expr.Cmp{}
-					case "counter":
-						e = &expr.Counter{}
-					case "payload":
-						e = &expr.Payload{}
-					case "lookup":
-						e = &expr.Lookup{}
-					case "immediate":
-						e = &expr.Immediate{}
-					case "bitwise":
-						e = &expr.Bitwise{}
-					case "redir":
-						e = &expr.Redir{}
-					case "nat":
-						e = &expr.NAT{}
-					case "limit":
-						e = &expr.Limit{}
-					case "quota":
-						e = &expr.Quota{}
-					case "dynset":
-						e = &expr.Dynset{}
-					case "log":
-						e = &expr.Log{}
-					case "exthdr":
-						e = &expr.Exthdr{}
-					}
-					if e == nil {
-						// TODO: introduce an opaque expression type so that users know
-						// something is here.
-						continue // unsupported expression type
-					}
-
-					ad.Do(func(b []byte) error {
-						if err := expr.Unmarshal(b, e); err != nil {
-							return err
-						}
-						// Verdict expressions are a special-case of immediate expressions, so
-						// if the expression is an immediate writing nothing into the verdict
-						// register (invalid), re-parse it as a verdict expression.
-						if imm, isImmediate := e.(*expr.Immediate); isImmediate && imm.Register == unix.NFT_REG_VERDICT && len(imm.Data) == 0 {
-							e = &expr.Verdict{}
-							if err := expr.Unmarshal(b, e); err != nil {
-								return err
-							}
-						}
-						exprs = append(exprs, e)
-						return nil
-					})
-				}
-			}
-			return ad.Err()
-		})
-	}
-	return exprs, ad.Err()
-}
-
-func ruleFromMsg(msg netlink.Message) (*Rule, error) {
+func ruleFromMsg(fam TableFamily, msg netlink.Message) (*Rule, error) {
 	if got, want := msg.Header.Type, ruleHeaderType; got != want {
 		return nil, fmt.Errorf("unexpected header type: got %v, want %v", got, want)
 	}
@@ -306,13 +229,23 @@ func ruleFromMsg(msg netlink.Message) (*Rule, error) {
 	for ad.Next() {
 		switch ad.Type() {
 		case unix.NFTA_RULE_TABLE:
-			r.Table = &Table{Name: ad.String()}
+			r.Table = &Table{
+				Name:   ad.String(),
+				Family: fam,
+			}
 		case unix.NFTA_RULE_CHAIN:
 			r.Chain = &Chain{Name: ad.String()}
 		case unix.NFTA_RULE_EXPRESSIONS:
 			ad.Do(func(b []byte) error {
-				r.Exprs, err = exprsFromMsg(b)
-				return err
+				exprs, err := parseexprfunc.ParseExprMsgFunc(byte(fam), b)
+				if err != nil {
+					return err
+				}
+				r.Exprs = make([]expr.Any, len(exprs))
+				for i := range exprs {
+					r.Exprs[i] = exprs[i].(expr.Any)
+				}
+				return nil
 			})
 		case unix.NFTA_RULE_POSITION:
 			r.Position = ad.Uint64()

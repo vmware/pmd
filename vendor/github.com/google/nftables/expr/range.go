@@ -30,7 +30,7 @@ type Range struct {
 	ToData   []byte
 }
 
-func (e *Range) marshal() ([]byte, error) {
+func (e *Range) marshal(fam byte) ([]byte, error) {
 	var attrs []netlink.Attribute
 	var err error
 	var rangeFromData, rangeToData []byte
@@ -64,7 +64,7 @@ func (e *Range) marshal() ([]byte, error) {
 	})
 }
 
-func (e *Range) unmarshal(data []byte) error {
+func (e *Range) unmarshal(fam byte, data []byte) error {
 	ad, err := netlink.NewAttributeDecoder(data)
 	if err != nil {
 		return err
@@ -77,9 +77,35 @@ func (e *Range) unmarshal(data []byte) error {
 		case unix.NFTA_RANGE_SREG:
 			e.Register = ad.Uint32()
 		case unix.NFTA_RANGE_FROM_DATA:
-			e.FromData = ad.Bytes()
+			ad.Do(func(b []byte) error {
+				ad, err := netlink.NewAttributeDecoder(b)
+				if err != nil {
+					return err
+				}
+				ad.ByteOrder = binary.BigEndian
+				if ad.Next() && ad.Type() == unix.NFTA_DATA_VALUE {
+					ad.Do(func(b []byte) error {
+						e.FromData = b
+						return nil
+					})
+				}
+				return ad.Err()
+			})
 		case unix.NFTA_RANGE_TO_DATA:
-			e.ToData = ad.Bytes()
+			ad.Do(func(b []byte) error {
+				ad, err := netlink.NewAttributeDecoder(b)
+				if err != nil {
+					return err
+				}
+				ad.ByteOrder = binary.BigEndian
+				if ad.Next() && ad.Type() == unix.NFTA_DATA_VALUE {
+					ad.Do(func(b []byte) error {
+						e.ToData = b
+						return nil
+					})
+				}
+				return ad.Err()
+			})
 		}
 	}
 	return ad.Err()

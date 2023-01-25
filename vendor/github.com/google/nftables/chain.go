@@ -30,14 +30,19 @@ import (
 type ChainHook uint32
 
 // Possible ChainHook values.
-const (
-	ChainHookPrerouting  ChainHook = unix.NF_INET_PRE_ROUTING
-	ChainHookInput       ChainHook = unix.NF_INET_LOCAL_IN
-	ChainHookForward     ChainHook = unix.NF_INET_FORWARD
-	ChainHookOutput      ChainHook = unix.NF_INET_LOCAL_OUT
-	ChainHookPostrouting ChainHook = unix.NF_INET_POST_ROUTING
-	ChainHookIngress     ChainHook = unix.NF_NETDEV_INGRESS
+var (
+	ChainHookPrerouting  *ChainHook = ChainHookRef(unix.NF_INET_PRE_ROUTING)
+	ChainHookInput       *ChainHook = ChainHookRef(unix.NF_INET_LOCAL_IN)
+	ChainHookForward     *ChainHook = ChainHookRef(unix.NF_INET_FORWARD)
+	ChainHookOutput      *ChainHook = ChainHookRef(unix.NF_INET_LOCAL_OUT)
+	ChainHookPostrouting *ChainHook = ChainHookRef(unix.NF_INET_POST_ROUTING)
+	ChainHookIngress     *ChainHook = ChainHookRef(unix.NF_NETDEV_INGRESS)
 )
+
+// ChainHookRef returns a pointer to a ChainHookRef value.
+func ChainHookRef(h ChainHook) *ChainHook {
+	return &h
+}
 
 // ChainPriority orders the chain relative to Netfilter internal operations. See
 // also
@@ -45,22 +50,27 @@ const (
 type ChainPriority int32
 
 // Possible ChainPriority values.
-const ( // from /usr/include/linux/netfilter_ipv4.h
-	ChainPriorityFirst            ChainPriority = math.MinInt32
-	ChainPriorityConntrackDefrag  ChainPriority = -400
-	ChainPriorityRaw              ChainPriority = -300
-	ChainPrioritySELinuxFirst     ChainPriority = -225
-	ChainPriorityConntrack        ChainPriority = -200
-	ChainPriorityMangle           ChainPriority = -150
-	ChainPriorityNATDest          ChainPriority = -100
-	ChainPriorityFilter           ChainPriority = 0
-	ChainPrioritySecurity         ChainPriority = 50
-	ChainPriorityNATSource        ChainPriority = 100
-	ChainPrioritySELinuxLast      ChainPriority = 225
-	ChainPriorityConntrackHelper  ChainPriority = 300
-	ChainPriorityConntrackConfirm ChainPriority = math.MaxInt32
-	ChainPriorityLast             ChainPriority = math.MaxInt32
+var ( // from /usr/include/linux/netfilter_ipv4.h
+	ChainPriorityFirst            *ChainPriority = ChainPriorityRef(math.MinInt32)
+	ChainPriorityConntrackDefrag  *ChainPriority = ChainPriorityRef(-400)
+	ChainPriorityRaw              *ChainPriority = ChainPriorityRef(-300)
+	ChainPrioritySELinuxFirst     *ChainPriority = ChainPriorityRef(-225)
+	ChainPriorityConntrack        *ChainPriority = ChainPriorityRef(-200)
+	ChainPriorityMangle           *ChainPriority = ChainPriorityRef(-150)
+	ChainPriorityNATDest          *ChainPriority = ChainPriorityRef(-100)
+	ChainPriorityFilter           *ChainPriority = ChainPriorityRef(0)
+	ChainPrioritySecurity         *ChainPriority = ChainPriorityRef(50)
+	ChainPriorityNATSource        *ChainPriority = ChainPriorityRef(100)
+	ChainPrioritySELinuxLast      *ChainPriority = ChainPriorityRef(225)
+	ChainPriorityConntrackHelper  *ChainPriority = ChainPriorityRef(300)
+	ChainPriorityConntrackConfirm *ChainPriority = ChainPriorityRef(math.MaxInt32)
+	ChainPriorityLast             *ChainPriority = ChainPriorityRef(math.MaxInt32)
 )
+
+// ChainPriorityRef returns a pointer to a ChainPriority value.
+func ChainPriorityRef(p ChainPriority) *ChainPriority {
+	return &p
+}
 
 // ChainType defines what this chain will be used for. See also
 // https://wiki.nftables.org/wiki-nftables/index.php/Configuring_chains#Base_chain_types
@@ -87,8 +97,8 @@ const (
 type Chain struct {
 	Name     string
 	Table    *Table
-	Hooknum  ChainHook
-	Priority ChainPriority
+	Hooknum  *ChainHook
+	Priority *ChainPriority
 	Type     ChainType
 	Policy   *ChainPolicy
 }
@@ -96,17 +106,17 @@ type Chain struct {
 // AddChain adds the specified Chain. See also
 // https://wiki.nftables.org/wiki-nftables/index.php/Configuring_chains#Adding_base_chains
 func (cc *Conn) AddChain(c *Chain) *Chain {
-	cc.Lock()
-	defer cc.Unlock()
+	cc.mu.Lock()
+	defer cc.mu.Unlock()
 	data := cc.marshalAttr([]netlink.Attribute{
 		{Type: unix.NFTA_CHAIN_TABLE, Data: []byte(c.Table.Name + "\x00")},
 		{Type: unix.NFTA_CHAIN_NAME, Data: []byte(c.Name + "\x00")},
 	})
 
-	if c.Type != "" {
+	if c.Hooknum != nil && c.Priority != nil {
 		hookAttr := []netlink.Attribute{
-			{Type: unix.NFTA_HOOK_HOOKNUM, Data: binaryutil.BigEndian.PutUint32(uint32(c.Hooknum))},
-			{Type: unix.NFTA_HOOK_PRIORITY, Data: binaryutil.BigEndian.PutUint32(uint32(c.Priority))},
+			{Type: unix.NFTA_HOOK_HOOKNUM, Data: binaryutil.BigEndian.PutUint32(uint32(*c.Hooknum))},
+			{Type: unix.NFTA_HOOK_PRIORITY, Data: binaryutil.BigEndian.PutUint32(uint32(*c.Priority))},
 		}
 		data = append(data, cc.marshalAttr([]netlink.Attribute{
 			{Type: unix.NLA_F_NESTED | unix.NFTA_CHAIN_HOOK, Data: cc.marshalAttr(hookAttr)},
@@ -137,8 +147,8 @@ func (cc *Conn) AddChain(c *Chain) *Chain {
 // DelChain deletes the specified Chain. See also
 // https://wiki.nftables.org/wiki-nftables/index.php/Configuring_chains#Deleting_chains
 func (cc *Conn) DelChain(c *Chain) {
-	cc.Lock()
-	defer cc.Unlock()
+	cc.mu.Lock()
+	defer cc.mu.Unlock()
 	data := cc.marshalAttr([]netlink.Attribute{
 		{Type: unix.NFTA_CHAIN_TABLE, Data: []byte(c.Table.Name + "\x00")},
 		{Type: unix.NFTA_CHAIN_NAME, Data: []byte(c.Name + "\x00")},
@@ -156,8 +166,8 @@ func (cc *Conn) DelChain(c *Chain) {
 // FlushChain removes all rules within the specified Chain. See also
 // https://wiki.nftables.org/wiki-nftables/index.php/Configuring_chains#Flushing_chain
 func (cc *Conn) FlushChain(c *Chain) {
-	cc.Lock()
-	defer cc.Unlock()
+	cc.mu.Lock()
+	defer cc.mu.Unlock()
 	data := cc.marshalAttr([]netlink.Attribute{
 		{Type: unix.NFTA_RULE_TABLE, Data: []byte(c.Table.Name + "\x00")},
 		{Type: unix.NFTA_RULE_CHAIN, Data: []byte(c.Name + "\x00")},
@@ -173,18 +183,25 @@ func (cc *Conn) FlushChain(c *Chain) {
 
 // ListChains returns currently configured chains in the kernel
 func (cc *Conn) ListChains() ([]*Chain, error) {
-	conn, err := cc.dialNetlink()
+	return cc.ListChainsOfTableFamily(TableFamilyUnspecified)
+}
+
+// ListChainsOfTableFamily returns currently configured chains for the specified
+// family in the kernel. It lists all chains ins all tables if family is
+// TableFamilyUnspecified.
+func (cc *Conn) ListChainsOfTableFamily(family TableFamily) ([]*Chain, error) {
+	conn, closer, err := cc.netlinkConn()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
+	defer func() { _ = closer() }()
 
 	msg := netlink.Message{
 		Header: netlink.Header{
 			Type:  netlink.HeaderType((unix.NFNL_SUBSYS_NFTABLES << 8) | unix.NFT_MSG_GETCHAIN),
 			Flags: netlink.Request | netlink.Dump,
 		},
-		Data: extraHeader(uint8(unix.AF_UNSPEC), 0),
+		Data: extraHeader(uint8(family), 0),
 	}
 
 	response, err := conn.Execute(msg)
@@ -242,10 +259,10 @@ func chainFromMsg(msg netlink.Message) (*Chain, error) {
 	return &c, nil
 }
 
-func hookFromMsg(b []byte) (ChainHook, ChainPriority, error) {
+func hookFromMsg(b []byte) (*ChainHook, *ChainPriority, error) {
 	ad, err := netlink.NewAttributeDecoder(b)
 	if err != nil {
-		return 0, 0, err
+		return nil, nil, err
 	}
 
 	ad.ByteOrder = binary.BigEndian
@@ -262,5 +279,5 @@ func hookFromMsg(b []byte) (ChainHook, ChainPriority, error) {
 		}
 	}
 
-	return hooknum, prio, nil
+	return &hooknum, &prio, nil
 }
