@@ -41,9 +41,8 @@ install:
 	- mkdir -p $(DESTDIR)/etc/photon-mgmt
 	install -vdm 755 $(DESTDIR)/etc/photon-mgmt
 	install -m 755 distribution/photon-mgmt.toml $(DESTDIR)/etc/photon-mgmt
+	install -m 0644 distribution/photon-mgmtd.service $(DESTDIR)/lib/systemd/system/
 
-	- mkdir -p $(DESTDIR)/lib/systemd/system/
-	install -m 0644 units/photon-mgmtd.service $(DESTDIR)/lib/systemd/system/
 	systemctl daemon-reload
 
 PHONY: clean
