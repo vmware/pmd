@@ -17,16 +17,16 @@
 see information from ```/proc``` fs| netstat, netdev, memory , vms, ARP and much more
 system | fetch and configure system information for example hostname
 network | fetch and configure network information example (dns, iostat, interface)
-network link | configure network link parameters like (dhcp, linkLocalAddressing, multicastDNS, Address, route, domains, dns, ntp, ipv6AcceptRA, mode, mtubytes, mac, group, requiredFamilyForOnline, activationPolicy, routingPolicyRule, DHCPv4, DHCPv6, DHCPServer, Ipv6SendRA) etc 
+network link | configure network link parameters like (dhcp, linkLocalAddressing, multicastDNS, Address, route, domains, dns, ntp, ipv6AcceptRA, mode, mtubytes, mac, group, requiredFamilyForOnline, activationPolicy, routingPolicyRule, DHCPv4, DHCPv6, DHCPServer, Ipv6SendRA) etc
 login | fetch list of users and sessions also get information for a id
-network devices | create and remove virtual network devices like (Vlan, Bond, Bridge, MacVLan, IpVLan, VxLan, WireGuard) etc 
+network devices | create and remove virtual network devices like (Vlan, Bond, Bridge, MacVLan, IpVLan, VxLan, WireGuard) etc
 ethtool | fetch ethernet settings for a link also based on a action
-sysctl | used to fetch, set, load and automate kernel parameters 
+sysctl | used to fetch, set, load and automate kernel parameters
 user | used to fetch, add, and remove user on the system
-group | used to fetch, add, and remove group on the system 
+group | used to fetch, add, and remove group on the system
 link | configure link parameters like (MACAddress, Name, AlternativeNames, Offload, VLANTAG, CHannels, Buffers, Queues, FlowControls, Coalesce) etc
 firewall | add, delete and show nft tables, chain and rules also is used to run any NFT commands
-package management | used to manage package management on the system like (list, info, download, update, remove, clean cache, list repositories, search package) etc 
+package management | used to manage package management on the system like (list, info, download, update, remove, clean cache, list repositories, search package) etc
 
 ### Dependencies
 
@@ -83,7 +83,7 @@ Due to security `photon-mgmtd` runs in non root user `photon-mgmt`. It drops all
 #### Configuration
 ----
 
-Configuration file `photon-mgmt.toml` located in `/etc/photon-mgmt/` directory to manage the configuration.
+Configuration file `mgmt.toml` located in `/etc/photon-mgmt/` directory to manage the configuration.
 
 The `[System]` section takes following Keys:
 
@@ -104,11 +104,11 @@ Specifies the IP address and port which the REST API server will listen to. When
 
 `ListenUnixSocket=`
 
-A boolean. Specifies whether the server would listen on a unix domain socket `/run/photon-mgmt/photon-mgmt.sock`. Defaults to `true`.
+A boolean. Specifies whether the server would listen on a unix domain socket `/run/photon-mgmt/mgmt.sock`. Defaults to `true`.
 
 Note that when both `ListenUnixSocket=` and `Listen=` are enabled, server listens on the unix domain socket by default.
  ```bash
-❯ sudo cat /etc/photon-mgmt/photon-mgmt.toml
+❯ sudo cat /etc/photon-mgmt/mgmt.toml
 [System]
 LogLevel="debug"
 UseAuthentication="false"
@@ -228,8 +228,8 @@ IPv6Address State: degraded
 > pmctl status network dns
 Global
 
-        DNS: 8.8.8.1 8.8.8.2 
-DNS Domains: test3.com test4.com . localdomain . localdomain 
+        DNS: 8.8.8.1 8.8.8.2
+DNS Domains: test3.com test4.com . localdomain . localdomain
 Link 2 (ens33)
 Current DNS Server:  172.16.61.2
        DNS Servers:  172.16.61.2
@@ -283,7 +283,7 @@ Packets received: 9682
            Index: 1
              MTU: 65536
            Flags: up loopback
-Hardware Address: 
+Hardware Address:
        Addresses: 127.0.0.1/8 ::1/128
 
             Name: ens33
@@ -325,7 +325,7 @@ pmctl status login session <ID>
 #### Ethtool status
 ```bash
 
-#Get Ethtool all status 
+#Get Ethtool all status
 pmctl status ethtool <LINK>
 >pmctl status ethtool ens37
 
@@ -386,28 +386,28 @@ pmctl sysctl load files <InputFileList>
 ```bash
 
 # Get all sysctl configuration in the system in json format.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET http://localhost/api/v1/system/sysctl/statusall
->curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET http://localhost/api/v1/system/sysctl/statusall
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET http://localhost/api/v1/system/sysctl/statusall
+>curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET http://localhost/api/v1/system/sysctl/statusall
 
 # Get particuller variable configuration from sysctl configuration.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET --data '{"key":"<keyName>"}' http://localhost/api/v1/system/sysctl/status
->curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET --data '{"key":"fs.file-max"}' http://localhost/api/v1/system/sysctl/status
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET --data '{"key":"<keyName>"}' http://localhost/api/v1/system/sysctl/status
+>curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET --data '{"key":"fs.file-max"}' http://localhost/api/v1/system/sysctl/status
 
 # Get all variable configuration from sysctl configuration based on input pattern.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET --data '{"pattern":"<Pattern>"}' http://localhost/api/v1/system/sysctl/statuspattern
->curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET --data '{"pattern":"fs.file"}' http://localhost/api/v1/system/sysctl/statuspattern
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET --data '{"pattern":"<Pattern>"}' http://localhost/api/v1/system/sysctl/statuspattern
+>curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET --data '{"pattern":"fs.file"}' http://localhost/api/v1/system/sysctl/statuspattern
 
 # Add or Update a variable configuration in sysctl configuration.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"apply":true,"key":"<keyName>","value":"<Value>","filename":"<fileName>"}' http://localhost/api/v1/system/sysctl/update
->curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"apply":true,"key":"fs.file-max","value":"65409","filename":"99-sysctl.conf"}' http://localhost/api/v1/system/sysctl/update
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request POST --data '{"apply":true,"key":"<keyName>","value":"<Value>","filename":"<fileName>"}' http://localhost/api/v1/system/sysctl/update
+>curl --unix-socket /run/photon-mgmt/mgmt.sock --request POST --data '{"apply":true,"key":"fs.file-max","value":"65409","filename":"99-sysctl.conf"}' http://localhost/api/v1/system/sysctl/update
 
 # Remove a variable configuration from sysctl configuration.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"apply":true,"key":"<keyName>","filename":"<fileName>"}' http://localhost/api/v1/system/sysctl/remove
->curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"apply":true,"key":"fs.file-max","filename":"99-sysctl.conf"}' http://localhost/api/v1/system/sysctl/remove
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request DELETE --data '{"apply":true,"key":"<keyName>","filename":"<fileName>"}' http://localhost/api/v1/system/sysctl/remove
+>curl --unix-socket /run/photon-mgmt/mgmt.sock --request DELETE --data '{"apply":true,"key":"fs.file-max","filename":"99-sysctl.conf"}' http://localhost/api/v1/system/sysctl/remove
 
 # Load sysctl configuration files.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"apply":true,"files":["<fileName>","<fileName>"]}' http://localhost/api/v1/system/sysctl/load
->curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"apply":true,"files":["99-sysctl.conf","75-sysctl.conf"]}' http://localhost/api/v1/system/sysctl/load
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request POST --data '{"apply":true,"files":["<fileName>","<fileName>"]}' http://localhost/api/v1/system/sysctl/load
+>curl --unix-socket /run/photon-mgmt/mgmt.sock --request POST --data '{"apply":true,"files":["99-sysctl.conf","75-sysctl.conf"]}' http://localhost/api/v1/system/sysctl/load
 ```
 
 #### Group usecase via pmctl
@@ -459,18 +459,18 @@ pmctl group remove <GroupName>
 ```bash
 
 # Get all Group information.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET http://localhost/api/v1/system/group/view
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET http://localhost/api/v1/system/group/view
 
 # Get particuller Group information.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET http://localhost/api/v1/system/group/view/<GroupName>
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET http://localhost/api/v1/system/group/view/<GroupName>
 
 # Add a new Group.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"Name":"<GroupName>","Gid":"<InputGid>"}' http://localhost/api/v1/system/group/add
->curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"Name":"nk1","Gid":"101"}' http://localhost/api/v1/system/group/add
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request POST --data '{"Name":"<GroupName>","Gid":"<InputGid>"}' http://localhost/api/v1/system/group/add
+>curl --unix-socket /run/photon-mgmt/mgmt.sock --request POST --data '{"Name":"nk1","Gid":"101"}' http://localhost/api/v1/system/group/add
 
 # Remove a Group.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"Name":"<GroupName>","Gid":"<InputGid>"}' http://localhost/api/v1/system/group/remove
->curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"Name":"photon-mgmt","Gid":"101"}' http://localhost/api/v1/system/group/remove
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request DELETE --data '{"Name":"<GroupName>","Gid":"<InputGid>"}' http://localhost/api/v1/system/group/remove
+>curl --unix-socket /run/photon-mgmt/mgmt.sock --request DELETE --data '{"Name":"photon-mgmt","Gid":"101"}' http://localhost/api/v1/system/group/remove
 ```
 
 #### User usecase via pmctl
@@ -522,15 +522,15 @@ pmctl user r <UserName>
 ```bash
 
 # Get all User information.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request GET http://localhost/api/v1/system/user/view
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET http://localhost/api/v1/system/user/view
 
 # Add a new User.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"Name":"<UserName>","Uid":"<Uid>","Gid":"<Gid>","Groups":["group1","group2"],""HomeDirectory":"<HomeDir>","Shell":"<shell>","Comment":"<comment>","Password":"<xxxxxx>"}' http://localhost/api/v1/system/user/add
->curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request POST --data '{"Name":"nts1","Uid":"","Gid":"1004","Groups":["nts","group2"],"HomeDirectory":"home/nts","Shell":"","Comment":"hello","Password":"unknown"}' http://localhost/api/v1/system/user/add
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request POST --data '{"Name":"<UserName>","Uid":"<Uid>","Gid":"<Gid>","Groups":["group1","group2"],""HomeDirectory":"<HomeDir>","Shell":"<shell>","Comment":"<comment>","Password":"<xxxxxx>"}' http://localhost/api/v1/system/user/add
+>curl --unix-socket /run/photon-mgmt/mgmt.sock --request POST --data '{"Name":"nts1","Uid":"","Gid":"1004","Groups":["nts","group2"],"HomeDirectory":"home/nts","Shell":"","Comment":"hello","Password":"unknown"}' http://localhost/api/v1/system/user/add
 
 # Remove a User.
-curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"Name":"<UserName>"}' http://localhost/api/v1/system/user/remove
->curl --unix-socket /run/photon-mgmt/photon-mgmt.sock --request DELETE --data '{"Name":"nts1"}' http://localhost/api/v1/system/user/remove
+curl --unix-socket /run/photon-mgmt/mgmt.sock --request DELETE --data '{"Name":"<UserName>"}' http://localhost/api/v1/system/user/remove
+>curl --unix-socket /run/photon-mgmt/mgmt.sock --request DELETE --data '{"Name":"nts1"}' http://localhost/api/v1/system/user/remove
 ```
 
 #### Configure network link section using pmctl
@@ -623,7 +623,7 @@ pmctl network set-dhcpv4-use dev <deviceName> usedns <UseDNS> usentp <UseNTP> us
 # Configure network DHCPv6
 pmctl network set-dhcpv6 dev <deviceName> mudurl <MUDURL> userclass <UserClass> vendorclass <VendorClass> prefixhint <IPV6ADDRESS> withoutra <WithoutRA>
 >pmctl network set-dhcpv6 dev ens37 mudurl https://example.com/devB userclass usrcls1,usrcls2 vendorclass vdrcls1 prefixhint 2001:db1:fff::/64 withoutra solicit
- 
+
 # Configure network DHCPv6 id's
 pmctl network set-dhcpv6-id dev <deviceName> iaid <IAID> duidtype <DUIDType> duidrawdata <DUIDRawData>
 >pmctl network set-dhcpv6-id dev ens37 iaid 201 duidtype vendor duidrawdata af:03:ff:87
