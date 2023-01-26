@@ -9,11 +9,12 @@ import (
 	"net/http"
 
 	"github.com/fatih/color"
+	"github.com/shirou/gopsutil/v3/net"
+	"github.com/urfave/cli/v2"
+
 	"github.com/vmware/pmd/pkg/validator"
 	"github.com/vmware/pmd/pkg/web"
 	"github.com/vmware/pmd/plugins/proc"
-	"github.com/shirou/gopsutil/v3/net"
-	"github.com/urfave/cli/v2"
 )
 
 type ProcArpStats struct {
@@ -335,6 +336,32 @@ func acquireProtoPidStats(pid, property, host string, token map[string]string) {
 
 	if !m.Success {
 		fmt.Printf("Failed to fetch proto pid stats: %v\n", m.Errors)
+		return
+	}
+
+	jsonData, err := json.Marshal(m.Message)
+	if err != nil {
+		fmt.Printf("Error: %s", err.Error())
+	} else {
+		fmt.Printf("%v\n", color.HiBlueString(string(jsonData)))
+	}
+}
+
+func acquireProcDiskPartitions(host string, token map[string]string) {
+	resp, err := web.DispatchSocket(http.MethodGet, host, "/api/v1/proc/partitions", token, nil)
+	if err != nil {
+		fmt.Printf("Failed to acquire disk partitions: %v\n", err)
+		return
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return
+	}
+
+	if !m.Success {
+		fmt.Printf("Failed to acquire disk partitions: %v\n", m.Errors)
 		return
 	}
 
