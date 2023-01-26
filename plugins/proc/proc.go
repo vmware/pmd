@@ -198,7 +198,7 @@ func AcquireAvgStat(w http.ResponseWriter) error {
 	return web.JSONResponse(avgStat, w)
 }
 
-func AcquirePartitions(w http.ResponseWriter) error {
+func AcquireDiskPartitions(w http.ResponseWriter) error {
 	part, err := disk.Partitions(true)
 	if err != nil {
 		return err

@@ -334,15 +334,25 @@ func main() {
 							},
 						},
 						{
-						Name:        "partitions",
-						UsageText:   "partitions",
-						Description: "Show disk partition info",
+							Name:        "disk-partitions",
+							UsageText:   "disk-partitions",
+							Description: "Show disk partition info",
 
-						Action: func(c *cli.Context) error {
-							acquireProcDiskPartitions(c.String("url"), token)
-							return nil
+							Action: func(c *cli.Context) error {
+								acquireProcDiskPartitions(c.String("url"), token)
+								return nil
+							},
 						},
-					},
+						{
+							Name:        "disk-usage",
+							UsageText:   "disk-usage",
+							Description: "Show disk diskusage info",
+
+							Action: func(c *cli.Context) error {
+								acquireProcDiskUsage(c.String("url"), token)
+								return nil
+							},
+						},
 						{
 							Name:        "arp",
 							Description: "Show proc net arp info",

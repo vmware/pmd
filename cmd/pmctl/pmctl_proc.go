@@ -348,7 +348,7 @@ func acquireProtoPidStats(pid, property, host string, token map[string]string) {
 }
 
 func acquireProcDiskPartitions(host string, token map[string]string) {
-	resp, err := web.DispatchSocket(http.MethodGet, host, "/api/v1/proc/partitions", token, nil)
+	resp, err := web.DispatchSocket(http.MethodGet, host, "/api/v1/proc/diskpartitions", token, nil)
 	if err != nil {
 		fmt.Printf("Failed to acquire disk partitions: %v\n", err)
 		return
@@ -362,6 +362,32 @@ func acquireProcDiskPartitions(host string, token map[string]string) {
 
 	if !m.Success {
 		fmt.Printf("Failed to acquire disk partitions: %v\n", m.Errors)
+		return
+	}
+
+	jsonData, err := json.Marshal(m.Message)
+	if err != nil {
+		fmt.Printf("Error: %s", err.Error())
+	} else {
+		fmt.Printf("%v\n", color.HiBlueString(string(jsonData)))
+	}
+}
+
+func acquireProcDiskUsage(host string, token map[string]string) {
+	resp, err := web.DispatchSocket(http.MethodGet, host, "/api/v1/proc/diskusage", token, nil)
+	if err != nil {
+		fmt.Printf("Failed to acquire disk usage: %v\n", err)
+		return
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return
+	}
+
+	if !m.Success {
+		fmt.Printf("Failed to acquire disk usage: %v\n", m.Errors)
 		return
 	}
 

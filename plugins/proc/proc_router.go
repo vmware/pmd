@@ -113,10 +113,10 @@ func routerAcquireSystem(w http.ResponseWriter, r *http.Request) {
 		err = AcquireCPUTimeStat(w)
 	case "diskusage":
 		err = AcquireDiskUsage(w)
+	case "diskpartitions":
+		err = AcquireDiskPartitions(w)
 	case "iocounters":
 		err = AcquireIOCounters(w)
-	case "partitions":
-		err = AcquirePartitions(w)
 	case "temperaturestat":
 		err = AcquireTemperatureStat(w)
 	case "modules":
