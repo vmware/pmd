@@ -1027,13 +1027,3 @@ you can quickly isolate and solve problems. You can create custom versions of an
 * Register ```RegisterRouterModule``` with parent router for example for ```login``` registered with
   ```RegisterRouterSystem``` under ```system``` namespace as ```login.RegisterRouterLogin```
 * See examples directory how to write on your own plugin.
-
-### Todos
-
- - Write Tests
- - networkd
-
-License
-----
-
-Apache 2.0
