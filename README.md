@@ -78,26 +78,30 @@ ListenUnixSocket="true"
 ```
 
 ```bash
-❯ sudo systemctl status photon-mgmtd.service
-● photon-mgmtd.service - A REST API based configuration management microservice gateway
-     Loaded: loaded (/usr/lib/systemd/system/photon-mgmtd.service; disabled; vendor preset: disabled)
-     Active: active (running) since Thu 2022-01-06 16:32:19 IST; 4s ago
-   Main PID: 230041 (photon-mgmtd)
-      Tasks: 6 (limit: 15473)
-     Memory: 2.9M
-        CPU: 7ms
-     CGroup: /system.slice/photon-mgmtd.service
-             └─230041 /usr/bin/photon-mgmtd
+❯ sudo systemctl start photon-mgmtd
+```
 
-Jan 06 16:32:19 Zeus systemd[1]: photon-mgmtd.service: Passing 0 fds to service
-Jan 06 16:32:19 Zeus systemd[1]: photon-mgmtd.service: About to execute /usr/bin/photon-mgmtd
-Jan 06 16:32:19 Zeus systemd[1]: photon-mgmtd.service: Forked /usr/bin/photon-mgmtd as 230041
-Jan 06 16:32:19 Zeus systemd[1]: photon-mgmtd.service: Changed failed -> running
-Jan 06 16:32:19 Zeus systemd[1]: photon-mgmtd.service: Job 56328 photon-mgmtd.service/start finished, result=done
-Jan 06 16:32:19 Zeus systemd[1]: Started photon-mgmtd.service - A REST API based configuration management microservice gateway.
-Jan 06 16:32:19 Zeus systemd[230041]: photon-mgmtd.service: Executing: /usr/bin/photon-mgmtd
-Jan 06 16:32:19 Zeus photon-mgmtd[230041]: time="2022-01-06T16:32:19+05:30" level=info msg="photon-mgmtd: v0.1 (built go1.18beta1)"
-Jan 06 16:32:19 Zeus photon-mgmtd[230041]: time="2022-01-06T16:32:19+05:30" level=info msg="Starting photon-mgmtd... Listening on unix domain socket='/run/photon-mgmt/photon-mgmt>
+```bash
+❯ sudo systemctl status photon-mgmtd
+● photon-mgmtd.service - A REST API based configuration management microservice gateway
+     Loaded: loaded (8;;file://zeus/usr/lib/systemd/system/photon-mgmtd.service^G/usr/lib/systemd/system/photon-mgmtd.service8;;^G; enabled; preset: enabled)
+     Active: active (running) since Thu 2023-01-26 11:34:05 UTC; 2min 44s ago
+   Main PID: 668 (photon-mgmtd)
+      Tasks: 6 (limit: 18735)
+     Memory: 22.8M
+     CGroup: /system.slice/photon-mgmtd.service
+             └─668 /usr/bin/photon-mgmtd
+
+Jan 26 11:34:05 zeus systemd[1]: photon-mgmtd.service: Changed dead -> running
+Jan 26 11:34:05 zeus systemd[1]: photon-mgmtd.service: Job 185 photon-mgmtd.service/start finished, result=done
+Jan 26 11:34:05 zeus systemd[1]: Started A REST API based configuration management microservice gateway.
+Jan 26 11:34:05 zeus systemd[668]: photon-mgmtd.service: Executing: /usr/bin/photon-mgmtd
+Jan 26 11:34:05 zeus photon-mgmtd[668]: time="2023-01-26T11:34:05Z" level=info msg="photon-mgmtd: v0.1 (built go1.19.3)"
+Jan 26 11:34:05 zeus photon-mgmtd[668]: time="2023-01-26T11:34:05Z" level=info msg="Starting photon-mgmtd... Listening on unix domain socket='/run/photon-mgmt/mgmt.sock' in HTTP>
+Jan 26 11:36:43 zeus systemd[1]: photon-mgmtd.service: Trying to enqueue job photon-mgmtd.service/start/replace
+Jan 26 11:36:43 zeus systemd[1]: photon-mgmtd.service: Installed new job photon-mgmtd.service/start as 596
+Jan 26 11:36:43 zeus systemd[1]: photon-mgmtd.service: Enqueued job photon-mgmtd.service/start as 596
+Jan 26 11:36:43 zeus systemd[1]: photon-mgmtd.service: Job 596 photon-mgmtd.service/start finished, result=done
 ```
 
 #### pmctl
@@ -106,20 +110,21 @@ Jan 06 16:32:19 Zeus photon-mgmtd[230041]: time="2022-01-06T16:32:19+05:30" leve
 `pmctl` is a CLI tool allows to view and configure system/network/service status.
 
 ```bash
-❯ pmctl service status nginx.service
-                  Name: nginx.service
-           Description: The nginx HTTP and reverse proxy server
-               MainPid: 45732
-             LoadState: loaded
-           ActiveState: active
-              SubState: running
-         UnitFileState: disabled
-  StateChangeTimeStamp: Sun Oct 31 12:02:02 IST 2021
-  ActiveEnterTimestamp: Sun Oct 31 12:02:02 IST 2021
- InactiveExitTimestamp: Sun Oct 31 12:02:02 IST 2021
-   ActiveExitTimestamp: 0
- InactiveExitTimestamp: Sun Oct 31 12:02:02 IST 2021
-                Active: active (running) since Sun Oct 31 12:02:02 IST 2021
+❯ sudo pmctl service status systemd-networkd
+                   Name: systemd-networkd.service
+            Description: Network Configuration
+               Main Pid: 644
+             Load State: loaded
+           Active State: active
+              Sub State: running
+        Unit File State: enabled
+ State Change TimeStamp: Thu Jan 26 11:34:05 UTC 2023
+ Active Enter Timestamp: Thu Jan 26 11:34:05 UTC 2023
+Inactive Exit Timestamp: Thu Jan 26 11:34:04 UTC 2023
+  Active Exit Timestamp: 0
+Inactive Exit Timestamp: Thu Jan 26 11:34:04 UTC 2023
+                 Active: active (running) since Thu Jan 26 11:34:05 UTC 2023
+
 
 ```
 
@@ -130,20 +135,24 @@ Jan 06 16:32:19 Zeus photon-mgmtd[230041]: time="2022-01-06T16:32:19+05:30" leve
 
 #### Acquire system status
 ```bash
-❯ pmctl status  system
-              System Name: Zeus
-                   Kernel: Linux (5.14.0-0.rc7.54.fc36.x86_64) #1 SMP Mon Aug 23 13:55:32 UTC 2021
+❯ sudo pmctl status system
+              System Name: zeus
+                   Kernel: Linux (5.10.159-2.ph4) #1-photon SMP Tue Jan 3 21:27:11 UTC 2023
                   Chassis: vm
            Hardware Model: VMware Virtual Platform
           Hardware Vendor: VMware, Inc.
              Product UUID: 979e4d56b63718b18534e112e64cb18
          Operating System: VMware Photon OS/Linux
 Operating System Home URL: https://vmware.github.io/photon/
-          Systemd Version: v247.10-3.ph4
+                Time zone: UTC (2023-01-26 11:42:49.847435 +0000 UTC)
+         NTP synchronized: true
+                     Time: Thu Jan 26 11:42:49 UTC 2023
+                 RTC Time: 2023-01-26 11:42:49.847435 +0000 UTC
+          Systemd Version: v252-1
              Architecture: x86-64
            Virtualization: vmware
             Network State: routable (carrier)
-     Network Online State: online
+     Network Online State: partial
                       DNS: 172.16.130.2
                   Address: 172.16.130.132/24 on link ens33
                            172.16.130.131/24 on link ens33
@@ -157,23 +166,23 @@ Operating System Home URL: https://vmware.github.io/photon/
 
 #### Network status
 ```bash
-❯ pmctl status network -i ens33
-             Name: ens33
-Alternative Names: enp2s1
+❯ sudo pmctl status network -i eth0
+             Name: eth0
+Alternative Names: eno1 enp11s0 ens192
             Index: 2
         Link File: /usr/lib/systemd/network/99-default.link
-     Network File: /etc/systemd/network/10-ens33.network
+     Network File: /etc/systemd/network/99-dhcp-en.network
              Type: ether
-            State: routable (configured)
-           Driver: e1000
-           Vendor: Intel Corporation
-            Model: 82545EM Gigabit Ethernet Controller (Copper) (PRO/1000 MT Single Port Adapter)
-             Path: pci-0000:02:01.0
+            State: routable ()
+           Driver: vmxnet3
+           Vendor: VMware
+            Model: VMXNET3 Ethernet Controller
+             Path: pci-0000:0b:00.0
     Carrier State: carrier
      Online State: online
 IPv4Address State: routable
 IPv6Address State: degraded
-       HW Address: 00:0c:29:5f:d1:39
+       HW Address: 00:0c:29:64:cb:18
               MTU: 1500
         OperState: up
             Flags: up|broadcast|multicast
