@@ -272,17 +272,17 @@ Hardware Address: 00:0c:29:7c:6f:8e
 #### Login status
 ```bash
 
-#ListUsers
+# List Users
 >pmctl status login user
 
-#ListSessions
+# List Sessions
 >pmctl status login session
 
-#Get User based on UID
+# Acquire User based on UID
 pmctl status login user <UID>
 >pmctl status login user 2
 
-#Get Session based on ID
+# Acquire Session based on ID
 pmctl status login session <ID>
 >pmctl status login session 1000
 
@@ -291,11 +291,11 @@ pmctl status login session <ID>
 #### Ethtool status
 ```bash
 
-#Get Ethtool all status
+# Acquire Ethtool all status
 pmctl status ethtool <LINK>
 >pmctl status ethtool ens37
 
-#Get Ethtool status based on action
+# Acquire Ethtool status based on action
 pmctl status ethtool <LINK> <ACTION>
 >pmctl status ethtool ens37 bus
 
@@ -304,10 +304,10 @@ pmctl status ethtool <LINK> <ACTION>
 #### sysctl usecase via pmctl
 ```bash
 
-# Get all sysctl configuration in the system in json format.
+# Acquire all sysctl configuration in the system in json format.
 pmctl status sysctl
 
-# Get particuller variable configuration from sysctl configuration.
+# Acquire one variable configuration from sysctl configuration.
 pmctl status sysctl k <InputKey>
 or
 pmctl status sysctl key <InputKey>
@@ -315,7 +315,7 @@ pmctl status sysctl key <InputKey>
 >pmctl status sysctl k fs.file-max
 fs.file-max: 9223372036854775807
 
-# Get all variable configuration from sysctl configuration based on input pattern.
+# Acquire all variable configuration from sysctl configuration based on input pattern.
 pmctl status sysctl p <InputPatern>
 or
 pmctl status sysctl pattern <InputPatern>
@@ -351,15 +351,15 @@ pmctl sysctl load files <InputFileList>
 #### sysctl usecase via curl
 ```bash
 
-# Get all sysctl configuration in the system in json format.
+# Acquire all sysctl configuration in the system in json format.
 curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET http://localhost/api/v1/system/sysctl/statusall
 >curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET http://localhost/api/v1/system/sysctl/statusall
 
-# Get particuller variable configuration from sysctl configuration.
+# Acquire one variable configuration from sysctl configuration.
 curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET --data '{"key":"<keyName>"}' http://localhost/api/v1/system/sysctl/status
 >curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET --data '{"key":"fs.file-max"}' http://localhost/api/v1/system/sysctl/status
 
-# Get all variable configuration from sysctl configuration based on input pattern.
+# Acquire all variable configuration from sysctl configuration based on input pattern.
 curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET --data '{"pattern":"<Pattern>"}' http://localhost/api/v1/system/sysctl/statuspattern
 >curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET --data '{"pattern":"fs.file"}' http://localhost/api/v1/system/sysctl/statuspattern
 
@@ -379,7 +379,7 @@ curl --unix-socket /run/photon-mgmt/mgmt.sock --request POST --data '{"apply":tr
 #### Group usecase via pmctl
 ```bash
 
-# Get all Group information.
+# Acquire all Group information.
 >pmctl status group
              Gid: 0
             Name: root
@@ -424,10 +424,10 @@ pmctl group remove <GroupName>
 #### Group usecase via curl
 ```bash
 
-# Get all Group information.
+# Acquire all Group information.
 curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET http://localhost/api/v1/system/group/view
 
-# Get particuller Group information.
+# Acquire one Group information.
 curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET http://localhost/api/v1/system/group/view/<GroupName>
 
 # Add a new Group.
@@ -442,7 +442,7 @@ curl --unix-socket /run/photon-mgmt/mgmt.sock --request DELETE --data '{"Name":"
 #### User usecase via pmctl
 ```bash
 
-# Get all User information.
+# Acquire all User information.
 >pmctl status user
           User Name: root
                 Uid: 0
@@ -487,7 +487,7 @@ pmctl user r <UserName>
 #### User usecase via curl
 ```bash
 
-# Get all User information.
+# Acquire all User information.
 curl --unix-socket /run/photon-mgmt/mgmt.sock --request GET http://localhost/api/v1/system/user/view
 
 # Add a new User.
@@ -920,7 +920,7 @@ pmctl pkg repolist
 > pmctl pkg search <pattern>
 pmctl pkg search lsof
 
-# Get update info
+# Acquire update info
 > pmctl pkg updateinfo
 > pmctl pkg updateinfo --list
 > pmctl pkg updateinfo --info
