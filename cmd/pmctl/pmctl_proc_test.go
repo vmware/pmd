@@ -294,3 +294,26 @@ func TestAcquireProtoPidStats(t *testing.T) {
 		t.Fatalf(m.Errors)
 	}
 }
+
+func TestAcquireProcDiskPartitions(t *testing.T) {
+	resp, err := web.DispatchSocket(http.MethodGet, "", "/api/v1/proc/partitions", nil, nil)
+	if err != nil {
+		t.Fatalf("Failed to acquire disk partition info: %v\n", err)
+	}
+
+	p := ProcNetStats{}
+	if err := json.Unmarshal(resp, &p); err != nil {
+		t.Fatalf("Failed to decode json message: %v\n", err)
+	}
+
+	if p.Success {
+		jsonData, err := json.Marshal(p.Message)
+		if err != nil {
+			t.Fatalf(err.Error())
+		} else {
+			fmt.Printf("%v\n", color.HiBlueString(string(jsonData)))
+		}
+	} else {
+		t.Fatalf(p.Errors)
+	}
+}

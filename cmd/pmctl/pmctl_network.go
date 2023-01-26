@@ -14,6 +14,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/shirou/gopsutil/v3/net"
 	"github.com/urfave/cli/v2"
+
 	"github.com/vmware/pmd/pkg/share"
 	"github.com/vmware/pmd/pkg/validator"
 	"github.com/vmware/pmd/pkg/web"
@@ -231,7 +232,7 @@ func displayDnsAndDomains(n *resolved.Describe) {
 	}
 }
 
-func displayOneLinkNTP(link string, ntp *timesyncd.Describe) {
+func displayOneLinkNTP(ntp *timesyncd.Describe) {
 	if len(ntp.LinkNTPServers) > 0 {
 		fmt.Printf("              %v %v\n", color.HiBlueString("NTP:"), ntp.LinkNTPServers)
 	}
