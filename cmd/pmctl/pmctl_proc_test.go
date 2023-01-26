@@ -17,8 +17,6 @@ import (
 	"github.com/vmware/pmd/pkg/validator"
 	"github.com/vmware/pmd/pkg/web"
 	"github.com/vmware/pmd/plugins/proc"
-	"github.com/vmware/pmd/plugins/proc"
-	"github.com/vmware/pmd/plugins/proc"
 )
 
 func TestConfigureProcSysNet(t *testing.T) {
@@ -304,20 +302,20 @@ func TestAcquireProcDiskPartitions(t *testing.T) {
 		t.Fatalf("Failed to acquire disk partition info: %v\n", err)
 	}
 
-	p := ProcNetStats{}
-	if err := json.Unmarshal(resp, &p); err != nil {
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
 		t.Fatalf("Failed to decode json message: %v\n", err)
 	}
 
-	if p.Success {
-		jsonData, err := json.Marshal(p.Message)
+	if m.Success {
+		jsonData, err := json.Marshal(m.Message)
 		if err != nil {
 			t.Fatalf(err.Error())
 		} else {
 			fmt.Printf("%v\n", color.HiBlueString(string(jsonData)))
 		}
 	} else {
-		t.Fatalf(p.Errors)
+		t.Fatalf(m.Errors)
 	}
 }
 
@@ -327,20 +325,19 @@ func TestAcquireProcDiskUsage(t *testing.T) {
 		t.Fatalf("Failed to acquire disk usage info: %v\n", err)
 	}
 
-	p := ProcNetStats{}
-	if err := json.Unmarshal(resp, &p); err != nil {
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
 		t.Fatalf("Failed to decode json message: %v\n", err)
 	}
 
-	if p.Success {
-		jsonData, err := json.Marshal(p.Message)
+	if m.Success {
+		jsonData, err := json.Marshal(m.Message)
 		if err != nil {
 			t.Fatalf(err.Error())
 		} else {
 			fmt.Printf("%v\n", color.HiBlueString(string(jsonData)))
 		}
 	} else {
-		t.Fatalf(p.Errors)
+		t.Fatalf(m.Errors)
 	}
 }
-
