@@ -4,7 +4,7 @@
 `photon-mgmtd` is a high performance open-source, simple, and pluggable REST API gateway designed with stateless architecture. It is written in Go, and built with performance in mind. It features real time health monitoring, configuration and performance for systems (containers), networking and applications.
 
 - Proactive Monitoring and Analytics
-  `photon-mgmtd` saves network administrators time and frustration because it makes it easy to gather statistics and perform analyses.
+  easy to gather statistics and perform analyses.
 - Platform independent REST APIs can be accessed via any application (curl, chrome, PostMan ...) from any OS (Linux, IOS, Android, Windows ...)
 - Minimal data transfer using JSON.
 - Plugin based Architechture. See how to write plugin section for more information.
@@ -26,45 +26,9 @@ user | used to fetch, add, and remove user on the system
 group | used to fetch, add, and remove group on the system
 link | configure link parameters like (MACAddress, Name, AlternativeNames, Offload, VLANTAG, CHannels, Buffers, Queues, FlowControls, Coalesce) etc
 firewall | add, delete and show nft tables, chain and rules also is used to run any NFT commands
-package management | used to manage package management on the system like (list, info, download, update, remove, clean cache, list repositories, search package) etc
+package management (tdnf) | used to manage package management on the system like (list, info, download, update, remove, clean cache, list repositories, search package) etc
 
-#### Dependencies
-
-photon-mgmtd uses a following open source projects to work properly:
-
-* [logrus](https://github.com/sirupsen/logrus)
-* [gorilla mux](https://github.com/gorilla/mux)
-* [netlink](https://github.com/vishvananda/netlink)
-* [gopsutil](https://github.com/shirou/gopsutil)
-* [coreos go-systemd](https://github.com/coreos/go-systemd)
-* [dbus](https://github.com/godbus/dbus)
-* [ethtool](https://github.com/safchain/ethtool)
-* [viper](https://github.com/spf13/viper)
-* [go-ini](https://github.com/go-ini/ini)
-
-
-#### Installation
-
-First configure your ```$GOPATH```. If you have already done this skip this step.
-
-```bash
-# keep in ~/.bashrc
-```
-
-```bash
-export GOPATH=$HOME/go
-export PATH=$PATH:$GOPATH/bin
-export OS_OUTPUT_GOPATH=1
-```
-
-Clone inside src dir of ```$GOPATH```. In my case
-
-```bash
-$ pwd
-/home/sus/go/src
-```
-
-#### Building from source
+#### Building and installation from source
 ----
 
 ```bash
@@ -92,18 +56,14 @@ The `[System]` section takes following Keys:
 Specifies the log level. Takes one of `Trace`, `Debug`, `Info`, `Warning`, `Error`, `Fatal` and `Panic`. Defaults to `info`. See [sirupsen](https://github.com/sirupsen/logrus#level-logging)
 
 `UseAuthentication=`
-
 A boolean. Specifies whether the users should be authenticated. Defaults to `true`.
-
 
 The `[Network]` section takes following Keys:
 
 `Listen=`
-
 Specifies the IP address and port which the REST API server will listen to. When enabled, defaults to `127.0.0.1:5208`.
 
 `ListenUnixSocket=`
-
 A boolean. Specifies whether the server would listen on a unix domain socket `/run/photon-mgmt/mgmt.sock`. Defaults to `true`.
 
 Note that when both `ListenUnixSocket=` and `Listen=` are enabled, server listens on the unix domain socket by default.
@@ -164,8 +124,7 @@ Jan 06 16:32:19 Zeus photon-mgmtd[230041]: time="2022-01-06T16:32:19+05:30" leve
 ```
 
 #### Configure system hostname
-```
-bash
+```bash
 ❯ pmctl system set-hostname static ubuntu transient transientname pretty prettyname
 ```
 
