@@ -20,13 +20,13 @@ type Proc struct {
 }
 
 func routerAcquireProcNetStat(w http.ResponseWriter, r *http.Request) {
-	if err := AcquireNetStat(w, mux.Vars(r)["protocol"]); err != nil {
+	if err := AcquireNetStat(r.Context(), w, mux.Vars(r)["protocol"]); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
 
 func routerAcquireProcPidNetStat(w http.ResponseWriter, r *http.Request) {
-	if err := AcquireNetStatPid(w, mux.Vars(r)["protocol"], mux.Vars(r)["pid"]); err != nil {
+	if err := AcquireNetStatPid(r.Context(), w, mux.Vars(r)["protocol"], mux.Vars(r)["pid"]); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
@@ -90,13 +90,13 @@ func configureProcSysNet(w http.ResponseWriter, r *http.Request) {
 }
 
 func routerAcquireProcNetArp(w http.ResponseWriter, r *http.Request) {
-	if err := AcquireNetArp(w); err != nil {
+	if err := AcquireNetArp(r.Context(), w); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
 
 func routerAcquireProcProcess(w http.ResponseWriter, r *http.Request) {
-	if err := AcquireProcessInfo(w, mux.Vars(r)["pid"], mux.Vars(r)["property"]); err != nil {
+	if err := AcquireProcessInfo(r.Context(), w, mux.Vars(r)["pid"], mux.Vars(r)["property"]); err != nil {
 		web.JSONResponseError(err, w)
 	}
 }
@@ -106,39 +106,39 @@ func routerAcquireSystem(w http.ResponseWriter, r *http.Request) {
 
 	switch mux.Vars(r)["system"] {
 	case "avgstat":
-		err = AcquireAvgStat(w)
+		err = AcquireAvgStat(r.Context(), w)
 	case "cpuinfo":
-		err = AcquireCPUInfo(w)
+		err = AcquireCPUInfo(r.Context(), w)
 	case "cputimestat":
-		err = AcquireCPUTimeStat(w)
+		err = AcquireCPUTimeStat(r.Context(), w)
 	case "diskusage":
-		err = AcquireDiskUsage(w)
+		err = AcquireDiskUsage(r.Context(), w)
 	case "diskpartitions":
-		err = AcquireDiskPartitions(w)
+		err = AcquireDiskPartitions(r.Context(), w)
 	case "iocounters":
-		err = AcquireIOCounters(w)
+		err = AcquireIOCounters(r.Context(), w)
 	case "temperaturestat":
-		err = AcquireTemperatureStat(w)
+		err = AcquireTemperatureStat(r.Context(), w)
 	case "modules":
-		err = AcquireModules(w)
+		err = AcquireModules(r.Context(), w)
 	case "misc":
-		err = AcquireMisc(w)
+		err = AcquireMisc(r.Context(), w)
 	case "userstat":
-		err = AcquireUserStat(w)
+		err = AcquireUserStat(r.Context(), w)
 	case "hostinfo":
-		err = AcquireHostInfo(w)
+		err = AcquireHostInfo(r.Context(), w)
 	case "virtualmemory":
 		err = AcquireVirtualMemoryStat(r.Context(), w)
 	case "virtualization":
-		err = AcquireVirtualization(w)
+		err = AcquireVirtualization(r.Context(), w)
 	case "platform":
-		err = AcquirePlatformInformation(w)
+		err = AcquirePlatformInformation(r.Context(), w)
 	case "interfaces":
-		err = AcquireInterfaces(w)
+		err = AcquireInterfaces(r.Context(), w)
 	case "netdeviocounters":
-		err = AcquireNetDevIOCounters(w)
+		err = AcquireNetDevIOCounters(r.Context(), w)
 	case "protocounterstat":
-		err = AcquireProtoCountersStat(w)
+		err = AcquireProtoCountersStat(r.Context(), w)
 	default:
 		err = errors.New("not found")
 	}
