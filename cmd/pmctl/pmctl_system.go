@@ -12,6 +12,10 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/shirou/gopsutil/v3/host"
+	"github.com/shirou/gopsutil/v3/mem"
+	"github.com/urfave/cli/v2"
+
 	"github.com/vmware/pmd/pkg/share"
 	"github.com/vmware/pmd/pkg/system"
 	"github.com/vmware/pmd/pkg/web"
@@ -22,9 +26,6 @@ import (
 	"github.com/vmware/pmd/plugins/network/netlink/route"
 	"github.com/vmware/pmd/plugins/network/networkd"
 	"github.com/vmware/pmd/plugins/systemd"
-	"github.com/shirou/gopsutil/v3/host"
-	"github.com/shirou/gopsutil/v3/mem"
-	"github.com/urfave/cli/v2"
 )
 
 type SystemDescribe struct {
@@ -117,10 +118,10 @@ func displayNetworkAddresses(addInfo []address.AddressInfo) {
 		}
 		for _, a := range addrs.Addresses {
 			if b {
-				fmt.Printf(" %v/%v %v %v\n", a.IP, a.Mask, color.HiGreenString("on link"), addrs.Name)
+				fmt.Printf(" %v/%v %v %v\n", a.IP, a.Mask, color.HiGreenString("on device"), addrs.Name)
 				b = false
 			} else {
-				fmt.Printf("                           %v/%v %v %v\n", a.IP, a.Mask, color.HiGreenString("on link"), addrs.Name)
+				fmt.Printf("                           %v/%v %v %v\n", a.IP, a.Mask, color.HiGreenString("on device"), addrs.Name)
 			}
 		}
 	}
@@ -134,12 +135,12 @@ func displayRoutes(linkRoutes []route.RouteInfo) {
 	for _, rt := range linkRoutes {
 		if rt.Gw != "" {
 			if b {
-				fmt.Printf(" %v %v %v\n", rt.Gw, color.HiGreenString("on link"), rt.LinkName)
+				fmt.Printf(" %v %v %v\n", rt.Gw, color.HiGreenString("on device"), rt.LinkName)
 				gws.Add(rt.LinkName)
 				b = false
 			} else {
 				if !gws.Contains(rt.LinkName) {
-					fmt.Printf("                           %v %v %v\n", rt.Gw, color.HiGreenString("on link"), rt.LinkName)
+					fmt.Printf("                           %v %v %v\n", rt.Gw, color.HiGreenString("on device"), rt.LinkName)
 					gws.Add(rt.LinkName)
 				}
 			}
