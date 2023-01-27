@@ -52,7 +52,7 @@ func (r *SysNet) getPath() (string, error) {
 	return procPath, nil
 }
 
-func (r *SysNet) GetSysNet(rw http.ResponseWriter) error {
+func (r *SysNet) GetSysNet(w http.ResponseWriter) error {
 	path, err := r.getPath()
 	if err != nil {
 		return err
@@ -70,10 +70,10 @@ func (r *SysNet) GetSysNet(rw http.ResponseWriter) error {
 		Link:     r.Link,
 	}
 
-	return web.JSONResponse(s, rw)
+	return web.JSONResponse(s, w)
 }
 
-func (r *SysNet) SetSysNet(rw http.ResponseWriter) error {
+func (r *SysNet) SetSysNet(w http.ResponseWriter) error {
 	path, err := r.getPath()
 	if err != nil {
 		return err
@@ -95,5 +95,5 @@ func (r *SysNet) SetSysNet(rw http.ResponseWriter) error {
 		Link:     r.Link,
 	}
 
-	return web.JSONResponse(s, rw)
+	return web.JSONResponse(s, w)
 }
