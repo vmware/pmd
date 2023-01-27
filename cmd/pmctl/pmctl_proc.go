@@ -398,3 +398,30 @@ func acquireProcDiskUsage(host string, token map[string]string) {
 		fmt.Printf("%v\n", color.HiBlueString(string(jsonData)))
 	}
 }
+
+
+func acquireProcSwapDevices(host string, token map[string]string) {
+	resp, err := web.DispatchSocket(http.MethodGet, host, "/api/v1/proc/swapdevices", token, nil)
+	if err != nil {
+		fmt.Printf("Failed to acquire swap devices: %v\n", err)
+		return
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		fmt.Printf("Failed to decode json message: %v\n", err)
+		return
+	}
+
+	if !m.Success {
+		fmt.Printf("Failed to acquire swap devices: %v\n", m.Errors)
+		return
+	}
+
+	jsonData, err := json.Marshal(m.Message)
+	if err != nil {
+		fmt.Printf("Error: %s", err.Error())
+	} else {
+		fmt.Printf("%v\n", color.HiBlueString(string(jsonData)))
+	}
+}
