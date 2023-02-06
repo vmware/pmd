@@ -346,10 +346,20 @@ func main() {
 						{
 							Name:        "disk-usage",
 							UsageText:   "disk-usage",
-							Description: "Show disk diskusage info",
+							Description: "Show disk disk usage info",
 
 							Action: func(c *cli.Context) error {
 								acquireProcDiskUsage(c.String("url"), token)
+								return nil
+							},
+						},
+						{
+							Name:        "swap-devices",
+							UsageText:   "swap-devices",
+							Description: "Show swap devices",
+
+							Action: func(c *cli.Context) error {
+								acquireProcSwapDevices(c.String("url"), token)
 								return nil
 							},
 						},
