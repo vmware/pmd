@@ -154,14 +154,14 @@ Operating System Home URL: https://vmware.github.io/photon/
             Network State: routable (carrier)
      Network Online State: partial
                       DNS: 172.16.130.2
-                  Address: 172.16.130.132/24 on link ens33
-                           172.16.130.131/24 on link ens33
-                           fe80::3279:c56d:55f9:aed7/64 on link ens33
-                           172.16.130.138/24 on link ens37
-                  Gateway: 172.16.130.2 on link ens37
-                           172.16.130.2 on link ens33
-                   Uptime: Running Since (2 days, 3 hours, 8 minutes) Booted (Wed Dec 22 15:57:24 IST 2021) Users (9) Proc (284)
-                   Memory: Total (13564788736) Used (13564788736) Free (589791232) Available (9723891712)
+                  Address: 172.16.130.132/24 on device ens33
+                           172.16.130.131/24 on device ens33
+                           fe80::3279:c56d:55f9:aed7/64 on device ens33
+                           172.16.130.138/24 on device ens37
+                  Gateway: 172.16.130.2 on device ens37
+                           172.16.130.2 on device ens33
+                   Uptime: Running Since (17 hours 58 minutes) Booted (Sun Feb  5 22:41:12 IST 2023) Users (5) Proc (278)
+                   Memory: Total (13559750656) Used (13559750656) Free (5929107456) Available (10282934272)
 ```
 
 #### Network status
