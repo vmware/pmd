@@ -46,7 +46,7 @@ type Modules struct {
 	State      string `json:"State"`
 }
 
-func AcquireHostInfo(ctx context.Context, w http.ResponseWriter) error {
+func acquireHostInfo(ctx context.Context, w http.ResponseWriter) error {
 	infoStat, err := host.InfoWithContext(ctx)
 	if err != nil {
 		return err
@@ -55,8 +55,8 @@ func AcquireHostInfo(ctx context.Context, w http.ResponseWriter) error {
 	return web.JSONResponse(infoStat, w)
 }
 
-func AcquirePlatformInformation(ctx context.Context, w http.ResponseWriter) error {
-	platform, family, version, err := host.PlatformInformation()
+func acquirePlatformInformation(ctx context.Context, w http.ResponseWriter) error {
+	platform, family, version, err := host.PlatformInformationWithContext(ctx)
 	if err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func AcquirePlatformInformation(ctx context.Context, w http.ResponseWriter) erro
 	return web.JSONResponse(p, w)
 }
 
-func AcquireVirtualization(ctx context.Context, w http.ResponseWriter) error {
+func acquireVirtualization(ctx context.Context, w http.ResponseWriter) error {
 	system, role, err := host.VirtualizationWithContext(ctx)
 	if err != nil {
 		return err
@@ -91,7 +91,7 @@ func AcquireVirtualization(ctx context.Context, w http.ResponseWriter) error {
 	return web.JSONResponse(v, w)
 }
 
-func AcquireUserStat(ctx context.Context, w http.ResponseWriter) error {
+func acquireUserStat(ctx context.Context, w http.ResponseWriter) error {
 	userStat, err := host.UsersWithContext(ctx)
 	if err != nil {
 		return err
@@ -100,7 +100,7 @@ func AcquireUserStat(ctx context.Context, w http.ResponseWriter) error {
 	return web.JSONResponse(userStat, w)
 }
 
-func AcquireTemperatureStat(ctx context.Context, w http.ResponseWriter) error {
+func acquireTemperatureStat(ctx context.Context, w http.ResponseWriter) error {
 	tempStat, err := host.SensorsTemperaturesWithContext(ctx)
 	if err != nil {
 		return err
@@ -110,7 +110,7 @@ func AcquireTemperatureStat(ctx context.Context, w http.ResponseWriter) error {
 }
 
 // read netstat from proc tcp/udp/sctp
-func AcquireNetStat(ctx context.Context, w http.ResponseWriter, protocol string) error {
+func acquireNetStat(ctx context.Context, w http.ResponseWriter, protocol string) error {
 	conn, err := net.ConnectionsWithContext(ctx, protocol)
 	if err != nil {
 		return err
@@ -119,7 +119,7 @@ func AcquireNetStat(ctx context.Context, w http.ResponseWriter, protocol string)
 	return web.JSONResponse(conn, w)
 }
 
-func AcquireNetStatPid(ctx context.Context, w http.ResponseWriter, protocol string, process string) error {
+func acquireNetStatPid(ctx context.Context, w http.ResponseWriter, protocol string, process string) error {
 	pid, err := strconv.ParseInt(process, 10, 32)
 	if err != nil || protocol == "" || pid == 0 {
 		return errors.New("can't parse request")
@@ -133,7 +133,7 @@ func AcquireNetStatPid(ctx context.Context, w http.ResponseWriter, protocol stri
 	return web.JSONResponse(conn, w)
 }
 
-func AcquireProtoCountersStat(ctx context.Context, w http.ResponseWriter) error {
+func acquireProtoCountersStat(ctx context.Context, w http.ResponseWriter) error {
 	protocols := []string{"ip", "icmp", "icmpmsg", "tcp", "udp", "udplite"}
 
 	proto, err := net.ProtoCountersWithContext(ctx, protocols)
@@ -144,7 +144,7 @@ func AcquireProtoCountersStat(ctx context.Context, w http.ResponseWriter) error 
 	return web.JSONResponse(proto, w)
 }
 
-func AcquireNetDevIOCounters(ctx context.Context, w http.ResponseWriter) error {
+func acquireNetDevIOCounters(ctx context.Context, w http.ResponseWriter) error {
 	netDev, err := net.IOCountersWithContext(ctx, true)
 	if err != nil {
 		return err
@@ -153,7 +153,7 @@ func AcquireNetDevIOCounters(ctx context.Context, w http.ResponseWriter) error {
 	return web.JSONResponse(netDev, w)
 }
 
-func AcquireInterfaces(ctx context.Context, w http.ResponseWriter) error {
+func acquireInterfaces(ctx context.Context, w http.ResponseWriter) error {
 	interfaces, err := net.InterfacesWithContext(ctx)
 	if err != nil {
 		return err
@@ -162,7 +162,7 @@ func AcquireInterfaces(ctx context.Context, w http.ResponseWriter) error {
 	return web.JSONResponse(interfaces, w)
 }
 
-func AcquireVirtualMemoryStat(ctx context.Context, w http.ResponseWriter) error {
+func acquireVirtualMemoryStat(ctx context.Context, w http.ResponseWriter) error {
 	m, err := mem.VirtualMemoryWithContext(ctx)
 	if err != nil {
 		return err
@@ -171,7 +171,34 @@ func AcquireVirtualMemoryStat(ctx context.Context, w http.ResponseWriter) error 
 	return web.JSONResponse(m, w)
 }
 
-func AcquireCPUInfo(ctx context.Context, w http.ResponseWriter) error {
+func acquireSwapDevices(ctx context.Context, w http.ResponseWriter) error {
+	m, err := mem.SwapDevicesWithContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	return web.JSONResponse(m, w)
+}
+
+func acquireSwapMemory(ctx context.Context, w http.ResponseWriter) error {
+	m, err := mem.SwapMemoryWithContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	return web.JSONResponse(m, w)
+}
+
+func acquireVirtualMemoryEx(ctx context.Context, w http.ResponseWriter) error {
+	m, err := mem.VirtualMemoryExWithContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	return web.JSONResponse(m, w)
+}
+
+func acquireCPUInfo(ctx context.Context, w http.ResponseWriter) error {
 	cpuInfo, err := cpu.InfoWithContext(ctx)
 	if err != nil {
 		return err
@@ -180,7 +207,7 @@ func AcquireCPUInfo(ctx context.Context, w http.ResponseWriter) error {
 	return web.JSONResponse(cpuInfo, w)
 }
 
-func AcquireCPUTimeStat(ctx context.Context, w http.ResponseWriter) error {
+func acquireCPUTimeStat(ctx context.Context, w http.ResponseWriter) error {
 	cpuTime, err := cpu.TimesWithContext(ctx, true)
 	if err != nil {
 		return err
@@ -189,7 +216,7 @@ func AcquireCPUTimeStat(ctx context.Context, w http.ResponseWriter) error {
 	return web.JSONResponse(cpuTime, w)
 }
 
-func AcquireAvgStat(ctx context.Context, w http.ResponseWriter) error {
+func acquireAvgStat(ctx context.Context, w http.ResponseWriter) error {
 	avgStat, err := load.AvgWithContext(ctx)
 	if err != nil {
 		return err
@@ -198,7 +225,7 @@ func AcquireAvgStat(ctx context.Context, w http.ResponseWriter) error {
 	return web.JSONResponse(avgStat, w)
 }
 
-func AcquireDiskPartitions(ctx context.Context, w http.ResponseWriter) error {
+func acquireDiskPartitions(ctx context.Context, w http.ResponseWriter) error {
 	part, err := disk.Partitions(true)
 	if err != nil {
 		return err
@@ -207,7 +234,7 @@ func AcquireDiskPartitions(ctx context.Context, w http.ResponseWriter) error {
 	return web.JSONResponse(part, w)
 }
 
-func AcquireIOCounters(ctx context.Context, w http.ResponseWriter) error {
+func acquireIOCounters(ctx context.Context, w http.ResponseWriter) error {
 	ioCounters, err := disk.IOCountersWithContext(ctx)
 	if err != nil {
 		return err
@@ -216,7 +243,7 @@ func AcquireIOCounters(ctx context.Context, w http.ResponseWriter) error {
 	return web.JSONResponse(ioCounters, w)
 }
 
-func AcquireDiskUsage(ctx context.Context, w http.ResponseWriter) error {
+func acquireDiskUsage(ctx context.Context, w http.ResponseWriter) error {
 	u, err := disk.UsageWithContext(ctx, "/")
 	if err != nil {
 		return err
@@ -225,7 +252,16 @@ func AcquireDiskUsage(ctx context.Context, w http.ResponseWriter) error {
 	return web.JSONResponse(u, w)
 }
 
-func AcquireMisc(ctx context.Context, w http.ResponseWriter) error {
+func acquireDiskSerialNumber(ctx context.Context, w http.ResponseWriter) error {
+	u, err := disk.SerialNumberWithContext(ctx, "/")
+	if err != nil {
+		return err
+	}
+
+	return web.JSONResponse(u, w)
+}
+
+func acquireMisc(ctx context.Context, w http.ResponseWriter) error {
 	lines, err := system.ReadFullFile(procMiscPath)
 	if err != nil {
 		log.Fatalf("Failed to read: %s", procMiscPath)
@@ -246,7 +282,7 @@ func AcquireMisc(ctx context.Context, w http.ResponseWriter) error {
 	return web.JSONResponse(miscMap, w)
 }
 
-func AcquireNetArp(ctx context.Context, w http.ResponseWriter) error {
+func acquireNetArp(ctx context.Context, w http.ResponseWriter) error {
 	lines, err := system.ReadFullFile(procNetArpPath)
 	if err != nil {
 		log.Errorf("Failed to read '%s': %v", procNetArpPath, err)
@@ -273,7 +309,7 @@ func AcquireNetArp(ctx context.Context, w http.ResponseWriter) error {
 	return web.JSONResponse(arp, w)
 }
 
-func AcquireModules(ctx context.Context, w http.ResponseWriter) error {
+func acquireModules(ctx context.Context, w http.ResponseWriter) error {
 	lines, err := system.ReadFullFile(procModulesPath)
 	if err != nil {
 		log.Fatalf("Failed to read '%s': %v", procModulesPath, err)
@@ -311,7 +347,7 @@ func AcquireModules(ctx context.Context, w http.ResponseWriter) error {
 	return web.JSONResponse(modules, w)
 }
 
-func AcquireProcessInfo(ctx context.Context, w http.ResponseWriter, proc string, property string) error {
+func acquireProcessInfo(ctx context.Context, w http.ResponseWriter, proc string, property string) error {
 	pid, err := strconv.ParseInt(proc, 10, 32)
 	if err != nil {
 		return err
