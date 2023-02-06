@@ -341,3 +341,26 @@ func TestAcquireProcDiskUsage(t *testing.T) {
 		t.Fatalf(m.Errors)
 	}
 }
+
+func TestAcquireProSwapDevices(t *testing.T) {
+	resp, err := web.DispatchSocket(http.MethodGet, "", "/api/v1/proc/swapdevices", nil, nil)
+	if err != nil {
+		t.Fatalf("Failed to swap device info: %v\n", err)
+	}
+
+	m := web.JSONResponseMessage{}
+	if err := json.Unmarshal(resp, &m); err != nil {
+		t.Fatalf("Failed to decode json message: %v\n", err)
+	}
+
+	if m.Success {
+		jsonData, err := json.Marshal(m.Message)
+		if err != nil {
+			t.Fatalf(err.Error())
+		} else {
+			fmt.Printf("%v\n", color.HiBlueString(string(jsonData)))
+		}
+	} else {
+		t.Fatalf(m.Errors)
+	}
+}
