@@ -143,7 +143,7 @@ github.com/russross/blackfriday/v2
 # github.com/safchain/ethtool v0.3.0
 ## explicit; go 1.16
 github.com/safchain/ethtool
-# github.com/shirou/gopsutil/v3 v3.23.1
+# github.com/shirou/gopsutil/v3 v3.23.2
 ## explicit; go 1.15
 github.com/shirou/gopsutil/v3/cpu
 github.com/shirou/gopsutil/v3/disk
