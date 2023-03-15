@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/coreos/go-systemd/v22 v22.5.0
-	github.com/fatih/color v1.14.1
+	github.com/fatih/color v1.15.0
 	github.com/go-ini/ini v1.67.0
 	github.com/godbus/dbus/v5 v5.1.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
