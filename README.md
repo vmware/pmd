@@ -1,3 +1,12 @@
+
+# NOTE
+
+The pmd-next-gen official Git repository has been moved to: [pmd-next-gen](https://github.com/vmware/pmd-next-gen)
+Access to a clone of the repository is available as below:
+```bash
+git clone git@github.com:vmware/pmd-next-gen.git
+```
+
 ## photon-mgmtd
 
 
