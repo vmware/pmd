@@ -19,7 +19,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/viper v1.15.0
 	github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635
-	github.com/urfave/cli/v2 v2.25.1
+	github.com/urfave/cli/v2 v2.25.5
 	github.com/vishvananda/netlink v1.1.0
 	golang.org/x/sys v0.7.0
 )
