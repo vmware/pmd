@@ -8,14 +8,15 @@ import (
 	"context"
 	"encoding/binary"
 	"errors"
-	"io/ioutil"
+	"io"
 	"os"
 	"strings"
 	"unsafe"
 
+	"golang.org/x/sys/unix"
+
 	"github.com/shirou/gopsutil/v3/internal/common"
 	"github.com/shirou/gopsutil/v3/process"
-	"golang.org/x/sys/unix"
 )
 
 // from utmpx.h
@@ -58,7 +59,7 @@ func UsersWithContext(ctx context.Context) ([]UserStat, error) {
 	}
 	defer file.Close()
 
-	buf, err := ioutil.ReadAll(file)
+	buf, err := io.ReadAll(file)
 	if err != nil {
 		return ret, err
 	}
