@@ -9,7 +9,7 @@ jobs:
             DIST: photon
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
               with:
                   repository: 'vmware/tdnf'
             - name: build container
@@ -30,7 +30,7 @@ jobs:
         needs: photon-rpms
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
 
             - name: Download RPMs
               uses: actions/download-artifact@v3
