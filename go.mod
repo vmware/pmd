@@ -11,7 +11,7 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/nftables v0.1.0
 	github.com/gorilla/mux v1.8.0
-	github.com/jaypipes/ghw v0.10.0
+	github.com/jaypipes/ghw v0.12.0
 	github.com/linuxkit/virtsock v0.0.0-20220523201153-1a23e78aa7a2
 	github.com/pkg/errors v0.9.1
 	github.com/safchain/ethtool v0.3.0
