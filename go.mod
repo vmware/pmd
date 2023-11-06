@@ -15,7 +15,7 @@ require (
 	github.com/linuxkit/virtsock v0.0.0-20220523201153-1a23e78aa7a2
 	github.com/pkg/errors v0.9.1
 	github.com/safchain/ethtool v0.3.0
-	github.com/shirou/gopsutil/v3 v3.23.9
+	github.com/shirou/gopsutil/v3 v3.23.10
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.17.0
 	github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635
@@ -31,7 +31,7 @@ require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
-	github.com/google/go-cmp v0.5.9 // indirect
+	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jaypipes/pcidb v1.0.0 // indirect
 	github.com/josharian/native v0.0.0-20200817173448-b6b71def0850 // indirect
