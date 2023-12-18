@@ -21,7 +21,7 @@ jobs:
               run: |
                 docker run --rm -e DIST -v$(pwd):/build -w/build ${DIST}/tdnf-build ./ci/build-rpms.sh
             - name: upload RPMs
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4
               with:
                   name: tdnf-rpms
                   path: rpms
